@@ -10,7 +10,7 @@
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 <style>
-/* ===== 全局 ===== */
+/* ===== 全局样式 ===== */
 body {
   margin:0;
   font-family:'Segoe UI','Roboto',sans-serif;
@@ -18,11 +18,37 @@ body {
   color:#e0e0e0;
   line-height:1.7;
 }
-header {
-  background-color:#1e1e1e;
-  padding:20px;
-  text-align:center;
+
+/* 粒子背景 Canvas */
+#trailCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0; /* 背景 */
 }
+
+/* header 样式 */
+header {
+  position: relative;
+  z-index: 10; /* 高于粒子背景 */
+  text-align: center;
+  background: rgba(30,30,30,0.5); /* 半透明背景 */
+  padding: 20px;
+  border-radius: 8px;
+  margin: 10px;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #00bcd4;
+  text-shadow:
+    0 0 5px rgba(0, 188, 212, 0.7),
+    0 0 10px rgba(0, 188, 212, 0.5);
+  margin: 0 0 10px 0;
+}
+
+/* 导航样式 */
 nav ul {
   display:flex;
   justify-content:center;
@@ -32,18 +58,31 @@ nav ul {
   flex-wrap: wrap;
 }
 nav li { margin:5px 15px; }
-nav a { color:#e0e0e0; text-decoration:none; font-weight:bold; }
+nav a {
+  color:#e0e0e0;
+  text-decoration:none;
+  font-weight:bold;
+  text-shadow: 0 0 2px #000;
+}
 nav a:hover { color:#00bcd4; }
-main { padding:20px; max-width:900px; margin:auto; }
+
+/* 内容样式 */
+main {
+  position: relative;
+  z-index: 5; /* 高于粒子背景 */
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
 .chapter {
-  margin-bottom:40px;
-  padding:25px;
-  background-color:#1e1e1e;
-  border-radius:10px;
+  margin-bottom: 40px;
+  padding: 25px;
+  background-color: rgba(30,30,30,0.8); /* 半透明背景，使文字更清晰 */
+  border-radius: 10px;
 }
 .chapter h2 {
   color:#00bcd4;
-  border-bottom:2px solid #00bcd4;
+  border-bottom: 2px solid #00bcd4;
   padding-bottom:5px;
 }
 dl dt { font-weight:bold; margin-top:15px; font-size:1.1rem; }
@@ -58,21 +97,35 @@ pre {
   font-size:0.95rem;
 }
 em { color:#ff9800; font-style:normal; }
-footer { text-align:center; padding:20px; background:#1e1e1e; margin-top:40px; }
+
+footer {
+  position: relative;
+  z-index: 5;
+  text-align:center;
+  padding:20px;
+  background: rgba(30,30,30,0.5);
+  margin-top:40px;
+  border-radius: 8px;
+}
 </style>
 </head>
 <body>
+  <!-- 粒子背景 -->
+  <canvas id="trailCanvas"></canvas>
 
-<header>
-  <h1>强化学习学习笔记</h1>
-  <nav>
-    <ul>
-      <li><a href="#chapter0">环境 & GitHub</a></li>
-      <li><a href="#chapter1">基本概念</a></li>
-      <li><a href="#chapter2">MDP</a></li>
-    </ul>
-  </nav>
-</header>
+  <!-- 页面内容 -->
+  <header>
+    <h1>强化学习学习笔记</h1>
+    <nav>
+      <ul>
+        <li><a href="#chapter0">环境 & GitHub</a></li>
+        <li><a href="#chapter1">基本概念</a></li>
+        <li><a href="#chapter2">MDP & 贝尔曼方程</a></li>
+        <li><a href="#chapter3">贝尔曼最优方程</a></li>
+      </ul>
+    </nav>
+  </header>
+
 
 <main>
 <!-- 第零章 -->
@@ -137,39 +190,18 @@ git push -u origin main</code></pre>
 
 <!-- 第二章 -->
 <section id="chapter2" class="chapter">
-  <h2>第二章：马尔可夫决策过程（MDP）</h2>
-  <p>MDP 数学基础：</p>
-  <ul>
-    <li>状态集合 \(S\)，动作集合 \(A\)</li>
-    <li>状态转移概率 \(P(s'|s,a)\)</li>
-    <li>奖励函数 \(R(s,a)\)</li>
-    <li>折扣因子 \(\gamma\)</li>
-    <li>回报 \(G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}\)</li>
-  </ul>
-</section>
-<!-- 第二章 -->
-<section id="chapter2" class="chapter">
   <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
 
-  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中**策略评估的核心工具**。</p>
+  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。</p>
 
   <dl>
     <dt><b>状态价值函数（State Value Function）</b></dt>
     <dd>
       对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：
       <br>
-      <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <mi>V</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s</mi><mo>)</mo>
-        <mo>=</mo>
-        <mrow>
-          <msubsup><mo>∑</mo><mi>a</mi><mi>A</mi></msubsup>
-          <mi>π</mi><mo>(</mo><mi>a</mi><mo>|</mo><mi>s</mi><mo>)</mo>
-          <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
-          <mi>P</mi><mo>(</mo><mi>s'</mi>|<mi>s</mi>,<mi>a</mi><mo>)</mo>
-          <mo>[</mo><mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>) + γV^π(s')</mo><mo>]</mo>
-        </mrow>
-      </math>
-      <br>
+      <p>$$
+      V^\pi(s) = \sum_{a \in A} \pi(a|s) \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^\pi(s') \big]
+      $$</p>
       说明：当前状态价值 = 即时奖励 + 折扣后的未来价值期望。
     </dd>
 
@@ -177,17 +209,9 @@ git push -u origin main</code></pre>
     <dd>
       对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：
       <br>
-      <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <mi>Q</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
-        <mo>=</mo>
-        <mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
-        <mo>+</mo>
-        <mi>γ</mi>
-        <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
-        <msubsup><mo>∑</mo><mi>a'</mi><mi>A</mi></msubsup>
-        <mi>π</mi><mo>(</mo><mi>a'</mi>|<mi>s'</mi><mo>)</mo>
-        <mi>Q</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s'</mi>,<mi>a'</mi><mo>)</mo>
-      </math>
+      <p>$$
+      Q^\pi(s,a) = R(s,a) + \gamma \sum_{s' \in S} \sum_{a' \in A} \pi(a'|s') Q^\pi(s',a')
+      $$</p>
     </dd>
   </dl>
 
@@ -198,35 +222,21 @@ git push -u origin main</code></pre>
 <section id="chapter3" class="chapter">
   <h2>第三章：贝尔曼最优方程（Bellman Optimality Equation）</h2>
 
-  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足**贝尔曼最优方程**，体现最优性原则。</p>
+  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足<strong>贝尔曼最优方程</strong>，体现最优性原则。</p>
 
   <dl>
     <dt><b>最优状态价值函数</b></dt>
     <dd>
-      <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <mi>V</mi><mo>*</mo><mo>(</mo><mi>s</mi><mo>)</mo>
-        <mo>=</mo>
-        <max_{a \in A} 
-        <mrow>
-          <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
-          <mi>P</mi><mo>(</mo><mi>s'</mi>|<mi>s</mi>,<mi>a</mi><mo>)</mo>
-          <mo>[</mo><mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>) + γV*(s')</mo><mo>]</mo>
-        </mrow>
-        </max_{a \in A}>
-      </math>
+      <p>$$
+      V^*(s) = \max_{a \in A} \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^*(s') \big]
+      $$</p>
     </dd>
 
     <dt><b>最优状态-动作价值函数</b></dt>
     <dd>
-      <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <mi>Q</mi><mo>*</mo><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
-        <mo>=</mo>
-        <mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
-        <mo>+</mo>
-        <mi>γ</mi>
-        <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
-        <max_{a' \in A} <mi>Q</mi>*<mo>(</mo><mi>s'</mi>,<mi>a'</mi><mo>)</mo>
-      </math>
+      <p>$$
+      Q^*(s,a) = R(s,a) + \gamma \sum_{s' \in S} \max_{a' \in A} Q^*(s',a')
+      $$</p>
     </dd>
   </dl>
 
@@ -235,25 +245,74 @@ git push -u origin main</code></pre>
     <li>第二章贝尔曼方程：给定策略 π → 计算 V^π 或 Q^π</li>
     <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
   </ul>
-
-  <p><strong>交互流程示意：</strong></p>
-  <pre>
-S_t (状态)
-  │
-  ▼
-选择动作 A_t (策略 π)
-  │
-  ▼
-环境返回 S_{t+1}, R_t
-  │
-  └─> 更新价值函数 V(s) / Q(s,a)
-  </pre>
 </section>
-
 </main>
+
 <footer>
-  <p>© 2025 唐浩云 | Reinforcement Learning Journey</p>
-</footer>
+    <p>© 2025 唐浩云 | Reinforcement Learning Journey</p>
+  </footer>
+
+ <script>
+// ===== 粒子拖尾效果 =====
+const canvas = document.getElementById('trailCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+const maxParticles = 200;
+const mouse = { x: canvas.width/2, y: canvas.height/2 };
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+// 粒子类
+class Particle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = Math.random()*4+1;
+    this.speedX = (Math.random()-0.5)*2;
+    this.speedY = (Math.random()-0.5)*2;
+    this.color = `hsl(${Math.random()*360}, 100%, 80%)`;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.size *= 0.95;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+}
+
+function animate() {
+  ctx.fillStyle = 'rgba(18,18,18,0.02)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  particles.push(new Particle(mouse.x, mouse.y));
+  if(particles.length>maxParticles) particles.shift();
+
+  for(let p of particles){
+    p.update();
+    p.draw();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
 
 </body>
 </html>
