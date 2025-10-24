@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>唐浩云的强化学习学习记录</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background-color: #f9fafb; }
+    .section { padding-top: 3rem; padding-bottom: 3rem; }
+  </style>
+</head>
+
+<body class="text-gray-800 font-sans leading-relaxed">
+  <!-- Header -->
+  <header class="bg-blue-600 text-white py-6 shadow-lg">
+    <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">RL-Learning Journey</h1>
+      <nav>
+        <a href="#about" class="px-3 hover:text-gray-200">关于我</a>
+        <a href="#env" class="px-3 hover:text-gray-200">环境配置</a>
+        <a href="#github" class="px-3 hover:text-gray-200">GitHub 项目管理</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- About -->
+  <section id="about" class="section max-w-5xl mx-auto px-6">
+    <h2 class="text-3xl font-semibold mb-4 text-blue-700">关于我</h2>
+    <p class="text-lg leading-relaxed">
+      大家好，我是 <strong>唐浩云</strong>，现就读于新疆大学数学与系统科学学院数学与应用数学专业。
+      我热爱数学与人工智能，目前正专注于 <strong>多智能体强化学习（MADRL）</strong> 的理论与实践研究。
+      这个网站将记录我在强化学习领域的学习笔记、实验过程与思考。
+    </p>
+  </section>
+
+  <!-- Environment Setup -->
+  <section id="env" class="section bg-white shadow-md rounded-2xl max-w-5xl mx-auto px-6">
+    <h2 class="text-3xl font-semibold mb-4 text-blue-700">一、环境配置</h2>
+    <p>我在本地环境中配置了独立的虚拟环境，用于强化学习项目开发，主要步骤如下：</p>
+    <ol class="list-decimal ml-6 mt-4 space-y-2">
+      <li>添加清华镜像源：
+        <pre class="bg-gray-100 p-2 rounded">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main</pre>
+      </li>
+      <li>配置 Pip 镜像源：
+        <pre class="bg-gray-100 p-2 rounded">pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</pre>
+      </li>
+      <li>创建虚拟环境：
+        <pre class="bg-gray-100 p-2 rounded">conda create --prefix .\.venv python=3.11</pre>
+      </li>
+      <li>激活虚拟环境：
+        <pre class="bg-gray-100 p-2 rounded">conda activate G:\RL-Learning\.venv</pre>
+      </li>
+      <li>安装常用包：
+        <pre class="bg-gray-100 p-2 rounded">conda install numpy pandas matplotlib scikit-learn jupyterlab</pre>
+      </li>
+      <li>安装 GPU 支持的 PyTorch：
+        <pre class="bg-gray-100 p-2 rounded">conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia</pre>
+      </li>
+    </ol>
+  </section>
+
+  <!-- GitHub Section -->
+  <section id="github" class="section max-w-5xl mx-auto px-6">
+    <h2 class="text-3xl font-semibold mb-4 text-blue-700">二、GitHub 项目管理</h2>
+    <p>每个强化学习项目完成后，我会上传到 GitHub 进行统一管理，步骤如下：</p>
+    <ol class="list-decimal ml-6 mt-4 space-y-2">
+      <li>创建 <code>.gitignore</code> 文件，排除不上传的目录（如 <code>.idea/</code>、<code>.venv/</code>）。</li>
+      <li>在 GitHub 创建新仓库，并复制仓库链接。</li>
+      <li>在项目目录下执行以下命令：
+        <pre class="bg-gray-100 p-2 rounded">
+git init
+git checkout -b main
+git remote add origin https://github.com/HaoyunT/RL-Learning.git
+git add .
+git commit -m "首次上传强化学习项目"
+git push -u origin main
+        </pre>
+      </li>
+      <li>前往 GitHub 页面，即可看到所有代码与文件展示。</li>
+    </ol>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-blue-600 text-white py-4 mt-12">
+    <div class="max-w-5xl mx-auto px-6 text-center text-sm">
+      © 2025 唐浩云 | 强化学习学习记录站 | GitHub Pages 驱动
+    </div>
+  </footer>
+</body>
+</html>
