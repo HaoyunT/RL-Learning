@@ -147,6 +147,108 @@ git push -u origin main</code></pre>
     <li>回报 \(G_t = \sum_{k=0}^{\infty} \gamma^k r_{t+k}\)</li>
   </ul>
 </section>
+<!-- 第二章 -->
+<section id="chapter2" class="chapter">
+  <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
+
+  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中**策略评估的核心工具**。</p>
+
+  <dl>
+    <dt><b>状态价值函数（State Value Function）</b></dt>
+    <dd>
+      对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：
+      <br>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mi>V</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s</mi><mo>)</mo>
+        <mo>=</mo>
+        <mrow>
+          <msubsup><mo>∑</mo><mi>a</mi><mi>A</mi></msubsup>
+          <mi>π</mi><mo>(</mo><mi>a</mi><mo>|</mo><mi>s</mi><mo>)</mo>
+          <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
+          <mi>P</mi><mo>(</mo><mi>s'</mi>|<mi>s</mi>,<mi>a</mi><mo>)</mo>
+          <mo>[</mo><mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>) + γV^π(s')</mo><mo>]</mo>
+        </mrow>
+      </math>
+      <br>
+      说明：当前状态价值 = 即时奖励 + 折扣后的未来价值期望。
+    </dd>
+
+    <dt><b>状态-动作价值函数（Action-Value Function）</b></dt>
+    <dd>
+      对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：
+      <br>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mi>Q</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
+        <mo>=</mo>
+        <mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
+        <mo>+</mo>
+        <mi>γ</mi>
+        <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
+        <msubsup><mo>∑</mo><mi>a'</mi><mi>A</mi></msubsup>
+        <mi>π</mi><mo>(</mo><mi>a'</mi>|<mi>s'</mi><mo>)</mo>
+        <mi>Q</mi><mo>^</mo><mi>π</mi><mo>(</mo><mi>s'</mi>,<mi>a'</mi><mo>)</mo>
+      </math>
+    </dd>
+  </dl>
+
+  <p><strong>用途：</strong>策略评估、策略迭代、价值迭代的理论基础。</p>
+</section>
+
+<!-- 第三章 -->
+<section id="chapter3" class="chapter">
+  <h2>第三章：贝尔曼最优方程（Bellman Optimality Equation）</h2>
+
+  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足**贝尔曼最优方程**，体现最优性原则。</p>
+
+  <dl>
+    <dt><b>最优状态价值函数</b></dt>
+    <dd>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mi>V</mi><mo>*</mo><mo>(</mo><mi>s</mi><mo>)</mo>
+        <mo>=</mo>
+        <max_{a \in A} 
+        <mrow>
+          <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
+          <mi>P</mi><mo>(</mo><mi>s'</mi>|<mi>s</mi>,<mi>a</mi><mo>)</mo>
+          <mo>[</mo><mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>) + γV*(s')</mo><mo>]</mo>
+        </mrow>
+        </max_{a \in A}>
+      </math>
+    </dd>
+
+    <dt><b>最优状态-动作价值函数</b></dt>
+    <dd>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mi>Q</mi><mo>*</mo><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
+        <mo>=</mo>
+        <mi>R</mi><mo>(</mo><mi>s</mi>,<mi>a</mi><mo>)</mo>
+        <mo>+</mo>
+        <mi>γ</mi>
+        <msubsup><mo>∑</mo><mi>s'</mi><mi>S</mi></msubsup>
+        <max_{a' \in A} <mi>Q</mi>*<mo>(</mo><mi>s'</mi>,<mi>a'</mi><mo>)</mo>
+      </math>
+    </dd>
+  </dl>
+
+  <p><strong>关系总结：</strong></p>
+  <ul>
+    <li>第二章贝尔曼方程：给定策略 π → 计算 V^π 或 Q^π</li>
+    <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
+  </ul>
+
+  <p><strong>交互流程示意：</strong></p>
+  <pre>
+S_t (状态)
+  │
+  ▼
+选择动作 A_t (策略 π)
+  │
+  ▼
+环境返回 S_{t+1}, R_t
+  │
+  └─> 更新价值函数 V(s) / Q(s,a)
+  </pre>
+</section>
 
 </main>
 <footer>
