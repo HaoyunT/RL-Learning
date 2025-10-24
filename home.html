@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RL-Learning Journal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="main-page">
+  <header>
+    <nav>
+      <h2>RL-Learning Journal</h2>
+      <ul>
+        <li><a href="#env">环境配置</a></li>
+        <li><a href="#github">GitHub 项目</a></li>
+        <li><a href="#study">学习记录</a></li>
+        <li><a href="#about">关于我</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="env" class="card">
+      <h3>环境配置</h3>
+      <p>我使用 <b>Anaconda + PyTorch + Gym + CUDA</b> 搭建强化学习环境。  
+      常用命令包括：环境创建、依赖安装、虚拟环境激活等。</p>
+      <pre><code>conda create -n rl python=3.9
+conda activate rl
+pip install torch gym matplotlib numpy</code></pre>
+    </section>
+
+    <section id="github" class="card">
+      <h3>GitHub 项目</h3>
+      <p>我的强化学习项目托管在 <a href="https://github.com/HaoyunT/RL-Learning" target="_blank">GitHub 仓库</a>，包括 DDQN、MADDPG、MARL 环境复现与改进。</p>
+      <pre><code>git init
+git add .
+git commit -m "Init RL Journal"
+git remote add origin https://github.com/HaoyunT/RL-Learning.git
+git push -u origin main</code></pre>
+    </section>
+
+    <section id="study" class="card">
+      <h3>学习记录</h3>
+      <p>当前阶段我专注于多智能体强化学习（MADRL），主要探索奖励分解、联合策略与共享网络的优化方法。</p>
+    </section>
+
+    <section id="about" class="card">
+      <h3>关于我</h3>
+      <p>你好，我是 <b>唐浩云</b>，目前就读于新疆大学数学与系统科学学院数学与应用数学专业。  
+      热爱强化学习、数学建模与智能控制，目前在研究 MADRL 与神经网络控制问题。</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Haoyun Tang | Reinforcement Learning Journey</p>
+  </footer>
+</body>
+</html>

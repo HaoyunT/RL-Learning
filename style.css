@@ -1,0 +1,112 @@
+/* 通用样式 */
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #0f1117;
+  color: #ddd;
+  overflow-x: hidden;
+}
+
+/* 封面页 */
+.cover-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+#particleCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cover-content {
+  text-align: center;
+  z-index: 2;
+}
+
+.cover-content h1 {
+  font-size: 3em;
+  color: #00ffc3;
+  text-shadow: 0 0 20px #00ffc3;
+}
+
+.cover-content p {
+  font-size: 1.2em;
+  margin-bottom: 40px;
+}
+
+.enter-btn {
+  background: linear-gradient(90deg, #00ffc3, #007bff);
+  padding: 15px 30px;
+  border-radius: 30px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.enter-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px #00ffc3;
+}
+
+/* 主页面导航栏 */
+header {
+  background: #16181f;
+  padding: 20px;
+  position: sticky;
+  top: 0;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}
+
+nav a {
+  color: #ddd;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+nav a:hover {
+  color: #00ffc3;
+}
+
+/* 内容卡片 */
+.card {
+  background: #1a1c25;
+  margin: 40px auto;
+  padding: 30px;
+  max-width: 900px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 195, 0.2);
+}
+
+pre {
+  background: #111;
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+/* 底部 */
+footer {
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid #222;
+  color: #666;
+}
