@@ -1,58 +1,140 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RL-Learning Journal</title>
+  <title>强化学习学习笔记</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body { margin:0; font-family: 'Segoe UI', sans-serif; background-color:#121212; color:#e0e0e0; }
+    header { background-color:#1e1e1e; padding:20px; text-align:center; }
+    nav ul { display:flex; justify-content:center; list-style:none; padding:0; margin:0; }
+    nav li { margin:0 15px; }
+    nav a { color:#e0e0e0; text-decoration:none; font-weight:bold; }
+    nav a:hover { color:#00bcd4; }
+    main { padding:20px; max-width:900px; margin:auto; }
+    .chapter { margin-bottom:40px; padding:20px; background-color:#1e1e1e; border-radius:10px; }
+    .chapter h2 { color:#00bcd4; }
+    pre { background:#2a2a2a; padding:10px; border-radius:5px; overflow-x:auto; }
+    footer { text-align:center; padding:20px; background:#1e1e1e; margin-top:40px; }
+  </style>
 </head>
-<body class="main-page">
+<body>
   <header>
+    <h1>强化学习学习笔记</h1>
     <nav>
-      <h2>RL-Learning Journal</h2>
       <ul>
-        <li><a href="#env">环境配置</a></li>
-        <li><a href="#github">GitHub 项目</a></li>
-        <li><a href="#study">学习记录</a></li>
-        <li><a href="#about">关于我</a></li>
+        <li><a href="#chapter0">环境 & GitHub</a></li>
+        <li><a href="#chapter1">基本概念</a></li>
+        <li><a href="#chapter2">MDP</a></li>
+        <li><a href="#chapter3">算法基础</a></li>
+        <li><a href="#chapter4">实践</a></li>
+        <li><a href="#chapter5">深度强化学习</a></li>
+        <li><a href="#chapter6">高级算法</a></li>
+        <li><a href="#chapter7">实践项目</a></li>
+        <li><a href="#chapter8">经典文献精读</a></li>
       </ul>
     </nav>
   </header>
 
   <main>
-    <section id="env" class="card">
-      <h3>环境配置</h3>
-      <p>我使用 <b>Anaconda + PyTorch + Gym + CUDA</b> 搭建强化学习环境。  
-      常用命令包括：环境创建、依赖安装、虚拟环境激活等。</p>
-      <pre><code>conda create -n rl python=3.9
-conda activate rl
-pip install torch gym matplotlib numpy</code></pre>
-    </section>
-
-    <section id="github" class="card">
-      <h3>GitHub 项目</h3>
-      <p>我的强化学习项目托管在 <a href="https://github.com/HaoyunT/RL-Learning" target="_blank">GitHub 仓库</a>，包括 DDQN、MADDPG、MARL 环境复现与改进。</p>
+    <!-- 第零章 -->
+    <section id="chapter0" class="chapter">
+      <h2>第零章：环境配置 & GitHub 项目上传</h2>
+      <p>首先创建项目文件夹，例如 G:\test，然后用管理员身份打开 Anaconda Prompt，配置清华镜像源：</p>
+      <pre><code>conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+conda config --set show_channel_urls yes</code></pre>
+      <p>配置 pip 镜像：</p>
+      <pre><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</code></pre>
+      <p>创建虚拟环境并安装核心包：</p>
+      <pre><code>cd /d G:\test
+conda create --prefix .\.venv python=3.11
+conda activate G:\test\.venv
+conda install numpy pandas matplotlib scikit-learn jupyterlab
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia</code></pre>
+      <p>上传到 GitHub：</p>
       <pre><code>git init
+git remote add origin https://github.com/HaoyunT/test.git
+git checkout -b main
 git add .
-git commit -m "Init RL Journal"
-git remote add origin https://github.com/HaoyunT/RL-Learning.git
+git commit -m "初始化项目"
 git push -u origin main</code></pre>
     </section>
 
-    <section id="study" class="card">
-      <h3>学习记录</h3>
-      <p>当前阶段我专注于多智能体强化学习（MADRL），主要探索奖励分解、联合策略与共享网络的优化方法。</p>
+    <!-- 第一章 -->
+    <section id="chapter1" class="chapter">
+      <h2>第一章：强化学习基本概念</h2>
+      <p>强化学习中的核心概念包括：</p>
+      <ul>
+        <li><b>智能体（Agent）</b>：做出动作的主体</li>
+        <li><b>环境（Environment）</b>：智能体交互的世界</li>
+        <li><b>状态（State）</b>：环境的描述</li>
+        <li><b>动作（Action）</b>：智能体可采取的行为</li>
+        <li><b>奖励（Reward）</b>：动作带来的反馈信号</li>
+        <li><b>策略（Policy）</b>：智能体选择动作的方式</li>
+        <li><b>价值函数（Value Function）</b>：评估某状态或状态-动作对的长期收益</li>
+      </ul>
     </section>
 
-    <section id="about" class="card">
-      <h3>关于我</h3>
-      <p>你好，我是 <b>唐浩云</b>，目前就读于新疆大学数学与系统科学学院数学与应用数学专业。  
-      热爱强化学习、数学建模与智能控制，目前在研究 MADRL 与神经网络控制问题。</p>
+    <!-- 第二章 -->
+    <section id="chapter2" class="chapter">
+      <h2>第二章：马尔可夫决策过程（MDP）</h2>
+      <p>MDP 是强化学习的数学基础，包括：</p>
+      <ul>
+        <li>状态集合 S，动作集合 A</li>
+        <li>状态转移概率 P(s'|s,a)</li>
+        <li>奖励函数 R(s,a)</li>
+        <li>折扣因子 γ</li>
+        <li>回报（Return） G_t = Σ γ^k r_{t+k}</li>
+      </ul>
+    </section>
+
+    <!-- 第三章 -->
+    <section id="chapter3" class="chapter">
+      <h2>第三章：算法基础</h2>
+      <p>主要方法：</p>
+      <ul>
+        <li>价值迭代与策略迭代</li>
+        <li>蒙特卡洛方法（MC）</li>
+        <li>时间差分学习（TD）：SARSA、Q-learning</li>
+      </ul>
+    </section>
+
+    <!-- 第四章 -->
+    <section id="chapter4" class="chapter">
+      <h2>第四章：实践（Gym 实现）</h2>
+      <p>使用 Python Gym 库实现上述算法，进行实验与可视化。</p>
+    </section>
+
+    <!-- 第五章 -->
+    <section id="chapter5" class="chapter">
+      <h2>第五章：深度强化学习</h2>
+      <p>深度强化学习方法包括 DQN 及其变体，策略梯度方法（REINFORCE、Actor-Critic、A2C、A3C）。</p>
+    </section>
+
+    <!-- 第六章 -->
+    <section id="chapter6" class="chapter">
+      <h2>第六章：高级算法</h2>
+      <p>高级 RL 算法：TRPO、PPO 等。</p>
+    </section>
+
+    <!-- 第七章 -->
+    <section id="chapter7" class="chapter">
+      <h2>第七章：实践项目 & 比赛</h2>
+      <p>在模拟环境中实现算法，参与 OpenAI Gym 等在线排行榜比赛。</p>
+    </section>
+
+    <!-- 第八章 -->
+    <section id="chapter8" class="chapter">
+      <h2>第八章：经典文献精读</h2>
+      <p>精读 Sutton & Barto 的书籍，复现经典论文（如 DQN、PPO），完成习题并进行项目实践。</p>
     </section>
   </main>
 
   <footer>
-    <p>© 2025 Haoyun Tang | Reinforcement Learning Journey</p>
+    <p>© 2025 唐浩云 | Reinforcement Learning Journey</p>
   </footer>
 </body>
 </html>
