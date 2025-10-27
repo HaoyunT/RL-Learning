@@ -1,417 +1,276 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async
- src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>强化学习学习笔记</title>
-<!-- MathJax -->
+<title>强化学习学习笔记 | 唐浩云</title>
+
+<!-- 数学公式渲染 -->
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
+ src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- Prism.js 代码高亮 -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
 <style>
 /* ===== 全局样式 ===== */
 body {
-  margin:0;
-  font-family:'Segoe UI','Roboto',sans-serif;
-  background-color:#121212;
-  color:#e0e0e0;
-  line-height:1.7;
+  margin: 0;
+  font-family: "Segoe UI", "Roboto", sans-serif;
+  background-color: #0d0d0d;
+  color: #e0e0e0;
+  line-height: 1.7;
+  scroll-behavior: smooth;
 }
 
-/* 粒子背景 Canvas */
+/* 背景粒子 */
 #trailCanvas {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
   pointer-events: none;
-  z-index: 0; /* 背景 */
 }
 
-/* header 样式 */
+/* Header */
 header {
-  position: relative;
-  z-index: 10; /* 高于粒子背景 */
+  position: sticky;
+  top: 0;
+  z-index: 10;
   text-align: center;
-  background: rgba(30,30,30,0.5); /* 半透明背景 */
+  background: rgba(20, 20, 20, 0.8);
   padding: 20px;
-  border-radius: 8px;
-  margin: 10px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
-
 header h1 {
-  font-size: 2.5rem;
+  font-size: 2.4rem;
   color: #00bcd4;
-  text-shadow:
-    0 0 5px rgba(0, 188, 212, 0.7),
-    0 0 10px rgba(0, 188, 212, 0.5);
-  margin: 0 0 10px 0;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0,188,212,0.6);
 }
 
-/* 导航样式 */
+/* 导航栏 */
 nav ul {
-  display:flex;
-  justify-content:center;
-  list-style:none;
-  padding:0;
-  margin:0;
+  list-style: none;
+  display: flex;
+  justify-content: center;
   flex-wrap: wrap;
+  padding: 0;
+  margin: 10px 0 0;
 }
-nav li { margin:5px 15px; }
+nav li { margin: 5px 15px; }
 nav a {
-  color:#e0e0e0;
-  text-decoration:none;
-  font-weight:bold;
-  text-shadow: 0 0 2px #000;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
 }
-nav a:hover { color:#00bcd4; }
+nav a:hover, nav a.active { color: #00bcd4; text-shadow: 0 0 5px #00bcd4; }
 
-/* 内容样式 */
+/* 内容区 */
 main {
   position: relative;
-  z-index: 5; /* 高于粒子背景 */
-  padding: 20px;
+  z-index: 5;
   max-width: 900px;
-  margin: auto;
+  margin: 20px auto;
+  padding: 20px;
 }
 .chapter {
-  margin-bottom: 40px;
+  background: rgba(30,30,30,0.85);
+  border-radius: 12px;
   padding: 25px;
-  background-color: rgba(30,30,30,0.8); /* 半透明背景，使文字更清晰 */
-  border-radius: 10px;
+  margin-bottom: 40px;
+  box-shadow: 0 0 20px rgba(0,188,212,0.1);
+  transition: transform 0.2s;
 }
+.chapter:hover { transform: translateY(-3px); }
 .chapter h2 {
-  color:#00bcd4;
+  color: #00bcd4;
   border-bottom: 2px solid #00bcd4;
-  padding-bottom:5px;
+  padding-bottom: 6px;
 }
-dl dt { font-weight:bold; margin-top:15px; font-size:1.1rem; }
-dl dd { margin-left:20px; margin-bottom:10px; color:#cfcfcf; }
-dl dd ul { margin-left:20px; }
 pre {
-  background:#2a2a2a;
-  padding:15px;
-  border-radius:8px;
-  overflow-x:auto;
-  font-family:'Fira Code', monospace;
-  font-size:0.95rem;
-}
-em { color:#ff9800; font-style:normal; }
-
-footer {
-  position: relative;
-  z-index: 5;
-  text-align:center;
-  padding:20px;
-  background: rgba(30,30,30,0.5);
-  margin-top:40px;
+  background: #1e1e1e;
+  padding: 15px;
   border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.95rem;
+}
+
+/* 表格优化 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+table th, table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+table th {
+  background: rgba(0,188,212,0.2);
+  color: #00e5ff;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 15px;
+  margin: 40px 0 10px;
+  font-size: 0.9rem;
+  color: #aaa;
+  background: rgba(20,20,20,0.7);
+  border-radius: 8px;
+}
+footer span {
+  color: #00bcd4;
+  animation: glow 2s infinite alternate;
+}
+@keyframes glow {
+  from { text-shadow: 0 0 5px #00bcd4; }
+  to { text-shadow: 0 0 15px #00bcd4; }
 }
 </style>
 </head>
+
 <body>
-  <!-- 粒子背景 -->
-  <canvas id="trailCanvas"></canvas>
+<canvas id="trailCanvas"></canvas>
 
-  <!-- 页面内容 -->
-  <header>
-    <h1>强化学习学习笔记</h1>
-    <nav>
-      <ul>
-        <li><a href="#chapter0">环境 & GitHub</a></li>
-        <li><a href="#chapter1">基本概念</a></li>
-        <li><a href="#chapter2">MDP & 贝尔曼方程</a></li>
-        <li><a href="#chapter3">贝尔曼最优方程</a></li>
-        <li><a href="#chapter4">策略迭代</a></li>
-        <li><a href="#chapter5">值迭代</a></li>
-        <li><a href="#chapterX">策略迭代与值迭代的对比</a></li>
-      </ul>
-    </nav>
-  </header>
-
+<header>
+  <h1>强化学习学习笔记</h1>
+  <nav>
+    <ul>
+      <li><a href="#chapter0">环境配置</a></li>
+      <li><a href="#chapter1">基本概念</a></li>
+      <li><a href="#chapter2">贝尔曼方程</a></li>
+      <li><a href="#chapter3">贝尔曼最优方程</a></li>
+      <li><a href="#chapter4">策略迭代</a></li>
+      <li><a href="#chapter5">值迭代</a></li>
+      <li><a href="#chapter6">蒙特卡洛方法</a></li>
+    </ul>
+  </nav>
+</header>
 
 <main>
-<!-- 第零章 -->
-<section id="chapter0" class="chapter">
-  <h2>第零章：环境配置 & GitHub 项目上传</h2>
-  <p>创建项目文件夹，如 G:\test，然后配置 Anaconda 清华镜像：</p>
-  <pre><code>conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
-conda config --set show_channel_urls yes</code></pre>
-  <p>配置 pip 镜像：</p>
-  <pre><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</code></pre>
-  <p>创建虚拟环境并安装核心包：</p>
-  <pre><code>cd /d G:\test
+  <section id="chapter0" class="chapter">
+    <h2>第零章：环境配置 & GitHub 项目上传</h2>
+    <pre><code class="language-bash"># 配置镜像源
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+conda config --set show_channel_urls yes
+
+# 创建虚拟环境
+cd /d G:\test
 conda create --prefix .\.venv python=3.11
 conda activate G:\test\.venv
-conda install numpy pandas matplotlib scikit-learn jupyterlab
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia</code></pre>
-  <p>上传到 GitHub：</p>
-  <pre><code>git init
+
+# 安装依赖
+conda install numpy pandas matplotlib pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# 上传到 GitHub
+git init
 git remote add origin https://github.com/HaoyunT/test.git
 git checkout -b main
 git add .
 git commit -m "初始化项目"
 git push -u origin main</code></pre>
-</section>
+  </section>
 
-<!-- 第一章 -->
-<section id="chapter1" class="chapter">
-  <h2>第一章：强化学习基本概念</h2>
-  <p>强化学习（Reinforcement Learning, RL）核心概念：</p>
-  <dl>
-    <dt>智能体（Agent）</dt>
-    <dd>决策执行主体。在每个时间步 \(t\) 观察状态 \(S_t\)，选择动作 \(A_t\)，并通过奖励信号调整策略。<br><em>示例：</em>游戏中的玩家角色。</dd>
+  <!-- 这里省略前5章，你已有内容可直接粘贴 -->
+  <!-- 以下是第6章：蒙特卡洛方法 -->
+  <section id="chapter6" class="chapter">
+    <h2>第六章：蒙特卡洛方法（Monte Carlo Methods）</h2>
 
-    <dt>环境（Environment）</dt>
-    <dd>智能体交互对象，定义状态空间、动作空间和状态转移规则。动作后返回状态 \(S_{t+1}\) 和奖励 \(R_t\)。<br><em>示例：</em>游戏关卡或物理模拟器。</dd>
+    <p>蒙特卡洛方法（MC）是一类基于<strong>采样</strong>的策略评估与控制算法，无需环境模型。</p>
 
-    <dt>状态（State）</dt>
-    <dd>描述环境在某一时刻的特征，满足马尔可夫性质。<br><em>示例：</em>角色位置、敌人位置。</dd>
+    <h3>1. 基本思想</h3>
+    <p>通过采样回合 \((S_0, A_0, R_1, \dots, S_T)\)，计算每个时间步的回报：</p>
+    <p>$$
+    G_t = R_{t+1} + \gamma R_{t+2} + \cdots = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}
+    $$</p>
 
-    <dt>动作（Action）</dt>
-    <dd>智能体可执行的操作，改变环境状态。<br><em>示例：</em>左右移动、跳跃。</dd>
+    <h3>2. 状态价值估计</h3>
+    <p>$$
+    V(s) = \mathbb{E}_\pi[G_t | S_t=s] \approx \frac{1}{N(s)} \sum_i G^{(i)}(s)
+    $$</p>
 
-    <dt>奖励（Reward）</dt>
-    <dd>环境对动作的反馈，用于衡量优劣。强化学习目标最大化累计奖励：
-      <br>\(G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}\)
-    </dd>
+    <h3>3. 蒙特卡洛策略评估算法</h3>
+    <pre><code class="language-python"># 给定策略 π，评估其状态价值函数 V(s)
+V, Returns = {}, {}
+for episode in range(num_episodes):
+    episode_data = generate_episode(policy)
+    G = 0
+    for (s, a, r) in reversed(episode_data):
+        G = γ * G + r
+        if s not in [x[0] for x in episode_data[:-1]]:
+            Returns.setdefault(s, []).append(G)
+            V[s] = np.mean(Returns[s])</code></pre>
 
-    <dt>策略（Policy）</dt>
-    <dd>选择动作的规则，\(\pi(a|s)\) 或 \(a = \pi(s)\)。目标是找到最优策略 \(\pi^*\)。</dd>
-
-    <dt>价值函数（Value Function）</dt>
-    <dd>衡量状态或状态-动作对的长期回报：
-      <ul>
-        <li>状态价值：\(V^\pi(s) = \mathbb{E}[G_t | S_t=s]\)</li>
-        <li>动作价值：\(Q^\pi(s,a) = \mathbb{E}[G_t | S_t=s, A_t=a]\)</li>
-      </ul>
-    </dd>
-  </dl>
-</section>
-
-<!-- 第二章 -->
-<section id="chapter2" class="chapter">
-  <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
-
-  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。</p>
-
-  <dl>
-    <dt><b>状态价值函数（State Value Function）</b></dt>
-    <dd>
-      对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：
-      <br>
-      <p>$$
-      V^\pi(s) = \sum_{a \in A} \pi(a|s) \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^\pi(s') \big]
-      $$</p>
-      说明：当前状态价值 = 即时奖励 + 折扣后的未来价值期望。
-    </dd>
-
-    <dt><b>状态-动作价值函数（Action-Value Function）</b></dt>
-    <dd>
-      对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：
-      <br>
-      <p>$$
-      Q^\pi(s,a) = R(s,a) + \gamma \sum_{s' \in S} \sum_{a' \in A} \pi(a'|s') Q^\pi(s',a')
-      $$</p>
-    </dd>
-  </dl>
-
-  <p><strong>用途：</strong>策略评估、策略迭代、价值迭代的理论基础。</p>
-</section>
-
-<!-- 第三章 -->
-<section id="chapter3" class="chapter">
-  <h2>第三章：贝尔曼最优方程（Bellman Optimality Equation）</h2>
-
-  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足<strong>贝尔曼最优方程</strong>，体现最优性原则。</p>
-
-  <dl>
-    <dt><b>最优状态价值函数</b></dt>
-    <dd>
-      <p>$$
-      V^*(s) = \max_{a \in A} \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^*(s') \big]
-      $$</p>
-    </dd>
-
-    <dt><b>最优状态-动作价值函数</b></dt>
-    <dd>
-      <p>$$
-      Q^*(s,a) = R(s,a) + \gamma \sum_{s' \in S} \max_{a' \in A} Q^*(s',a')
-      $$</p>
-    </dd>
-  </dl>
-
-  <p><strong>关系总结：</strong></p>
-  <ul>
-    <li>第二章贝尔曼方程：给定策略 π → 计算 V^π 或 Q^π</li>
-    <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
-  </ul>
-</section>
-
-<!-- 第四章 -->
-<section id="chapter4" class="chapter">
-  <h2>第四章：策略迭代（Policy Iteration）</h2>
-
-  <p>策略迭代通过交替进行策略评估和策略改进来收敛到最优策略。</p>
-
-  <ol>
-    <li><strong>初始化策略：</strong>选择初始策略 <code>π_0</code></li>
-    <li><strong>策略评估：</strong>计算状态价值函数：
-      <p>$$
-      v_{\pi_k} = r_{\pi_k} + \gamma P_{\pi_k} v_{\pi_k}
-      $$</p>
-    </li>
-    <li><strong>策略改进：</strong>更新策略：
-      <p>$$
-      \pi_{k+1} = \arg\max_\pi (r_\pi + \gamma P_\pi v_{\pi_k})
-      $$</p>
-    </li>
-    <li>重复评估和改进，直到策略收敛。</li>
-  </ol>
-</section>
-
-<!-- 第五章 -->
-<section id="chapter5" class="chapter">
-  <h2>第五章：值迭代（Value Iteration）</h2>
-
-  <p>值迭代直接迭代状态价值函数，通过贝尔曼最优方程收敛到最优值函数，然后导出最优策略。</p>
-
-  <ol>
-    <li><strong>初始化价值函数：</strong>选择初始值 <code>v_0</code></li>
-    <li><strong>迭代更新：</strong>使用贝尔曼最优方程：
-      <p>$$
-      v_{k+1} = \max_\pi (r_\pi + \gamma P_\pi v_k)
-      $$</p>
-    </li>
-    <li><strong>策略导出：</strong>收敛后选择最优动作：
-      <p>$$
-      \pi^*(s) = \arg\max_a \sum_{s'} P(s'|s,a) \big[R(s,a) + \gamma v^*(s') \big]
-      $$</p>
-    </li>
-  </ol>
-</section>
-
-<!-- 第六章 -->
-<section id="chapterX" class="chapter">
-  <h2>策略迭代与值迭代的对比</h2>
-
-  <table border="1" cellpadding="8" cellspacing="0">
-    <thead>
-      <tr>
-        <th></th>
-        <th>Policy Iteration</th>
-        <th>Value Iteration</th>
-        <th>Comments</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1) Policy</td>
-        <td>\(\pi_0\)</td>
-        <td>N/A</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>2) Value</td>
-        <td>\(v_{\pi_0} = r_{\pi_0} + \gamma P_{\pi_0} v_{\pi_0}\)</td>
-        <td>\(v_0 := v_{\pi_0}\)</td>
-        <td></td>
-      </tr>
-      <tr>
-        <td>3) Policy</td>
-        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_0} )\)</td>
-        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_0 )\)</td>
-        <td>The two policies are the same</td>
-      </tr>
-      <tr>
-        <td>4) Value</td>
-        <td>\(v_{\pi_1} = r_{\pi_1} + \gamma P_{\pi_1} v_{\pi_1}\)</td>
-        <td>\(v_1 = r_{\pi_1} + \gamma P_{\pi_1} v_0\)</td>
-        <td>\(v_{\pi_1} \ge v_1 \text{ since } v_{\pi_1} \ge v_{\pi_0}\)</td>
-      </tr>
-      <tr>
-        <td>5) Policy</td>
-        <td>\(\pi_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_1} )\)</td>
-        <td>\(\pi'_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_1 )\)</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
+    <h3>4. 蒙特卡洛控制（MC Control）</h3>
+    <p>评估 <code>Q(s,a)</code> 后，通过 ε-贪婪策略改进：</p>
+    <pre><code class="language-python">ε = 0.1
+for s in states:
+    best_a = argmax_a(Q[s,a])
+    for a in actions:
+        π[a|s] = (1-ε + ε/len(actions)) if a == best_a else (ε/len(actions))</code></pre>
+  </section>
 </main>
 
 <footer>
-    <p>© 2025 唐浩云 | Reinforcement Learning Journey</p>
-  </footer>
+  <p>© 2025 <span>Haoyun Tang</span> | Reinforcement Learning Notes</p>
+</footer>
 
- <script>
-// ===== 粒子拖尾效果 =====
-const canvas = document.getElementById('trailCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
+<!-- ===== 动态粒子特效 ===== -->
+<script>
+const canvas = document.getElementById("trailCanvas");
+const ctx = canvas.getContext("2d");
 let particles = [];
-const maxParticles = 200;
-const mouse = { x: canvas.width/2, y: canvas.height/2 };
-
-window.addEventListener('resize', () => {
+function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-});
-
-window.addEventListener('mousemove', e => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-});
-
-// 粒子类
-class Particle {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = Math.random()*4+1;
-    this.speedX = (Math.random()-0.5)*2;
-    this.speedY = (Math.random()-0.5)*2;
-    this.color = `hsl(${Math.random()*360}, 100%, 80%)`;
-  }
-  update() {
-    this.x += this.speedX;
-    this.y += this.speedY;
-    this.size *= 0.95;
-  }
-  draw() {
-    ctx.beginPath();
-    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-  }
 }
-
-function animate() {
-  ctx.fillStyle = 'rgba(18,18,18,0.02)';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  particles.push(new Particle(mouse.x, mouse.y));
-  if(particles.length>maxParticles) particles.shift();
-
-  for(let p of particles){
-    p.update();
-    p.draw();
+window.addEventListener("resize", resize);
+resize();
+document.addEventListener("mousemove", e => {
+  for (let i = 0; i < 2; i++) {
+    particles.push({x: e.clientX, y: e.clientY, alpha: 1, r: Math.random()*3+1});
   }
-
+});
+function animate() {
+  ctx.fillStyle = "rgba(0,0,0,0.2)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.y -= 0.3;
+    p.alpha -= 0.01;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0,188,212,${p.alpha})`;
+    ctx.fill();
+  });
+  particles = particles.filter(p => p.alpha > 0);
   requestAnimationFrame(animate);
 }
-
 animate();
 </script>
 
+<!-- ===== 导航自动高亮 ===== -->
+<script>
+const navLinks = document.querySelectorAll("nav a");
+window.addEventListener("scroll", () => {
+  let fromTop = window.scrollY + 120;
+  navLinks.forEach(link => {
+    const section = document.querySelector(link.getAttribute("href"));
+    if (section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop)
+      link.classList.add("active");
+    else
+      link.classList.remove("active");
+  });
+});
+</script>
 </body>
 </html>
