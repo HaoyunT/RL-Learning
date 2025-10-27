@@ -181,8 +181,354 @@ git commit -m "初始化项目"
 git push -u origin main</code></pre>
   </section>
 
-  <!-- 这里省略前5章，你已有内容可直接粘贴 -->
-  <!-- 以下是第6章：蒙特卡洛方法 -->
+  <!DOCTYPE html>
+<html lang="zh">
+<head>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+ src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>强化学习学习笔记</title>
+<!-- MathJax -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+<style>
+/* ===== 全局样式 ===== */
+body {
+  margin:0;
+  font-family:'Segoe UI','Roboto',sans-serif;
+  background-color:#121212;
+  color:#e0e0e0;
+  line-height:1.7;
+}
+
+/* 粒子背景 Canvas */
+#trailCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0; /* 背景 */
+}
+
+/* header 样式 */
+header {
+  position: relative;
+  z-index: 10; /* 高于粒子背景 */
+  text-align: center;
+  background: rgba(30,30,30,0.5); /* 半透明背景 */
+  padding: 20px;
+  border-radius: 8px;
+  margin: 10px;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #00bcd4;
+  text-shadow:
+    0 0 5px rgba(0, 188, 212, 0.7),
+    0 0 10px rgba(0, 188, 212, 0.5);
+  margin: 0 0 10px 0;
+}
+
+/* 导航样式 */
+nav ul {
+  display:flex;
+  justify-content:center;
+  list-style:none;
+  padding:0;
+  margin:0;
+  flex-wrap: wrap;
+}
+nav li { margin:5px 15px; }
+nav a {
+  color:#e0e0e0;
+  text-decoration:none;
+  font-weight:bold;
+  text-shadow: 0 0 2px #000;
+}
+nav a:hover { color:#00bcd4; }
+
+/* 内容样式 */
+main {
+  position: relative;
+  z-index: 5; /* 高于粒子背景 */
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+.chapter {
+  margin-bottom: 40px;
+  padding: 25px;
+  background-color: rgba(30,30,30,0.8); /* 半透明背景，使文字更清晰 */
+  border-radius: 10px;
+}
+.chapter h2 {
+  color:#00bcd4;
+  border-bottom: 2px solid #00bcd4;
+  padding-bottom:5px;
+}
+dl dt { font-weight:bold; margin-top:15px; font-size:1.1rem; }
+dl dd { margin-left:20px; margin-bottom:10px; color:#cfcfcf; }
+dl dd ul { margin-left:20px; }
+pre {
+  background:#2a2a2a;
+  padding:15px;
+  border-radius:8px;
+  overflow-x:auto;
+  font-family:'Fira Code', monospace;
+  font-size:0.95rem;
+}
+em { color:#ff9800; font-style:normal; }
+
+footer {
+  position: relative;
+  z-index: 5;
+  text-align:center;
+  padding:20px;
+  background: rgba(30,30,30,0.5);
+  margin-top:40px;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+  <!-- 粒子背景 -->
+  <canvas id="trailCanvas"></canvas>
+
+  <!-- 页面内容 -->
+  <header>
+    <h1>强化学习学习笔记</h1>
+    <nav>
+      <ul>
+        <li><a href="#chapter0">环境 & GitHub</a></li>
+        <li><a href="#chapter1">基本概念</a></li>
+        <li><a href="#chapter2">MDP & 贝尔曼方程</a></li>
+        <li><a href="#chapter3">贝尔曼最优方程</a></li>
+        <li><a href="#chapter4">策略迭代</a></li>
+        <li><a href="#chapter5">值迭代</a></li>
+        <li><a href="#chapterX">策略迭代与值迭代的对比</a></li>
+        <li><a href="#chapter6">蒙特卡洛方法</a></li>
+      </ul>
+    </nav>
+  </header>
+
+
+<main>
+<!-- 第零章 -->
+<section id="chapter0" class="chapter">
+  <h2>第零章：环境配置 & GitHub 项目上传</h2>
+  <p>创建项目文件夹，如 G:\test，然后配置 Anaconda 清华镜像：</p>
+  <pre><code>conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+conda config --set show_channel_urls yes</code></pre>
+  <p>配置 pip 镜像：</p>
+  <pre><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</code></pre>
+  <p>创建虚拟环境并安装核心包：</p>
+  <pre><code>cd /d G:\test
+conda create --prefix .\.venv python=3.11
+conda activate G:\test\.venv
+conda install numpy pandas matplotlib scikit-learn jupyterlab
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia</code></pre>
+  <p>上传到 GitHub：</p>
+  <pre><code>git init
+git remote add origin https://github.com/HaoyunT/test.git
+git checkout -b main
+git add .
+git commit -m "初始化项目"
+git push -u origin main</code></pre>
+</section>
+
+<!-- 第一章 -->
+<section id="chapter1" class="chapter">
+  <h2>第一章：强化学习基本概念</h2>
+  <p>强化学习（Reinforcement Learning, RL）核心概念：</p>
+  <dl>
+    <dt>智能体（Agent）</dt>
+    <dd>决策执行主体。在每个时间步 \(t\) 观察状态 \(S_t\)，选择动作 \(A_t\)，并通过奖励信号调整策略。<br><em>示例：</em>游戏中的玩家角色。</dd>
+
+    <dt>环境（Environment）</dt>
+    <dd>智能体交互对象，定义状态空间、动作空间和状态转移规则。动作后返回状态 \(S_{t+1}\) 和奖励 \(R_t\)。<br><em>示例：</em>游戏关卡或物理模拟器。</dd>
+
+    <dt>状态（State）</dt>
+    <dd>描述环境在某一时刻的特征，满足马尔可夫性质。<br><em>示例：</em>角色位置、敌人位置。</dd>
+
+    <dt>动作（Action）</dt>
+    <dd>智能体可执行的操作，改变环境状态。<br><em>示例：</em>左右移动、跳跃。</dd>
+
+    <dt>奖励（Reward）</dt>
+    <dd>环境对动作的反馈，用于衡量优劣。强化学习目标最大化累计奖励：
+      <br>\(G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k}\)
+    </dd>
+
+    <dt>策略（Policy）</dt>
+    <dd>选择动作的规则，\(\pi(a|s)\) 或 \(a = \pi(s)\)。目标是找到最优策略 \(\pi^*\)。</dd>
+
+    <dt>价值函数（Value Function）</dt>
+    <dd>衡量状态或状态-动作对的长期回报：
+      <ul>
+        <li>状态价值：\(V^\pi(s) = \mathbb{E}[G_t | S_t=s]\)</li>
+        <li>动作价值：\(Q^\pi(s,a) = \mathbb{E}[G_t | S_t=s, A_t=a]\)</li>
+      </ul>
+    </dd>
+  </dl>
+</section>
+
+<!-- 第二章 -->
+<section id="chapter2" class="chapter">
+  <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
+
+  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。</p>
+
+  <dl>
+    <dt><b>状态价值函数（State Value Function）</b></dt>
+    <dd>
+      对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：
+      <br>
+      <p>$$
+      V^\pi(s) = \sum_{a \in A} \pi(a|s) \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^\pi(s') \big]
+      $$</p>
+      说明：当前状态价值 = 即时奖励 + 折扣后的未来价值期望。
+    </dd>
+
+    <dt><b>状态-动作价值函数（Action-Value Function）</b></dt>
+    <dd>
+      对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：
+      <br>
+      <p>$$
+      Q^\pi(s,a) = R(s,a) + \gamma \sum_{s' \in S} \sum_{a' \in A} \pi(a'|s') Q^\pi(s',a')
+      $$</p>
+    </dd>
+  </dl>
+
+  <p><strong>用途：</strong>策略评估、策略迭代、价值迭代的理论基础。</p>
+</section>
+
+<!-- 第三章 -->
+<section id="chapter3" class="chapter">
+  <h2>第三章：贝尔曼最优方程（Bellman Optimality Equation）</h2>
+
+  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足<strong>贝尔曼最优方程</strong>，体现最优性原则。</p>
+
+  <dl>
+    <dt><b>最优状态价值函数</b></dt>
+    <dd>
+      <p>$$
+      V^*(s) = \max_{a \in A} \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^*(s') \big]
+      $$</p>
+    </dd>
+
+    <dt><b>最优状态-动作价值函数</b></dt>
+    <dd>
+      <p>$$
+      Q^*(s,a) = R(s,a) + \gamma \sum_{s' \in S} \max_{a' \in A} Q^*(s',a')
+      $$</p>
+    </dd>
+  </dl>
+
+  <p><strong>关系总结：</strong></p>
+  <ul>
+    <li>第二章贝尔曼方程：给定策略 π → 计算 V^π 或 Q^π</li>
+    <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
+  </ul>
+</section>
+
+<!-- 第四章 -->
+<section id="chapter4" class="chapter">
+  <h2>第四章：策略迭代（Policy Iteration）</h2>
+
+  <p>策略迭代通过交替进行策略评估和策略改进来收敛到最优策略。</p>
+
+  <ol>
+    <li><strong>初始化策略：</strong>选择初始策略 <code>π_0</code></li>
+    <li><strong>策略评估：</strong>计算状态价值函数：
+      <p>$$
+      v_{\pi_k} = r_{\pi_k} + \gamma P_{\pi_k} v_{\pi_k}
+      $$</p>
+    </li>
+    <li><strong>策略改进：</strong>更新策略：
+      <p>$$
+      \pi_{k+1} = \arg\max_\pi (r_\pi + \gamma P_\pi v_{\pi_k})
+      $$</p>
+    </li>
+    <li>重复评估和改进，直到策略收敛。</li>
+  </ol>
+</section>
+
+<!-- 第五章 -->
+<section id="chapter5" class="chapter">
+  <h2>第五章：值迭代（Value Iteration）</h2>
+
+  <p>值迭代直接迭代状态价值函数，通过贝尔曼最优方程收敛到最优值函数，然后导出最优策略。</p>
+
+  <ol>
+    <li><strong>初始化价值函数：</strong>选择初始值 <code>v_0</code></li>
+    <li><strong>迭代更新：</strong>使用贝尔曼最优方程：
+      <p>$$
+      v_{k+1} = \max_\pi (r_\pi + \gamma P_\pi v_k)
+      $$</p>
+    </li>
+    <li><strong>策略导出：</strong>收敛后选择最优动作：
+      <p>$$
+      \pi^*(s) = \arg\max_a \sum_{s'} P(s'|s,a) \big[R(s,a) + \gamma v^*(s') \big]
+      $$</p>
+    </li>
+  </ol>
+</section>
+
+<!-- 对比-->
+<section id="chapterX" class="chapter">
+  <h2>策略迭代与值迭代的对比</h2>
+
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Policy Iteration</th>
+        <th>Value Iteration</th>
+        <th>Comments</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1) Policy</td>
+        <td>\(\pi_0\)</td>
+        <td>N/A</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>2) Value</td>
+        <td>\(v_{\pi_0} = r_{\pi_0} + \gamma P_{\pi_0} v_{\pi_0}\)</td>
+        <td>\(v_0 := v_{\pi_0}\)</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>3) Policy</td>
+        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_0} )\)</td>
+        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_0 )\)</td>
+        <td>The two policies are the same</td>
+      </tr>
+      <tr>
+        <td>4) Value</td>
+        <td>\(v_{\pi_1} = r_{\pi_1} + \gamma P_{\pi_1} v_{\pi_1}\)</td>
+        <td>\(v_1 = r_{\pi_1} + \gamma P_{\pi_1} v_0\)</td>
+        <td>\(v_{\pi_1} \ge v_1 \text{ since } v_{\pi_1} \ge v_{\pi_0}\)</td>
+      </tr>
+      <tr>
+        <td>5) Policy</td>
+        <td>\(\pi_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_1} )\)</td>
+        <td>\(\pi'_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_1 )\)</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
   <section id="chapter6" class="chapter">
     <h2>第六章：蒙特卡洛方法（Monte Carlo Methods）</h2>
 
