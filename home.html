@@ -181,169 +181,6 @@ git commit -m "初始化项目"
 git push -u origin main</code></pre>
   </section>
 
-  <!DOCTYPE html>
-<html lang="zh">
-<head>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async
- src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>强化学习学习笔记</title>
-<!-- MathJax -->
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
-<style>
-/* ===== 全局样式 ===== */
-body {
-  margin:0;
-  font-family:'Segoe UI','Roboto',sans-serif;
-  background-color:#121212;
-  color:#e0e0e0;
-  line-height:1.7;
-}
-
-/* 粒子背景 Canvas */
-#trailCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 0; /* 背景 */
-}
-
-/* header 样式 */
-header {
-  position: relative;
-  z-index: 10; /* 高于粒子背景 */
-  text-align: center;
-  background: rgba(30,30,30,0.5); /* 半透明背景 */
-  padding: 20px;
-  border-radius: 8px;
-  margin: 10px;
-}
-
-header h1 {
-  font-size: 2.5rem;
-  color: #00bcd4;
-  text-shadow:
-    0 0 5px rgba(0, 188, 212, 0.7),
-    0 0 10px rgba(0, 188, 212, 0.5);
-  margin: 0 0 10px 0;
-}
-
-/* 导航样式 */
-nav ul {
-  display:flex;
-  justify-content:center;
-  list-style:none;
-  padding:0;
-  margin:0;
-  flex-wrap: wrap;
-}
-nav li { margin:5px 15px; }
-nav a {
-  color:#e0e0e0;
-  text-decoration:none;
-  font-weight:bold;
-  text-shadow: 0 0 2px #000;
-}
-nav a:hover { color:#00bcd4; }
-
-/* 内容样式 */
-main {
-  position: relative;
-  z-index: 5; /* 高于粒子背景 */
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
-}
-.chapter {
-  margin-bottom: 40px;
-  padding: 25px;
-  background-color: rgba(30,30,30,0.8); /* 半透明背景，使文字更清晰 */
-  border-radius: 10px;
-}
-.chapter h2 {
-  color:#00bcd4;
-  border-bottom: 2px solid #00bcd4;
-  padding-bottom:5px;
-}
-dl dt { font-weight:bold; margin-top:15px; font-size:1.1rem; }
-dl dd { margin-left:20px; margin-bottom:10px; color:#cfcfcf; }
-dl dd ul { margin-left:20px; }
-pre {
-  background:#2a2a2a;
-  padding:15px;
-  border-radius:8px;
-  overflow-x:auto;
-  font-family:'Fira Code', monospace;
-  font-size:0.95rem;
-}
-em { color:#ff9800; font-style:normal; }
-
-footer {
-  position: relative;
-  z-index: 5;
-  text-align:center;
-  padding:20px;
-  background: rgba(30,30,30,0.5);
-  margin-top:40px;
-  border-radius: 8px;
-}
-</style>
-</head>
-<body>
-  <!-- 粒子背景 -->
-  <canvas id="trailCanvas"></canvas>
-
-  <!-- 页面内容 -->
-  <header>
-    <h1>强化学习学习笔记</h1>
-    <nav>
-      <ul>
-        <li><a href="#chapter0">环境 & GitHub</a></li>
-        <li><a href="#chapter1">基本概念</a></li>
-        <li><a href="#chapter2">MDP & 贝尔曼方程</a></li>
-        <li><a href="#chapter3">贝尔曼最优方程</a></li>
-        <li><a href="#chapter4">策略迭代</a></li>
-        <li><a href="#chapter5">值迭代</a></li>
-        <li><a href="#chapterX">策略迭代与值迭代的对比</a></li>
-        <li><a href="#chapter6">蒙特卡洛方法</a></li>
-      </ul>
-    </nav>
-  </header>
-
-
-<main>
-<!-- 第零章 -->
-<section id="chapter0" class="chapter">
-  <h2>第零章：环境配置 & GitHub 项目上传</h2>
-  <p>创建项目文件夹，如 G:\test，然后配置 Anaconda 清华镜像：</p>
-  <pre><code>conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
-conda config --set show_channel_urls yes</code></pre>
-  <p>配置 pip 镜像：</p>
-  <pre><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</code></pre>
-  <p>创建虚拟环境并安装核心包：</p>
-  <pre><code>cd /d G:\test
-conda create --prefix .\.venv python=3.11
-conda activate G:\test\.venv
-conda install numpy pandas matplotlib scikit-learn jupyterlab
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia</code></pre>
-  <p>上传到 GitHub：</p>
-  <pre><code>git init
-git remote add origin https://github.com/HaoyunT/test.git
-git checkout -b main
-git add .
-git commit -m "初始化项目"
-git push -u origin main</code></pre>
-</section>
-
 <!-- 第一章 -->
 <section id="chapter1" class="chapter">
   <h2>第一章：强化学习基本概念</h2>
@@ -382,32 +219,33 @@ git push -u origin main</code></pre>
 <!-- 第二章 -->
 <section id="chapter2" class="chapter">
   <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
-
   <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。</p>
 
   <dl>
     <dt><b>状态价值函数（State Value Function）</b></dt>
     <dd>
-      对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：
-      <br>
-      <p>$$
-      V^\pi(s) = \sum_{a \in A} \pi(a|s) \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^\pi(s') \big]
-      $$</p>
+      对于策略 <code>π</code> 下的状态价值函数 <code>V^π(s)</code>：<br>
+      <p>$$ V^\pi(s) = \sum_{a \in A} \pi(a|s) \sum_{s' \in S} P(s'|s,a) \big[ R(s,a) + \gamma V^\pi(s') \big] $$</p>
       说明：当前状态价值 = 即时奖励 + 折扣后的未来价值期望。
     </dd>
 
     <dt><b>状态-动作价值函数（Action-Value Function）</b></dt>
     <dd>
-      对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：
-      <br>
-      <p>$$
-      Q^\pi(s,a) = R(s,a) + \gamma \sum_{s' \in S} \sum_{a' \in A} \pi(a'|s') Q^\pi(s',a')
-      $$</p>
+      对于状态-动作对的价值函数 <code>Q^π(s,a)</code>：<br>
+      <p>$$ Q^\pi(s,a) = R(s,a) + \gamma \sum_{s' \in S} \sum_{a' \in A} \pi(a'|s') Q^\pi(s',a') $$</p>
+    </dd>
+
+    <dt><b>状态价值函数与状态-动作价值函数的关系</b></dt>
+    <dd>
+      状态价值函数可以由状态-动作价值函数得到：<br>
+      <p>$$ V^\pi(s) = \sum_{a \in A} \pi(a|s) Q^\pi(s,a) $$</p>
+      解释：在状态 <code>s</code> 下，价值函数 <code>V^π(s)</code> 是策略选择动作后的期望 <code>Q^π(s,a)</code>。
     </dd>
   </dl>
 
   <p><strong>用途：</strong>策略评估、策略迭代、价值迭代的理论基础。</p>
 </section>
+
 
 <!-- 第三章 -->
 <section id="chapter3" class="chapter">
@@ -437,7 +275,6 @@ git push -u origin main</code></pre>
     <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
   </ul>
 </section>
-
 <!-- 第四章 -->
 <section id="chapter4" class="chapter">
   <h2>第四章：策略迭代（Policy Iteration）</h2>
@@ -460,6 +297,7 @@ git push -u origin main</code></pre>
   </ol>
 </section>
 
+
 <!-- 第五章 -->
 <section id="chapter5" class="chapter">
   <h2>第五章：值迭代（Value Iteration）</h2>
@@ -481,6 +319,7 @@ git push -u origin main</code></pre>
   </ol>
 </section>
 
+
 <!-- 对比-->
 <section id="chapterX" class="chapter">
   <h2>策略迭代与值迭代的对比</h2>
@@ -496,25 +335,25 @@ git push -u origin main</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td>1) Policy</td>
+        <td>(1)Policy</td>
         <td>\(\pi_0\)</td>
         <td>N/A</td>
         <td></td>
       </tr>
       <tr>
-        <td>2) Value</td>
+        <td>(2)Value</td>
         <td>\(v_{\pi_0} = r_{\pi_0} + \gamma P_{\pi_0} v_{\pi_0}\)</td>
         <td>\(v_0 := v_{\pi_0}\)</td>
         <td></td>
       </tr>
       <tr>
-        <td>3) Policy</td>
+        <td>(3)Policy</td>
         <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_0} )\)</td>
         <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_0 )\)</td>
         <td>The two policies are the same</td>
       </tr>
       <tr>
-        <td>4) Value</td>
+        <td>(4)Value</td>
         <td>\(v_{\pi_1} = r_{\pi_1} + \gamma P_{\pi_1} v_{\pi_1}\)</td>
         <td>\(v_1 = r_{\pi_1} + \gamma P_{\pi_1} v_0\)</td>
         <td>\(v_{\pi_1} \ge v_1 \text{ since } v_{\pi_1} \ge v_{\pi_0}\)</td>
@@ -529,42 +368,137 @@ git push -u origin main</code></pre>
   </table>
 </section>
 
-  <section id="chapter6" class="chapter">
-    <h2>第六章：蒙特卡洛方法（Monte Carlo Methods）</h2>
+ <!-- 第六章 -->
+<section id="chapter6" class="chapter">
+  <h2>第六章：蒙特卡洛方法（Monte Carlo Methods）</h2>
 
-    <p>蒙特卡洛方法（MC）是一类基于<strong>采样</strong>的策略评估与控制算法，无需环境模型。</p>
+  <p>蒙特卡洛方法（Monte Carlo，简称 <b>MC</b>）是强化学习中一种基于<strong>采样</strong>的策略评估与优化方法。
+  与动态规划不同，MC 不依赖环境的状态转移概率模型 <code>P(s'|s,a)</code>，而是通过反复从策略 <code>π</code> 生成完整回合（Episode），
+  根据实际获得的回报估计状态或状态-动作价值。</p>
 
-    <h3>1. 基本思想</h3>
-    <p>通过采样回合 \((S_0, A_0, R_1, \dots, S_T)\)，计算每个时间步的回报：</p>
-    <p>$$
-    G_t = R_{t+1} + \gamma R_{t+2} + \cdots = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}
-    $$</p>
+  <h3>一、基本思想</h3>
+  <p>给定策略 \( \pi \)，智能体与环境交互多次，得到若干完整回合：</p>
+  <p>$$
+  (S_0, A_0, R_1, S_1, A_1, R_2, \dots, S_T)
+  $$</p>
+  <p>对于每个回合，定义从时间步 \(t\) 开始的累计回报（Return）：</p>
+  <p>$$
+  G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}
+  $$</p>
+  <p>MC 方法通过多次采样，利用这些 \(G_t\) 的平均值来近似价值函数。</p>
 
-    <h3>2. 状态价值估计</h3>
-    <p>$$
-    V(s) = \mathbb{E}_\pi[G_t | S_t=s] \approx \frac{1}{N(s)} \sum_i G^{(i)}(s)
-    $$</p>
+  <dl>
+    <dt><b>状态价值估计：</b></dt>
+    <dd>$$
+    V(s) = \mathbb{E}_\pi[G_t \mid S_t = s] \approx \frac{1}{N(s)} \sum_{i=1}^{N(s)} G^{(i)}(s)
+    $$</dd>
 
-    <h3>3. 蒙特卡洛策略评估算法</h3>
-    <pre><code class="language-python"># 给定策略 π，评估其状态价值函数 V(s)
-V, Returns = {}, {}
-for episode in range(num_episodes):
-    episode_data = generate_episode(policy)
-    G = 0
-    for (s, a, r) in reversed(episode_data):
-        G = γ * G + r
-        if s not in [x[0] for x in episode_data[:-1]]:
-            Returns.setdefault(s, []).append(G)
-            V[s] = np.mean(Returns[s])</code></pre>
+    <dt><b>动作价值估计：</b></dt>
+    <dd>$$
+    Q(s,a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] \approx \frac{1}{N(s,a)} \sum_{i=1}^{N(s,a)} G^{(i)}(s,a)
+    $$</dd>
+  </dl>
 
-    <h3>4. 蒙特卡洛控制（MC Control）</h3>
-    <p>评估 <code>Q(s,a)</code> 后，通过 ε-贪婪策略改进：</p>
-    <pre><code class="language-python">ε = 0.1
-for s in states:
-    best_a = argmax_a(Q[s,a])
-    for a in actions:
-        π[a|s] = (1-ε + ε/len(actions)) if a == best_a else (ε/len(actions))</code></pre>
-  </section>
+  <h3>二、首次访问与每次访问</h3>
+  <ul>
+    <li><b>First-Visit MC：</b> 仅在一个回合中第一次访问状态（或状态-动作对）时进行更新。</li>
+    <li><b>Every-Visit MC：</b> 对回合中每次访问状态（或状态-动作对）都进行更新。</li>
+  </ul>
+  <p>二者最终都会收敛到真实的价值函数，但首次访问 MC 方差略小。</p>
+
+  <h3>三、蒙特卡洛策略评估算法</h3>
+  <pre><code>
+# 给定策略 π，评估其状态价值函数 V(s)
+初始化：
+  对所有状态 s，设 Returns(s) = []
+  对所有状态 s，设 V(s) = 0
+
+循环多次：
+  生成一个完整回合 (S_0, A_0, R_1, S_1, ..., S_T)
+  G ← 0
+  对 t = T-1, T-2, ..., 0：
+      G ← γ * G + R_{t+1}
+      如果 S_t 在该回合中第一次出现：
+          将 G 加入 Returns(S_t)
+          V(S_t) ← 平均(Returns(S_t))
+  </code></pre>
+
+  <p>算法通过样本平均值逼近状态的期望回报，属于<strong>无模型、基于采样</strong>的策略评估。</p>
+
+  <h3>四、蒙特卡洛控制（MC Control）</h3>
+  <p>在策略评估的基础上，MC 还可以实现<strong>策略改进</strong>，形成一个与策略迭代类似的过程：</p>
+  <ol>
+    <li>评估当前策略 \(\pi\)：使用 MC 方法估计 \(Q^\pi(s,a)\)</li>
+    <li>改进策略：采用贪婪或 ε-贪婪方式更新策略
+      <p>$$
+      \pi'(s) = \arg\max_a Q(s,a)
+      $$</p>
+    </li>
+    <li>重复以上过程，直到收敛</li>
+  </ol>
+
+  <h3>五、ε-贪婪（ε-Greedy）探索策略</h3>
+  <p>为了避免过早陷入次优策略，MC 控制中常用 <b>ε-贪婪策略</b> 进行探索：</p>
+  <p>$$
+  \pi(a|s) = 
+  \begin{cases}
+  1 - \varepsilon + \frac{\varepsilon}{|A(s)|}, & a = \arg\max_{a'} Q(s,a') \\
+  \frac{\varepsilon}{|A(s)|}, & \text{否则}
+  \end{cases}
+  $$</p>
+  <p>其中 \(\varepsilon \in [0,1]\) 表示随机探索概率。</p>
+
+  <h3>六、MC 控制伪代码</h3>
+  <pre><code>
+# 蒙特卡洛控制（ε-贪婪）
+初始化：
+  对所有 (s,a)，Q(s,a) = 0
+  对所有 (s,a)，Returns(s,a) = []
+  定义 ε-贪婪策略 π 基于 Q
+
+循环多次：
+  生成一个回合 (S_0, A_0, R_1, ..., S_T)
+  G ← 0
+  对 t = T-1, ..., 0：
+      G ← γ * G + R_{t+1}
+      如果 (S_t, A_t) 第一次出现：
+          将 G 加入 Returns(S_t, A_t)
+          Q(S_t, A_t) ← 平均(Returns(S_t, A_t))
+          π(S_t) ← ε-贪婪(Q)
+  </code></pre>
+
+
+  <h3>七、MC 方法的特点与局限</h3>
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr><th>优点</th><th>缺点</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>无需知道环境模型（P、R）</td>
+        <td>必须等待完整回合结束，不能用于持续任务</td>
+      </tr>
+      <tr>
+        <td>实现简单，概念直观</td>
+        <td>收敛速度较慢，方差大</td>
+      </tr>
+      <tr>
+        <td>适合离线模拟环境（如游戏）</td>
+        <td>对长期任务或高维状态空间不适用</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>八、小结</h3>
+  <ul>
+    <li>MC 是基于采样的<strong>策略评估与控制</strong>方法。</li>
+    <li>依赖回合结束的实际回报，而非估计的下一步价值。</li>
+    <li>与动态规划相比，不需知道模型，但收敛慢。</li>
+    <li>是理解时序差分（TD）学习的重要过渡。</li>
+  </ul>
+
+</section>
+
 </main>
 
 <footer>
