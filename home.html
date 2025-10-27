@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+ src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>强化学习学习笔记</title>
@@ -122,6 +126,9 @@ footer {
         <li><a href="#chapter1">基本概念</a></li>
         <li><a href="#chapter2">MDP & 贝尔曼方程</a></li>
         <li><a href="#chapter3">贝尔曼最优方程</a></li>
+        <li><a href="#chapter4">策略迭代</a></li>
+        <li><a href="#chapter5">值迭代</a></li>
+        <li><a href="#chapterX">策略迭代与值迭代的对比</a></li>
       </ul>
     </nav>
   </header>
@@ -246,6 +253,98 @@ git push -u origin main</code></pre>
     <li>第三章贝尔曼最优方程：求最优策略 π* → V* 或 Q*</li>
   </ul>
 </section>
+
+<!-- 第四章 -->
+<section id="chapter4" class="chapter">
+  <h2>第四章：策略迭代（Policy Iteration）</h2>
+
+  <p>策略迭代通过交替进行策略评估和策略改进来收敛到最优策略。</p>
+
+  <ol>
+    <li><strong>初始化策略：</strong>选择初始策略 <code>π_0</code></li>
+    <li><strong>策略评估：</strong>计算状态价值函数：
+      <p>$$
+      v_{\pi_k} = r_{\pi_k} + \gamma P_{\pi_k} v_{\pi_k}
+      $$</p>
+    </li>
+    <li><strong>策略改进：</strong>更新策略：
+      <p>$$
+      \pi_{k+1} = \arg\max_\pi (r_\pi + \gamma P_\pi v_{\pi_k})
+      $$</p>
+    </li>
+    <li>重复评估和改进，直到策略收敛。</li>
+  </ol>
+</section>
+
+<!-- 第五章 -->
+<section id="chapter5" class="chapter">
+  <h2>第五章：值迭代（Value Iteration）</h2>
+
+  <p>值迭代直接迭代状态价值函数，通过贝尔曼最优方程收敛到最优值函数，然后导出最优策略。</p>
+
+  <ol>
+    <li><strong>初始化价值函数：</strong>选择初始值 <code>v_0</code></li>
+    <li><strong>迭代更新：</strong>使用贝尔曼最优方程：
+      <p>$$
+      v_{k+1} = \max_\pi (r_\pi + \gamma P_\pi v_k)
+      $$</p>
+    </li>
+    <li><strong>策略导出：</strong>收敛后选择最优动作：
+      <p>$$
+      \pi^*(s) = \arg\max_a \sum_{s'} P(s'|s,a) \big[R(s,a) + \gamma v^*(s') \big]
+      $$</p>
+    </li>
+  </ol>
+</section>
+
+<!-- 第六章 -->
+<section id="chapterX" class="chapter">
+  <h2>策略迭代与值迭代的对比</h2>
+
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Policy Iteration</th>
+        <th>Value Iteration</th>
+        <th>Comments</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1) Policy</td>
+        <td>\(\pi_0\)</td>
+        <td>N/A</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>2) Value</td>
+        <td>\(v_{\pi_0} = r_{\pi_0} + \gamma P_{\pi_0} v_{\pi_0}\)</td>
+        <td>\(v_0 := v_{\pi_0}\)</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>3) Policy</td>
+        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_0} )\)</td>
+        <td>\(\pi_1 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_0 )\)</td>
+        <td>The two policies are the same</td>
+      </tr>
+      <tr>
+        <td>4) Value</td>
+        <td>\(v_{\pi_1} = r_{\pi_1} + \gamma P_{\pi_1} v_{\pi_1}\)</td>
+        <td>\(v_1 = r_{\pi_1} + \gamma P_{\pi_1} v_0\)</td>
+        <td>\(v_{\pi_1} \ge v_1 \text{ since } v_{\pi_1} \ge v_{\pi_0}\)</td>
+      </tr>
+      <tr>
+        <td>5) Policy</td>
+        <td>\(\pi_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_{\pi_1} )\)</td>
+        <td>\(\pi'_2 = \arg\max_\pi ( r_\pi + \gamma P_\pi v_1 )\)</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 </main>
 
 <footer>
