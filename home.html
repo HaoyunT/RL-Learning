@@ -7,6 +7,14 @@
 
 <!-- 数学公式渲染 -->
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+</script>
 <script id="MathJax-script" async
  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -763,6 +771,7 @@ footer span {
        <li><a href="#chapter11">策略梯度方法</a></li>
        <li><a href="#chapter12">Actor-Critic</a></li>
        <li><a href="#chapter13">A2C&A3C</a></li>
+       <li><a href="#summary">算法总结</a></li>
     </ul>
   </nav>
 </header>
@@ -785,6 +794,7 @@ footer span {
       <li><a href="#chapter11">策略梯度方法</a></li>
       <li><a href="#chapter12">Actor-Critic</a></li>
       <li><a href="#chapter13">A2C&A3C</a></li>
+      <li><a href="#summary">算法总结</a></li>
     </ul>
   </aside>
 
@@ -819,6 +829,54 @@ git checkout -b main
 git add .
 git commit -m "初始化项目"
 git push -u origin main</code></pre>
+
+    <h3>本笔记学习路径导图</h3>
+    <ul>
+      <li><strong>第1-3章：理论基础</strong>
+        <ul>
+          <li>第1章：强化学习基本概念（智能体、环境、状态、动作、奖励、价值函数）</li>
+          <li>第2章：贝尔曼方程（价值函数的递推关系）</li>
+          <li>第3章：贝尔曼最优方程（最优策略的刻画）</li>
+        </ul>
+      </li>
+      <li><strong>第4-5章：动态规划方法（需知道环境模型）</strong>
+        <ul>
+          <li>第4章：策略迭代（评估 + 改进的循环）</li>
+          <li>第5章：值迭代（直接优化价值函数）</li>
+        </ul>
+      </li>
+      <li><strong>第6-7章：采样方法（无模型学习的基础）</strong>
+        <ul>
+          <li>第6章：蒙特卡洛方法（回合后更新，高方差）</li>
+          <li>第7章：时间差分学习（在线更新，低方差，自举思想）</li>
+        </ul>
+      </li>
+      <li><strong>第8-10章：Q学习系列（离散动作空间）</strong>
+        <ul>
+          <li>第8章：Q-learning（表格形式的时差学习）</li>
+          <li>第9章：DQN（用神经网络逼近Q函数，适应高维状态）</li>
+          <li>第10章：DDQN（双网络解决Q值过估计）</li>
+        </ul>
+      </li>
+      <li><strong>第11-13章：策略梯度方法（直接优化策略，支持连续动作）</strong>
+        <ul>
+          <li>第11章：策略梯度（策略参数空间中的梯度上升）</li>
+          <li>第12章：Actor-Critic（结合价值函数降低方差）</li>
+          <li>第13章：A2C &amp; A3C（多线程/多进程并行加速）</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p><strong>关键洞察链路：</strong></p>
+    <ol>
+      <li>贝尔曼方程 → 动态规划方法（理论最优但需要模型）</li>
+      <li>蒙特卡洛方法 + 时间差分 → 无模型学习（采样+自举）</li>
+      <li>Q-learning（表格）→ DQN（神经网络）→ DDQN（稳定训练）</li>
+      <li>策略梯度 = 绕过Q函数，直接优化策略参数</li>
+      <li>Actor-Critic = 用V(s)辅助（Critic）来加速策略梯度（Actor）学习</li>
+      <li>A2C/A3C = 多线程并行化提升采样和训练效率</li>
+    </ol>
+
   </section>
 
 <!-- 第一章 -->
@@ -859,7 +917,7 @@ git push -u origin main</code></pre>
 <!-- 第二章 -->
 <section id="chapter2" class="chapter">
   <h2>第二章：贝尔曼方程（Bellman Equation）</h2>
-  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。</p>
+  <p>贝尔曼方程用于描述策略下状态或状态-动作的价值递归关系，是强化学习中<strong>策略评估的核心工具</strong>。它将<strong>价值函数</strong>分解为<strong>即时奖励</strong>和<strong>未来价值的折扣期望</strong>两部分，奠定了从第3到第10章所有价值函数方法的理论基础。</p>
 
   <dl>
     <dt><b>状态价值函数（State Value Function）</b></dt>
@@ -891,7 +949,7 @@ git push -u origin main</code></pre>
 <section id="chapter3" class="chapter">
   <h2>第三章：贝尔曼最优方程（Bellman Optimality Equation）</h2>
 
-  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足<strong>贝尔曼最优方程</strong>，体现最优性原则。</p>
+  <p>在寻找最优策略 <code>π*</code> 时，状态和状态-动作的价值函数满足<strong>贝尔曼最优方程</strong>，体现最优性原则。这是第4-5章（动态规划方法）和第8-10章（深度Q学习）的理论基石，将"最优策略搜索"转化为"最优价值函数求解"问题。</p>
 
   <dl>
     <dt><b>最优状态价值函数</b></dt>
@@ -1006,6 +1064,23 @@ git push -u origin main</code></pre>
       </tr>
     </tbody>
   </table>
+
+  <h3>重要过渡说明：从动态规划到采样方法</h3>
+  <p><strong>动态规划（第4-5章）的局限性：</strong></p>
+  <ul>
+    <li>✓ 收敛性理论完备，最优性有保证</li>
+    <li>✗ <strong>需要知道环境模型</strong>（状态转移概率 P、奖励函数 R）</li>
+    <li>✗ 计算复杂度高（迭代次数多，状态空间大时效率低）</li>
+  </ul>
+
+  <p><strong>采样方法（第6-7章）的优势：</strong></p>
+  <ul>
+    <li>✓ <strong>无模型（Model-Free）</strong>：只需与环境交互采样，无需知道转移概率</li>
+    <li>✓ 更切合实际：真实世界通常无法获得完整的环境模型</li>
+    <li>✓ 通过蒙特卡洛估计和时间差分学习逐步优化策略</li>
+  </ul>
+
+  <p><strong>理论桥梁：</strong>尽管采样方法不需要显式的环境模型，但它们的理论基础仍源于贝尔曼方程和贝尔曼最优方程。通过采样数据隐式地学习这些关系，从而优化策略。</p>
 </section>
 
  <!-- 第六章 -->
@@ -1137,14 +1212,28 @@ class MCControl:
         """训练过程"""
         rewards = []
         for episode in range(num_episodes):
-            episode_reward = sum(r for _, _, r in self.collect_episode(env))
-            rewards.append(episode_reward)
             self.train_episode(env)
             
             if (episode + 1) % 100 == 0:
-                avg_reward = np.mean(rewards[-100:])
+                # 测试当前策略
+                test_reward = 0
+                for _ in range(10):
+                    test_reward += self.test_episode(env)
+                avg_reward = test_reward / 10
                 print(f"Episode {episode+1}, Avg Reward: {avg_reward:.2f}")
+                rewards.append(avg_reward)
         return rewards
+    
+    def test_episode(self, env):
+        """测试当前策略"""
+        state = env.reset()
+        done = False
+        episode_reward = 0
+        while not done:
+            action = np.argmax(self.Q[state])
+            state, reward, done, _ = env.step(action)
+            episode_reward += reward
+        return episode_reward
     
     def get_policy(self):
         """获取贪婪策略"""
@@ -1337,6 +1426,16 @@ class SARSA:
     <li>实现在线、逐步更新，不依赖整回合完整信息</li>
     <li>优点：收敛快、可在线学习；缺点：初始估计不准可能引入偏差</li>
   </ul>
+
+  <h3>八、MC vs TD vs DP 三者对比（方差-偏差权衡）</h3>
+  <table>
+    <tr><th>方法</th><th>更新依据</th><th>是否需要模型</th><th>方差</th><th>偏差</th><th>收敛性</th></tr>
+    <tr><td>动态规划（DP）</td><td>贝尔曼方程（理论）</td><td>是（需要P、R）</td><td>0</td><td>0</td><td>已知最优，但计算复杂</td></tr>
+    <tr><td>蒙特卡洛（MC）</td><td>完整回合回报</td><td>否（无模型）</td><td>高</td><td>0（无偏）</td><td>必须等回合结束</td></tr>
+    <tr><td>时间差分（TD）</td><td>TD误差（一步）</td><td>否（无模型）</td><td>低</td><td>有偏</td><td>在线更新，快速收敛</td></tr>
+  </table>
+
+  <p><strong>关键洞察：</strong>TD 选择了最好的折衷——虽然引入了偏差（因为 V 的初始估计不完美），但极大地降低了方差，使得在线学习成为可能。这就是为什么 TD 成为了后续所有强化学习算法（Q-learning、Actor-Critic、PPO等）的核心。</p>
 
 </section>
 <!-- 第八章 -->
@@ -1887,6 +1986,30 @@ class DDQN:
     <li>这样做的直觉：主网络像“冲动的玩家”，目标网络像“稳重的裁判”，降低 Q 值过估计，提高训练稳定性</li>
   </ul>
 
+  <h3>九、从价值函数方法向策略梯度转变</h3>
+  <p><strong>Q-learning 与 DDQN 的局限性：</strong></p>
+  <ul>
+    <li>✓ 优势：适合离散动作空间，理论完备</li>
+    <li>✗ 劣势：无法直接处理<strong>连续动作空间</strong>（如机器人控制）</li>
+    <li>✗ 劣势：对高维状态空间容易过估计 Q 值</li>
+    <li>✗ 劣势：采样效率低，需要大量经验回放</li>
+  </ul>
+
+  <p><strong>策略梯度方法（第11-13章）的优势：</strong></p>
+  <ul>
+    <li>✓ 直接对策略 π(a|s;θ) 参数化，自然支持<strong>连续动作空间</strong></li>
+    <li>✓ 可以学习<strong>随机策略</strong>而不仅是确定性策略</li>
+    <li>✓ 使用 Advantage 函数作为基线，方差更低</li>
+    <li>✓ 样本效率高，能充分利用交互数据</li>
+  </ul>
+
+  <p><strong>从"估计Q值选动作"→"直接学策略"的哲学转变：</strong></p>
+  <ul>
+    <li><strong>Q-learning：</strong>通过估计每个动作的价值，来间接优化策略</li>
+    <li><strong>策略梯度：</strong>绕过价值函数，直接在策略参数空间中梯度上升</li>
+    <li><strong>Actor-Critic：</strong>结合两者：用 V(s) 作为基线（Critic），直接优化策略（Actor）</li>
+  </ul>
+
 </section>
 <!-- 第十一章 -->
 <section id="chapter11" class="chapter">
@@ -1908,45 +2031,74 @@ class DDQN:
   <h3>二、策略梯度定理</h3>
   <p>策略梯度公式：</p>
   <p>$$
-  \nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta} [ \nabla_\theta \log \pi_\theta(a|s) \, Q^\pi(s,a) ]
+  \nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta} [ \nabla_\theta \log \pi_\theta(a|s) \, A^\pi(s,a) ]
   $$</p>
   <ul>
     <li><code>∇θ log πθ(a|s)</code>：调整策略参数 θ 改变动作概率的方向</li>
-    <li><code>Qπ(s,a)</code>：动作价值，用来衡量动作好坏</li>
+    <li><code>Aπ(s,a)</code>：<strong>优势函数（Advantage）</strong>，衡量动作相对于平均水平的好坏程度</li>
   </ul>
 
-  <h3>三、核心直觉</h3>
+  <h3>三、Advantage（优势函数）的定义</h3>
+  <p>Advantage 是<strong>动作价值与状态价值的差</strong>，表示相对优势：</p>
+  <p>$$
+  A^\pi(s,a) = Q^\pi(s,a) - V^\pi(s)
+  $$</p>
   <ul>
-    <li>如果动作 a 的回报 Q 高 → 增加 π(a|s) 的概率</li>
-    <li>如果动作 a 的回报 Q 低 → 减少 π(a|s) 的概率</li>
+    <li><code>Qπ(s,a)</code>：在状态 s 执行动作 a 的预期回报</li>
+    <li><code>Vπ(s)</code>：在状态 s 遵循策略的预期回报（所有动作的平均）</li>
+    <li><strong>A > 0</strong>：该动作比平均动作更优</li>
+    <li><strong>A < 0</strong>：该动作比平均动作更差</li>
   </ul>
-  <p>数学来源：更新公式 <code>Δθ ∝ ∇θ log π(a|s) * Q(s,a)</code>，Q(s,a) 大 → 强烈增加概率，Q(s,a) 小 → 可能减少概率。</p>
-  <p>概率角度：log π 梯度告诉我们如何调节 θ，使选择动作概率增大/减小；乘上 Q(s,a) 让调整和动作好坏挂钩。</p>
+  <p><strong>直观意义</strong>：不只看动作本身的好坏（Q 值），而是看它相对于该状态其他动作的<strong>相对优劣</strong>。这样可以减少训练方差，提高收敛稳定性。</p>
 
-  <h3>四、REINFORCE 算法（Monte Carlo Policy Gradient）</h3>
+  <h3>四、核心直觉</h3>
+  <ul>
+    <li>如果 Advantage 高 → 增加 π(a|s) 的概率</li>
+    <li>如果 Advantage 低 → 减少 π(a|s) 的概率</li>
+    <li>如果 Advantage 接近 0 → 几乎不调整该动作的概率</li>
+  </ul>
+  <p>数学来源：更新公式 <code>Δθ ∝ ∇θ log π(a|s) * A(s,a)</code>，Advantage 有正有负，可以同时推高优秀动作、压低劣质动作。</p>
+  <p>概率角度：log π 梯度告诉我们如何调节 θ，使选择动作概率增大/减小；乘上 A(s,a) 让调整和动作相对好坏挂钩。</p>
+
+  <h3>五、REINFORCE 算法（Monte Carlo Policy Gradient）</h3>
+  <p>REINFORCE 使用累计回报 G_t 作为 Q 值的无偏估计，但方差较大：</p>
   <pre><code class="language-python">
 for episode in range(num_episodes):
     states, actions, rewards = run_episode(env, policy)
     G = 0
     returns = []
-    # 计算回合累计回报
+    # 计算回合累计回报（无偏估计）
     for r in reversed(rewards):
         G = r + gamma * G
         returns.insert(0, G)
     
-    # 更新策略
+    # 使用回报 G 作为基线减法的参考，计算 Advantage
+    baseline = np.mean(returns)  # 简单的基线估计
     for s, a, Gt in zip(states, actions, returns):
-        theta += alpha * grad_log_pi(s, a) * Gt
+        advantage = Gt - baseline  # Advantage = Q(s,a) - V(s) 的近似
+        theta += alpha * grad_log_pi(s, a) * advantage
   </code></pre>
 
-
-  <h3>五、策略梯度训练完成判断</h3>
+  <h3>六、策略梯度训练完成判断</h3>
   <ul>
     <li>策略稳定性：连续若干回合策略选择动作概率变化不大</li>
     <li>平均累计奖励收敛：测试环境下平均奖励达到目标</li>
   </ul>
 
-  
+  <h3>七、Advantage 的关键意义</h3>
+  <p><strong>为什么使用 Advantage 而不是直接用 Q 值？</strong></p>
+  <ul>
+    <li><strong>降低方差</strong>：Advantage = Q(s,a) - V(s) 是相对值，减少了绝对值的波动。如果所有动作的 Q 值都很大（或很小），直接用 Q 会导致高方差，用 Advantage 则相对稳定。</li>
+    <li><strong>基线效应</strong>：Advantage 本质上是以 V(s) 作为基线，衡量"相对于平均动作"的好坏，而不是"绝对"好坏。</li>
+    <li><strong>后续算法的基础</strong>：Actor-Critic、A2C、A3C、PPO 等所有现代策略梯度方法，都以 Advantage 作为核心概念。</li>
+  </ul>
+
+  <p><strong>直观对比：</strong></p>
+  <ul>
+    <li>用 Q(s,a)：在状态 s，有两个动作 a1、a2，Q(a1)=100，Q(a2)=99，都很优秀，但更新时两者对梯度的影响力量差异小。</li>
+    <li>用 A(s,a)：假设 V(s)=98，则 A(a1)=+2，A(a2)=+1，Advantage 清晰地区分了"谁更优"，这也降低了估计的方差。</li>
+  </ul>
+
 </section>
 <!-- 第十二章 -->
 <section id="chapter12" class="chapter">
@@ -1958,27 +2110,27 @@ for episode in range(num_episodes):
   <table>
     <tr>
       <th>方法</th>
-      <th>回报估计方式</th>
+      <th>Advantage 估计方式</th>
       <th>策略更新依据</th>
       <th>更新频率</th>
       <th>方差</th>
     </tr>
     <tr>
       <td>REINFORCE</td>
-      <td>完整回合累计回报 G_t</td>
+      <td>回合累计回报 G_t（高方差，无偏）</td>
       <td>G_t * ∇ log π(a|s)</td>
       <td>回合结束</td>
       <td>高</td>
     </tr>
     <tr>
       <td>Actor-Critic (AC)</td>
-      <td>TD 误差 δ_t = r + γ V(s') - V(s)</td>
+      <td>TD 误差 δ_t = r + γ V(s') - V(s)（低方差，有偏）</td>
       <td>δ_t * ∇ log π(a|s)</td>
       <td>每一步（在线）</td>
-      <td>中低</td>
+      <td>低</td>
     </tr>
   </table>
-  <p>直观理解：REINFORCE 等整回合结束才打分，而 AC 每一步都有 Critic 指导 Actor，因此训练更快更稳。</p>
+  <p><strong>核心区别</strong>：两者都在计算 Advantage，但估计方式不同。REINFORCE 用完整回合的回报（高方差），AC 用 TD 误差（低方差，但引入偏差）。</p>
 
   <h3>二、核心思想</h3>
   <ul>
@@ -1987,14 +2139,64 @@ for episode in range(num_episodes):
   </ul>
   <p>直观理解：Actor 是“决策者”，Critic 是“裁判”，裁判告诉决策者动作好坏，Actor 根据反馈调整策略。</p>
 
-  <h3>三、核心公式</h3>
+  <h3>三、Advantage 函数与 TD 误差的数学推导</h3>
+  
+  <h4>一、Advantage 函数的理论定义</h4>
+  <p>Advantage 函数定义为：</p>
+  <p>$$
+  A^\pi(s_t, a_t) = Q^\pi(s_t, a_t) - V^\pi(s_t)
+  $$</p>
+  <p>它表示在状态 $s_t$ 下采取动作 $a_t$，相对于该状态平均水平 $V^\pi(s_t)$ 的"相对优势"。</p>
+  <p>如果找到 $Q^\pi(s_t, a_t)$ 的近似式，就能得到 $A^\pi(s_t, a_t)$ 的近似。</p>
+
+  <h4>二、展开 Q 函数的定义</h4>
+  <p>Q 函数定义为：</p>
+  <p>$$
+  Q^\pi(s_t, a_t) = \mathbb{E}_\pi[r_t + \gamma V^\pi(s_{t+1})]
+  $$</p>
+  <p>这是因为状态价值函数满足 Bellman 方程：$V^\pi(s_t) = \mathbb{E}_{a_t \sim \pi}[Q^\pi(s_t, a_t)]$</p>
+
+  <h4>三、代入 Advantage 定义</h4>
+  <p>将 $Q^\pi(s_t, a_t)$ 的展开式代入 Advantage 定义：</p>
+  <p>$$
+  A^\pi(s_t, a_t) = \mathbb{E}_\pi[r_t + \gamma V^\pi(s_{t+1})] - V^\pi(s_t)
+  $$</p>
+  <p>在实际训练中，我们用一次采样来近似期望（即使用当前采样的实际奖励 $r_t$ 代替期望），得到：</p>
+  <p>$$
+  A^\pi(s_t, a_t) \approx r_t + \gamma V^\pi(s_{t+1}) - V^\pi(s_t)
+  $$</p>
+
+  <h4>四、这正是 TD 误差的定义</h4>
+  <p>TD 误差（Temporal Difference Error）定义为：</p>
+  <p>$$
+  \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)
+  $$</p>
+  <p><strong>关键结论</strong>：</p>
+  <p>$$
+  A^\pi(s_t, a_t) \approx \delta_t
+  $$</p>
+  <p><strong>即 TD 误差就是 Advantage 的一次采样估计。</strong></p>
+
+  <h4>五、为什么这样做合理？</h4>
+  <p><b>① TD 误差是 Advantage 的无偏估计</b></p>
+  <p>只要 $V(s)$ 近似 $V^\pi(s)$，那么 TD 误差的期望就是 Advantage：</p>
+  <p>$$
+  \mathbb{E}[\delta_t] = \mathbb{E}[r_t + \gamma V^\pi(s_{t+1}) - V^\pi(s_t)] = Q^\pi(s_t, a_t) - V^\pi(s_t) = A^\pi(s_t, a_t)
+  $$</p>
+  <p>因此 <strong>TD 误差是 Advantage 的无偏估计</strong>。</p>
+
+  <p><b>② TD 误差具有低方差的优点</b></p>
   <ul>
-    <li><b>TD 误差（Critic）</b>：
-      <p>$$
-      \delta_t = r_{t+1} + \gamma V(s_{t+1}) - V(s_t)
-      $$</p>
-    </li>
-    <li><b>Actor 更新</b>：
+    <li><strong>直接用回报估计</strong>（REINFORCE）：$G_t = \sum_k \gamma^k r_{t+k}$ 需要累计完整轨迹的奖励，方差很高</li>
+    <li><strong>用 TD 误差估计</strong>（AC）：$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ 只依赖当前一步和下一状态，方差极低，训练更稳定</li>
+    <li><strong>结果</strong>：虽然 V 函数的学习会引入一些偏差，但总体上方差的下降远超偏差的引入，使得 AC 算法在实践中比 REINFORCE 高效得多</li>
+  </ul>
+
+  <p><strong>这就是为什么在 AC、A2C、PPO 等所有现代策略梯度方法中，都用 TD 误差或其多步版本来近似 Advantage。</strong></p>
+
+  <h3>四、核心公式总结</h3>
+  <ul>
+    <li><b>Actor 更新（使用 Advantage）</b>：
       <p>$$
       \theta_\text{Actor} \gets \theta_\text{Actor} + \alpha_\text{Actor} \nabla_\theta \log \pi_\theta(a|s) \, \delta_t
       $$</p>
@@ -2006,7 +2208,7 @@ for episode in range(num_episodes):
     </li>
   </ul>
 
-  <h3>四、训练流程</h3>
+  <h3>五、训练流程</h3>
   <ol>
     <li>初始化 Actor 和 Critic 网络</li>
     <li>与环境交互，选择动作 a_t ∼ π(a|s_t)</li>
@@ -2155,6 +2357,12 @@ class ActorCritic:
   <h3>一、Advantage Actor-Critic (A2C)</h3>
   <p><b>核心公式：</b></p>
   <ul>
+    <li>Advantage 计算：
+      <p>$$
+      A(s,a) = r_{t+1} + \gamma V(s_{t+1}) - V(s_t) = \delta_t
+      $$</p>
+      <p>（使用一步 TD 误差作为 Advantage 的无偏估计，与 AC 一致）</p>
+    </li>
     <li>Actor 更新：
       <p>$$
       \theta_\text{Actor} \gets \theta_\text{Actor} + \alpha_\text{Actor} \nabla_\theta \log \pi_\theta(a|s) \, A(s,a)
@@ -2227,17 +2435,16 @@ class A2C:
         """计算广义优势估计（Generalized Advantage Estimation）"""
         advantages = []
         gae = 0
-        next_value = 0
         
         for t in reversed(range(len(rewards))):
             if t == len(rewards) - 1:
                 next_nonterminal = 1.0 - dones[t]
-                next_value_t = next_value
+                next_value = 0
             else:
                 next_nonterminal = 1.0 - dones[t]
-                next_value_t = values[t + 1]
+                next_value = values[t + 1]
             
-            delta = rewards[t] + gamma * next_value_t * next_nonterminal - values[t]
+            delta = rewards[t] + gamma * next_value * next_nonterminal - values[t]
             gae = delta + gamma * gae_lambda * next_nonterminal * gae
             advantages.insert(0, gae)
         
@@ -2534,6 +2741,155 @@ if __name__ == '__main__':
     <tr><td>收敛稳定性</td><td>高</td><td>高，但随机性大</td></tr>
     <tr><td>实现难度</td><td>中</td><td>高</td></tr>
   </table>
+
+</section>
+
+<!-- 算法总结表 -->
+<section id="summary" class="chapter">
+  <h2>全体算法总结与选择指南</h2>
+  
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr>
+        <th>算法</th>
+        <th>需要模型</th>
+        <th>动作空间</th>
+        <th>核心思想</th>
+        <th>优点</th>
+        <th>缺点</th>
+        <th>适用场景</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>策略迭代</td>
+        <td>是</td>
+        <td>离散</td>
+        <td>评估+改进循环</td>
+        <td>理论完备</td>
+        <td>需要模型，计算复杂</td>
+        <td>模型已知小规模问题</td>
+      </tr>
+      <tr>
+        <td>值迭代</td>
+        <td>是</td>
+        <td>离散</td>
+        <td>直接优化V函数</td>
+        <td>简洁高效</td>
+        <td>需要模型</td>
+        <td>模型已知小规模问题</td>
+      </tr>
+      <tr>
+        <td>蒙特卡洛</td>
+        <td>否</td>
+        <td>离散</td>
+        <td>采样+回合回报</td>
+        <td>无需模型，理论简单</td>
+        <td>方差高，需等回合结束</td>
+        <td>离散小环境、离线学习</td>
+      </tr>
+      <tr>
+        <td>时间差分 (TD)</td>
+        <td>否</td>
+        <td>离散</td>
+        <td>自举+一步更新</td>
+        <td>低方差，在线学习</td>
+        <td>引入偏差</td>
+        <td>离散中等规模问题</td>
+      </tr>
+      <tr>
+        <td>Q-learning</td>
+        <td>否</td>
+        <td>离散</td>
+        <td>Off-policy值迭代</td>
+        <td>收敛快，无模型</td>
+        <td>Q值表过大不可行</td>
+        <td>离散问题的标准方法</td>
+      </tr>
+      <tr>
+        <td>DQN</td>
+        <td>否</td>
+        <td>离散</td>
+        <td>神经网络逼近Q</td>
+        <td>支持高维状态</td>
+        <td>Q值过估计，训练不稳定</td>
+        <td>高维观测、视觉任务</td>
+      </tr>
+      <tr>
+        <td>DDQN</td>
+        <td>否</td>
+        <td>离散</td>
+        <td>双网络减缓高估</td>
+        <td>训练稳定</td>
+        <td>计算量增加</td>
+        <td>复杂环境、持续任务</td>
+      </tr>
+      <tr>
+        <td>REINFORCE</td>
+        <td>否</td>
+        <td>连续/离散</td>
+        <td>策略参数直接梯度上升</td>
+        <td>支持连续动作</td>
+        <td>方差大，收敛慢</td>
+        <td>连续控制问题</td>
+      </tr>
+      <tr>
+        <td>Actor-Critic</td>
+        <td>否</td>
+        <td>连续/离散</td>
+        <td>Actor+Critic基线</td>
+        <td>低方差快速收敛</td>
+        <td>需要维护两个网络</td>
+        <td>连续控制、实时应用</td>
+      </tr>
+      <tr>
+        <td>A2C</td>
+        <td>否</td>
+        <td>连续/离散</td>
+        <td>多环境同步采样</td>
+        <td>并行高效稳定</td>
+        <td>需多GPU支持</td>
+        <td>大规模并行训练</td>
+      </tr>
+      <tr>
+        <td>A3C</td>
+        <td>否</td>
+        <td>连续/离散</td>
+        <td>多线程异步更新</td>
+        <td>高探索性、快速收敛</td>
+        <td>实现复杂</td>
+        <td>资源受限、实时系统</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>算法选择流程图</h3>
+  <ol>
+    <li><strong>是否知道环境的转移概率模型？</strong>
+      <ul>
+        <li>是 → 使用动态规划（策略迭代/值迭代）</li>
+        <li>否 → 继续第2步</li>
+      </ul>
+    </li>
+    <li><strong>动作空间是离散还是连续？</strong>
+      <ul>
+        <li>离散 → 继续第3步</li>
+        <li>连续 → 使用策略梯度方法（REINFORCE/AC/A2C/A3C）</li>
+      </ul>
+    </li>
+    <li><strong>状态空间维度？</strong>
+      <ul>
+        <li>低（几百个状态以下） → 使用Q-learning表格形式</li>
+        <li>高（图像等）→ 使用DQN/DDQN</li>
+      </ul>
+    </li>
+    <li><strong>是否需要样本效率和稳定性？</strong>
+      <ul>
+        <li>否 → DQN可以</li>
+        <li>是 → 使用DDQN或组合A2C</li>
+      </ul>
+    </li>
+  </ol>
 
 </section>
 
