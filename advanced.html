@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>强化学习进阶算法 | Yun</title>
+<!-- 数学公式渲染 -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- Prism.js 样式与脚本 -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Roboto", -apple-system, sans-serif;
+  background: linear-gradient(135deg, #121620 0%, #1b1f2b 40%, #221814 100%);
+  color: #f5f5f5;
+  line-height: 1.8;
+  scroll-behavior: smooth;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  text-align: center;
+  background: rgba(20, 18, 24, 0.92);
+  padding: 28px 20px 18px;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 140, 66, 0.35);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+  font-size: 2.3rem;
+  color: #ff9740;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  margin: 18px 0 0;
+}
+
+nav a {
+  color: #f0dccc;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 6px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: rgba(255, 140, 66, 0.1);
+  border: 1px solid rgba(255, 140, 66, 0.2);
+}
+
+nav a:hover, nav a.active {
+  color: #ff9740;
+  background: rgba(255, 140, 66, 0.2);
+  border-color: rgba(255, 140, 66, 0.5);
+  box-shadow: 0 0 14px rgba(255, 140, 66, 0.35);
+}
+
+.container {
+  display: flex;
+  position: relative;
+  z-index: 5;
+  max-width: 1400px;
+  margin: 30px auto;
+  gap: 30px;
+  padding: 0 20px 40px;
+}
+
+aside {
+  position: sticky;
+  top: 130px;
+  width: 260px;
+  height: fit-content;
+  background: rgba(28, 24, 32, 0.88);
+  border: 1px solid rgba(255, 140, 66, 0.25);
+  border-radius: 12px;
+  padding: 22px;
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+
+aside h3 {
+  color: #ff9740;
+  font-size: 1.15rem;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(255, 140, 66, 0.35);
+}
+
+aside ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+aside a {
+  color: #f0dccc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  background: transparent;
+}
+
+aside a:hover, aside a.active {
+  color: #ff9740;
+  background: rgba(255, 140, 66, 0.12);
+  border-left-color: #ff9740;
+  padding-left: 16px;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+}
+
+.chapter {
+  background: rgba(28, 24, 32, 0.82);
+  border: 1px solid rgba(255, 140, 66, 0.2);
+  border-radius: 14px;
+  padding: 36px;
+  margin-bottom: 35px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.chapter:hover {
+  border-color: rgba(255, 140, 66, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55);
+}
+
+.chapter h2 {
+  color: #ff8c42;
+  font-size: 1.85rem;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(255, 140, 66, 0.3);
+  font-weight: 700;
+}
+
+.chapter h3 {
+  color: #ffb061;
+  font-size: 1.25rem;
+  margin-top: 26px;
+  border-left: 4px solid rgba(255, 176, 97, 0.6);
+  padding-left: 12px;
+}
+
+.chapter p, .chapter li {
+  color: #f2e6dc;
+}
+
+.chapter strong {
+  color: #ffb061;
+}
+
+.chapter code {
+  background: rgba(255, 140, 66, 0.15);
+  color: #ffd9b3;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  background: rgba(255, 140, 66, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+table th, table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 140, 66, 0.2);
+  color: #f7ede2;
+}
+
+table th {
+  background: rgba(255, 140, 66, 0.22);
+  color: #fff1e6;
+  font-size: 1.05rem;
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+pre[class*="language-"] {
+  background: linear-gradient(135deg, rgba(30, 24, 33, 0.92) 0%, rgba(36, 28, 36, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 140, 66, 0.28) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  overflow-x: auto !important;
+  font-size: 0.93rem !important;
+  line-height: 1.62 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55) !important;
+}
+
+pre[class*="language-"]::before {
+  content: attr(class);
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 0.7rem;
+  color: rgba(255, 189, 128, 0.7);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+pre.line-numbers {
+  padding-left: 65px !important;
+}
+
+.line-numbers-rows {
+  background: rgba(255, 140, 66, 0.1) !important;
+  border-right: 2px solid rgba(255, 140, 66, 0.25) !important;
+}
+
+.line-numbers-rows > span:before {
+  color: rgba(255, 189, 128, 0.7) !important;
+}
+
+footer {
+  text-align: center;
+  padding: 28px 20px;
+  background: rgba(20, 18, 24, 0.9);
+  border-top: 1px solid rgba(255, 140, 66, 0.3);
+  color: #f0dccc;
+  margin-top: 60px;
+  font-size: 0.9rem;
+}
+
+footer span {
+  color: #ff9740;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+  }
+  aside {
+    position: relative;
+    top: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 2rem;
+  }
+  nav a {
+    font-size: 0.85rem;
+    padding: 4px 12px;
+  }
+  .container {
+    padding: 0 12px 30px;
+  }
+  .chapter {
+    padding: 24px;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>强化学习笔记（进阶篇）</h1>
+  <nav>
+    <ul>
+      <li><a href="index.html">首页</a></li>
+      <li><a href="home.html">基础笔记</a></li>
+      <li><a href="#chapter14">Dueling DQN</a></li>
+      <li><a href="#chapter15">PER</a></li>
+      <li><a href="#chapter16">NoisyNet</a></li>
+      <li><a href="#chapter17">Rainbow</a></li>
+  <li><a href="#chapter18">DDPG</a></li>
+  <li><a href="#chapter19">TD3</a></li>
+  <li><a href="#chapter20">TRPO</a></li>
+  <li><a href="#chapter21">PPO</a></li>
+  <li><a href="#chapter22">SAC</a></li>
+  <li><a href="#chapter23">组合策略</a></li>
+  <li><a href="#chapter_summary">进阶总结</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="container">
+  <aside>
+    <h3>🔥 进阶目录</h3>
+    <ul>
+      <li><a href="#chapter14">第十四章：Dueling DQN</a></li>
+      <li><a href="#chapter15">第十五章：PER</a></li>
+      <li><a href="#chapter16">第十六章：NoisyNet DQN</a></li>
+      <li><a href="#chapter17">第十七章：Rainbow DQN</a></li>
+      <li><a href="#chapter18">第十八章：DDPG</a></li>
+      <li><a href="#chapter19">第十九章：TD3</a></li>
+      <li><a href="#chapter20">第二十章：TRPO</a></li>
+      <li><a href="#chapter21">第二十一章：PPO</a></li>
+      <li><a href="#chapter22">第二十二章：SAC</a></li>
+      <li><a href="#chapter23">第二十三章：策略梯度增强组合</a></li>
+      <li><a href="#chapter_summary">进阶总结</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <section id="chapter14" class="chapter">
+      <h2>第十四章：Dueling DQN（双流架构）</h2>
+      <p>Dueling DQN 将 Q 网络拆分为<strong>状态价值分支 V(s)</strong>与<strong>动作优势分支 A(s,a)</strong>，通过不同的子网络捕获“当前状态本身好不好”以及“在该状态下每个动作相对优势如何”。</p>
+
+      <h3>1. 核心结构</h3>
+      <p>双流架构在卷积或前馈主干之后分成两条分支：</p>
+      <ul>
+        <li><strong>Value Stream：</strong>$V(s)$ 表示状态本身的价值；</li>
+        <li><strong>Advantage Stream：</strong>$A(s,a)$ 表示给定状态下采取动作 $a$ 的额外收益。</li>
+      </ul>
+      <p>最终的 Q 值通过下式重组：</p>
+      <p>$$
+      Q(s, a) = V(s) + \Big(A(s, a) - \frac{1}{|\mathcal{A}|} \sum_{a'} A(s, a')\Big)
+      $$</p>
+      <p>减去优势的均值是为了保证 <code>A</code> 的可辨识性，使得 $\sum_a A(s,a)=0$。</p>
+
+      <h3>2. 关键收益</h3>
+      <ul>
+        <li>在某些状态动作差异不大时，单独估计 V(s) 更稳定；</li>
+        <li>优势分支侧重学习动作差异，增强估值灵敏度；</li>
+        <li>与 Double/Double Dueling 架构组合常显著提升 Atari 表现。</li>
+      </ul>
+
+      <h3>3. 代码骨架</h3>
+<pre class="language-python line-numbers"><code>import torch
+import torch.nn as nn
+
+class DuelingNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+        )
+        self.value_stream = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+        )
+        self.advantage_stream = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim),
+        )
+
+    def forward(self, x):
+        feat = self.shared(x)
+        value = self.value_stream(feat)
+        advantage = self.advantage_stream(feat)
+        advantage = advantage - advantage.mean(dim=1, keepdim=True)
+        return value + advantage</code></pre>
+    </section>
+
+    <section id="chapter15" class="chapter">
+      <h2>第十五章：Prioritized Experience Replay（PER）</h2>
+      <p>Prioritized Experience Replay 根据 TD 误差大小决定样本被采样的概率，让学习集中于意外程度高、提升空间大的片段。</p>
+
+      <h3>1. 采样概率定义</h3>
+      <p>经验片段 $i$ 的采样概率定义为：</p>
+      <p>$$
+      P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha}, \quad p_i = |\delta_i| + \varepsilon
+      $$</p>
+      <ul>
+        <li>$\delta_i$：样本 TD 误差</li>
+        <li>$\alpha$：控制优先采样程度（0 表示均匀采样）</li>
+        <li>$\varepsilon$：避免 0 概率的常数</li>
+      </ul>
+
+      <h3>2. 重要性采样权重</h3>
+      <p>为抵消偏差，引入重要性采样权重：</p>
+      <p>$$
+      w_i = \Big(\frac{1}{N \cdot P(i)}\Big)^\beta, \quad \beta \nearrow 1
+      $$</p>
+      <p>$\beta$ 从较小值递增，以逐步校正分布偏差。</p>
+
+      <h3>3. Sum-Tree 实现要点</h3>
+      <ul>
+        <li>用二叉树维护优先级前缀和，采样和更新复杂度降为 $O(\log N)$；</li>
+        <li>每次采样使用随机阈值 $u \in [0, \text{total})$ 在树中查找对应叶子；</li>
+        <li>更新 TD 误差后需回写树节点。</li>
+      </ul>
+    </section>
+
+    <section id="chapter16" class="chapter">
+      <h2>第十六章：NoisyNet DQN</h2>
+      <p>NoisyNet 通过在网络参数中引入噪声，替代传统的 $\varepsilon$-greedy 策略，实现可学习的探索程度。</p>
+
+      <h3>1. 噪声线性层</h3>
+      <p>使用参数化噪声：</p>
+      <p>$$
+      y = (\mu_w + \sigma_w \odot \varepsilon_w) x + (\mu_b + \sigma_b \odot \varepsilon_b)
+      $$</p>
+      <ul>
+        <li>$\mu$、$\sigma$：可训练参数</li>
+        <li>$\varepsilon$：每次前向传播采样噪声</li>
+      </ul>
+
+      <h3>2. 探索优势</h3>
+      <ul>
+        <li>噪声大小可被学习调整，探索度随训练自动变化；</li>
+        <li>对长期任务比固定 $\varepsilon$ 更灵活；</li>
+        <li>适合与 Dueling、PER 等组合。</li>
+      </ul>
+    </section>
+
+    <section id="chapter17" class="chapter">
+      <h2>第十七章：Rainbow DQN</h2>
+      <p>Rainbow 将六大改进整合进单一框架，在 Atari 游戏中达到显著性能突破：</p>
+      <ol>
+        <li>Dueling 架构</li>
+        <li>Double DQN</li>
+        <li>Prioritized Replay</li>
+        <li>NoisyNet 探索</li>
+        <li>Multi-step Returns</li>
+        <li>分布式值函数（C51）</li>
+      </ol>
+
+      <h3>1. Multi-step Target</h3>
+      <p>采用 $n$ 步回报：</p>
+      <p>$$
+      G_t^{(n)} = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V(s_{t+n})
+      $$</p>
+
+      <h3>2. 分布式 Q 函数</h3>
+      <p>Rainbow 输出的是价值分布 $Z(s,a)$，并使用 KL 散度损失投影到支持集合上。</p>
+    </section>
+
+    <section id="chapter18" class="chapter">
+      <h2>第十八章：DDPG（Deep Deterministic Policy Gradient）</h2>
+      <p>DDPG 将 Actor-Critic 引入连续动作空间，采用确定性策略 $\mu_\theta(s)$ 与 Q 网络 $Q_w(s,a)$ 互相更新。</p>
+
+      <h3>1. 策略与 Q 更新</h3>
+      <p>Critic 目标：</p>
+      <p>$$
+      y_t = r_t + \gamma Q_w'(s_{t+1}, \mu_{\theta'}(s_{t+1}))
+      $$</p>
+      <p>Actor 梯度：</p>
+      <p>$$
+      \nabla_\theta J \approx \frac{1}{N} \sum_i \nabla_a Q_w(s_i,a)\big|_{a=\mu_\theta(s_i)} \nabla_\theta \mu_\theta(s_i)
+      $$</p>
+
+      <h3>2. 关键技巧</h3>
+      <ul>
+        <li>目标网络软更新：$\theta' \leftarrow \tau\theta + (1-\tau)\theta'$；</li>
+        <li>Ornstein-Uhlenbeck 噪声适应连续动作探索；</li>
+        <li>对输入特征做归一化提升稳定性。</li>
+      </ul>
+    </section>
+
+    <section id="chapter19" class="chapter">
+      <h2>第十九章：TD3（Twin Delayed DDPG）</h2>
+      <p>TD3 针对 DDPG 过估计和训练不稳定问题提出三项改进：</p>
+      <ol>
+        <li><strong>双 Critic：</strong>取两个 Q 网络的较小值作为目标，抑制过估计；</li>
+        <li><strong>延迟策略更新：</strong>多次 Critic 更新后再更新 Actor；</li>
+        <li><strong>目标平滑：</strong>在目标动作上添加小噪声，缓解误差放大。</li>
+      </ol>
+
+      <h3>1. 目标计算</h3>
+      <p>$$
+      y_t = r_t + \gamma \min_{i=1,2} Q_{w_i}'(s_{t+1}, \tilde{a}), \quad \tilde{a} = \mu_{\theta'}(s_{t+1}) + \epsilon,\ \epsilon \sim \mathcal{N}(0, \sigma)
+      $$</p>
+
+      <h3>2. 实践建议</h3>
+      <ul>
+        <li>Critic:Actor 更新频率通常 2:1；</li>
+        <li>目标噪声裁剪在 $[-c, c]$ 之间；</li>
+        <li>结合 layer normalization 提升鲁棒性。</li>
+      </ul>
+    </section>
+
+    <section id="chapter20" class="chapter">
+      <h2>第二十章：TRPO（Trust Region Policy Optimization）</h2>
+      <p>TRPO 在策略梯度中引入信赖域约束，通过控制策略变动幅度保障性能单调提升。</p>
+
+      <h3>1. 优化目标</h3>
+      <p>最大化 surrogate objective：</p>
+      <p>$$
+      L(\theta) = \mathbb{E}_{s,a \sim \pi_{\theta_{old}}} \Big[ \frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(a|s)} A_{\pi_{\theta_{old}}}(s,a) \Big]
+      $$</p>
+      <p>约束 KL 散度不超过阈值：</p>
+      <p>$$
+      \mathbb{E}_{s \sim \pi_{\theta_{old}}}\big[\text{KL}(\pi_{\theta_{old}}(\cdot|s) \| \pi_\theta(\cdot|s))\big] \leq \delta
+      $$</p>
+
+      <h3>2. 共轭梯度求解</h3>
+      <p>通过共轭梯度近似 Fisher 信息矩阵逆，结合线性搜索找到满足 KL 约束的更新步长。</p>
+
+      <h3>3. 局限与延伸</h3>
+      <ul>
+        <li>求解复杂，计算代价高；</li>
+        <li>PPO 可看作简化版，保留核心思想同时提升易用性。</li>
+      </ul>
+    </section>
+
+    <section id="chapter21" class="chapter">
+      <h2>第二十一章：PPO（Proximal Policy Optimization）</h2>
+      <p>PPO 使用剪切策略损失，在保持 KL 约束思想的同时采取可微分的简单目标函数，是工业和研究中的主流选择。</p>
+
+      <h3>1. Clipped Loss</h3>
+      <p>$$
+      L^{CLIP}(\theta) = \mathbb{E}\big[\min(r_t(\theta) A_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) A_t)\big]
+      $$</p>
+      <p>其中 $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$。</p>
+
+      <h3>2. 实践要点</h3>
+      <ul>
+        <li>优势估计常用 GAE；</li>
+        <li>多轮 epoch 对同一批次样本优化；</li>
+        <li>配合 value loss 与 entropy bonus。</li>
+      </ul>
+
+      <h3>3. 代码框架</h3>
+<pre class="language-python line-numbers"><code>ratio = (new_log_prob - old_log_prob).exp()
+clip_ratio = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip)
+policy_loss = -torch.min(ratio * advantages, clip_ratio * advantages).mean()
+value_loss = 0.5 * (returns - value_pred).pow(2).mean()
+entropy_bonus = -entropy_coeff * dist.entropy().mean()
+loss = policy_loss + value_loss + entropy_bonus</code></pre>
+    </section>
+
+    <section id="chapter22" class="chapter">
+      <h2>第二十二章：SAC（Soft Actor-Critic）</h2>
+      <p>SAC 将最大熵强化学习思想与 Actor-Critic 结合，鼓励策略保持高熵，从而兼顾探索与性能。</p>
+
+      <h3>1. 最大熵目标</h3>
+      <p>$$
+      J(\pi) = \sum_t \mathbb{E}_{(s_t,a_t) \sim \pi}[r(s_t,a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))]
+      $$</p>
+
+      <h3>2. 双 Q + 温度自适应</h3>
+      <ul>
+        <li>双 Q 网络减轻过估计；</li>
+        <li>自动调节温度 $\alpha$，保持策略熵接近目标值。</li>
+      </ul>
+
+      <h3>3. 更新步骤</h3>
+      <ol>
+        <li>更新 Critic：最小化 $\frac{1}{2}(Q - y)^2$；</li>
+        <li>更新 Actor：最小化 $\mathbb{E}[\alpha \log \pi(a|s) - Q(s,a)]$；</li>
+        <li>更新温度：最小化 $\mathbb{E}[-\alpha (\log \pi(a|s) + \mathcal{H}_{target})]$。</li>
+      </ol>
+    </section>
+
+    <section id="chapter23" class="chapter">
+      <h2>第二十三章：策略梯度增强组合</h2>
+      <p>现代强化学习常将上述技巧组合使用，以获得最佳稳定性与样本效率：</p>
+      <ul>
+        <li><strong>PPO + GAE + Value Clipping：</strong>成为标准基线；</li>
+        <li><strong>SAC + HER：</strong>在稀疏奖励任务中表现出色；</li>
+        <li><strong>TD3 + PER：</strong>在连续控制中加速收敛；</li>
+        <li><strong>Rainbow + NoisyNet：</strong>强化离散任务性能。</li>
+      </ul>
+
+      <h3>1. 组合策略对比</h3>
+      <table>
+        <tr><th>组合</th><th>特点</th><th>典型场景</th></tr>
+        <tr><td>PPO + GAE</td><td>稳定、低方差</td><td>机器人、本体仿真</td></tr>
+        <tr><td>SAC + 自适应温度</td><td>探索充分、鲁棒</td><td>复杂连续控制</td></tr>
+        <tr><td>TD3 + PER</td><td>利用关键样本</td><td>高维机械臂</td></tr>
+        <tr><td>Rainbow 整合</td><td>离散任务 SOTA</td><td>Atari、策略游戏</td></tr>
+      </table>
+    </section>
+
+    <section id="chapter_summary" class="chapter">
+      <h2>进阶总结与学习建议</h2>
+      <h3>1. 能力地图</h3>
+      <table>
+        <tr><th>能力</th><th>相关算法</th><th>提升路径</th></tr>
+        <tr><td>样本效率</td><td>PER、Rainbow、SAC</td><td>优先采样 → 多步目标 → 最大熵</td></tr>
+        <tr><td>稳定性</td><td>Dueling、TD3、PPO</td><td>架构改进 → 双网络 → 剪切损失</td></tr>
+        <tr><td>连续控制</td><td>DDPG、TD3、SAC</td><td>确定性策略 → 双 Critic → 温度自适应</td></tr>
+      </table>
+
+      <h3>2. 实战路线</h3>
+      <ol>
+        <li>先在 <code>MuJoCo</code> 等经典环境复现 PPO/SAC；</li>
+        <li>引入 TD3 或 Rainbow 对比指标；</li>
+        <li>在自定义环境中调参，观察噪声、熵目标、学习率影响。</li>
+      </ol>
+
+      <h3>3. 推荐阅读</h3>
+      <ul>
+        <li>"Rainbow: Combining Improvements in Deep Reinforcement Learning"</li>
+        <li>"Continuous Control with Deep Reinforcement Learning" (DDPG)</li>
+        <li>"Addressing Function Approximation Error in Actor-Critic Methods" (TD3)</li>
+        <li>"Proximal Policy Optimization Algorithms" (PPO)</li>
+        <li>"Soft Actor-Critic" 系列论文</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <p>© 2025 <span>Haoyun Tang</span> | Reinforcement Learning Advanced Notes</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
+    if (!pre.classList.contains('line-numbers')) {
+      pre.classList.add('line-numbers');
+    }
+  });
+  if (window.Prism) {
+    Prism.highlightAll();
+  }
+});
+
+window.addEventListener('load', () => {
+  if (window.Prism) {
+    Prism.highlightAll();
+  }
+});
+
+const navLinks = document.querySelectorAll('nav a');
+const asideLinks = document.querySelectorAll('aside a');
+const combined = [...navLinks, ...asideLinks];
+
+window.addEventListener('scroll', () => {
+  const offset = window.scrollY + 160;
+  combined.forEach(link => {
+    const section = document.querySelector(link.getAttribute('href'));
+    if (!section) return;
+    if (section.offsetTop <= offset && section.offsetTop + section.offsetHeight > offset) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
