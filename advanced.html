@@ -194,6 +194,21 @@ main {
   border-radius: 4px;
 }
 
+/* 全局：深色代码块主题，覆盖 Prism 默认浅色主题以便在深色页面中可读 */
+pre[class*="language-"], code[class*="language-"] {
+  background: #0b1220 !important;
+  color: #e8f4fd !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  border-left: 4px solid #9c27b0 !important;
+  overflow: auto !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+pre[class*="language-"] code { background: transparent !important; color: inherit !important; padding: 0 !important; }
+pre.line-numbers { padding-left: 18px !important; }
+
 table {
   width: 100%;
   border-collapse: collapse;
