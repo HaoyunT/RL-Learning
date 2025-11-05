@@ -175,6 +175,53 @@
       transform: translateY(-2px);
     }
 
+    /* 作者简介模块 */
+    .author-section {
+      background: rgba(86, 171, 145, 0.06);
+      border: 1px solid rgba(86, 171, 145, 0.2);
+      border-radius: 12px;
+      padding: 25px;
+      margin-top: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .author-section:hover {
+      background: rgba(86, 171, 145, 0.1);
+      border-color: rgba(86, 171, 145, 0.3);
+      box-shadow: 0 6px 20px rgba(86, 171, 145, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .author-section h3 {
+      color: #56ab91;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .author-content p {
+      color: #b0b5bb;
+      font-size: 0.95rem;
+      margin: 8px 0;
+      line-height: 1.6;
+    }
+
+    .author-content a {
+      color: #56ab91;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .author-content a:hover {
+      color: #7ec8a3;
+      text-decoration: underline;
+    }
+
     /* 页脚 */
     .footer {
       position: fixed;
@@ -269,6 +316,16 @@
         <div class="feature-title">论文研读</div>
         <div class="feature-desc">剖析经典论文，理解算法背后的创新思想</div>
       </a>
+    </div>
+
+    <!-- 作者简介模块 -->
+    <div class="author-section">
+      <h3>👨‍🎓 作者简介</h3>
+      <div class="author-content">
+        <p>唐浩云，新疆大学数学系学生，专注于强化学习理论与应用研究。</p>
+        <p>📧 <a href="https://haoyunt.github.io/" target="_blank">个人主页</a></p>
+        <p>🎯 研究兴趣：深度强化学习、多智能体系统、博弈论</p>
+      </div>
     </div>
 
   </div>
