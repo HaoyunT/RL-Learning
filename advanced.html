@@ -373,7 +373,7 @@ footer span {
     <p>$$\sum_a E(s,a) = -\sum_a D(s) = -|\mathcal{A}|\, D(s) = 0 \Rightarrow D(s)=0.$$</p>
     <p>于是 $D(s)=0$，进而 $E(s,a)=0$，即 $(V,A)$ 与 $(V',A')$ 在施加均值约束下相同，分解唯一。</p>
 
-    <h3>4. 标准化伪代码（学术风格）</h3>
+    <h3>4. 伪代码</h3>
     <div style="background: rgba(156, 39, 176, 0.08); border-left: 4px solid #9c27b0; padding: 20px; margin: 20px 0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6;">
     <h4 style="color: #9c27b0; margin-bottom: 12px; font-size: 16px;">📋 Dueling DQN（双流 DQN） — 伪代码</h4>
     <div style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
@@ -432,35 +432,35 @@ footer span {
     </div>
 
     <h3>5. PyTorch 代码示例（骨架）</h3>
-    <pre class="language-python line-numbers"><code>import torch
+    <pre class="language-python line-numbers" style="background:#0b1220; color:#e8f4fd; padding:16px; border-radius:8px; border-left:4px solid #9c27b0; overflow:auto; font-family:'Courier New', monospace; font-size:13px;"><code style="color:inherit">import torch
 import torch.nn as nn
 
 class DuelingNetwork(nn.Module):
-  def __init__(self, state_dim, action_dim):
-    super().__init__()
-    self.shared = nn.Sequential(
-      nn.Linear(state_dim, 256),
-      nn.ReLU(),
-      nn.Linear(256, 256),
-      nn.ReLU(),
-    )
-    self.value_stream = nn.Sequential(
-      nn.Linear(256, 128),
-      nn.ReLU(),
-      nn.Linear(128, 1),
-    )
-    self.advantage_stream = nn.Sequential(
-      nn.Linear(256, 128),
-      nn.ReLU(),
-      nn.Linear(128, action_dim),
-    )
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        self.shared = nn.Sequential(
+            nn.Linear(state_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+        )
+        self.value_stream = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+        )
+        self.advantage_stream = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_dim),
+        )
 
-  def forward(self, x):
-    feat = self.shared(x)
-    value = self.value_stream(feat)
-    advantage = self.advantage_stream(feat)
-    advantage = advantage - advantage.mean(dim=1, keepdim=True)
-    return value + advantage</code></pre>
+    def forward(self, x):
+        feat = self.shared(x)
+        value = self.value_stream(feat)
+        advantage = self.advantage_stream(feat)
+        advantage = advantage - advantage.mean(dim=1, keepdim=True)
+        return value + advantage</code></pre>
 
     <h3>6. 实践要点与组合策略</h3>
     <ul>
