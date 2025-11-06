@@ -194,20 +194,150 @@ main {
   border-radius: 4px;
 }
 
-/* 全局：深色代码块主题，覆盖 Prism 默认浅色主题以便在深色页面中可读 */
-pre[class*="language-"], code[class*="language-"] {
-  background: #0b1220 !important;
-  color: #e8f4fd !important;
-  padding: 12px !important;
-  border-radius: 8px !important;
-  border-left: 4px solid #9c27b0 !important;
-  overflow: auto !important;
-  font-family: 'Courier New', monospace !important;
-  font-size: 13px !important;
+/* 解决行号遮挡代码问题 */
+pre[class*="language-"] {
+  background: linear-gradient(135deg, #1a0d1f 0%, #2d1b3d 100%) !important;
+  padding: 20px !important;
+  padding-left: 3.2em !important; /* 给代码正文让出空间 */
+  border-radius: 10px !important;
+  overflow-x: auto !important;
+  font-size: 0.92rem !important;
   line-height: 1.6 !important;
+  border: 1px solid rgba(156, 39, 176, 0.4) !important;
+  position: relative;
+  font-family: 'Fira Code', 'Courier New', 'Consolas', 'Monaco', monospace !important;
+  box-shadow: 0 4px 20px rgba(156, 39, 176, 0.2) !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
-pre[class*="language-"] code { background: transparent !important; color: inherit !important; padding: 0 !important; }
-pre.line-numbers { padding-left: 18px !important; }
+
+/* 代码行号 */
+pre.line-numbers {
+  padding-left: 60px !important;
+}
+
+.line-numbers .line-numbers-rows {
+  left: 0 !important;
+  width: 3em !important;
+  background: transparent !important; /* 去掉背景遮罩 */
+  border-right: 1px solid #444 !important; /* 分割线 */
+}
+
+.line-numbers-rows > span:before {
+  color: rgba(186, 104, 200, 0.8) !important;
+  font-weight: bold;
+}
+
+pre code {
+  color: inherit !important;
+  background: none !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  font-feature-settings: "liga" 0 !important;
+}
+
+/* 代码块内各元素高亮 */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #9c9c9c !important;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #f8f8f2 !important;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff79c6 !important;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #50fa7b !important;
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: #8be9fd !important;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #bd93f9 !important;
+}
+
+.token.function,
+.token.class-name {
+  color: #ffb86c !important;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #f1fa8c !important;
+}
+
+/* 确保所有代码文本都有基础颜色 */
+pre[class*="language-"] code,
+pre[class*="language-"] {
+  color: #f8f8f2 !important;
+}
+
+/* 修复等号和符号的渲染问题 */
+pre[class*="language-"] .token.operator,
+pre[class*="language-"] .token.punctuation {
+  background: none !important;
+  text-shadow: none !important;
+  font-weight: normal !important;
+}
+
+/* 防止字体连字影响符号显示 */
+pre[class*="language-"] code {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "clig" 0 !important;
+}
+
+/* 代码块鼠标悬停效果 */
+pre[class*="language-"]:hover {
+  box-shadow: 
+    0 12px 48px rgba(156, 39, 176, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* 滚动条美化 */
+pre[class*="language-"]::-webkit-scrollbar {
+  height: 10px;
+  background: rgba(156, 39, 176, 0.1);
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb {
+  background: rgba(156, 39, 176, 0.5);
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 39, 176, 0.8);
+}
 
 table {
   width: 100%;
@@ -235,39 +365,11 @@ table tr:last-child td {
   border-bottom: none;
 }
 
-pre[class*="language-"] {
-  background: linear-gradient(135deg, rgba(30, 24, 33, 0.92) 0%, rgba(36, 28, 36, 0.95) 100%) !important;
-  border: 1px solid rgba(255, 140, 66, 0.28) !important;
-  border-radius: 12px !important;
-  padding: 20px !important;
-  overflow-x: auto !important;
-  font-size: 0.93rem !important;
-  line-height: 1.62 !important;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55) !important;
-}
-
-pre[class*="language-"]::before {
-  content: attr(class);
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 0.7rem;
-  color: rgba(255, 189, 128, 0.7);
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-
-pre.line-numbers {
-  padding-left: 65px !important;
-}
-
-.line-numbers-rows {
-  background: rgba(255, 140, 66, 0.1) !important;
-  border-right: 2px solid rgba(255, 140, 66, 0.25) !important;
-}
-
-.line-numbers-rows > span:before {
-  color: rgba(255, 189, 128, 0.7) !important;
+/* 防止遮挡的阴影或模糊效果 */
+pre[class*="language-"]::before,
+pre[class*="language-"]::after {
+  box-shadow: none !important;
+  background: none !important;
 }
 
 footer {
@@ -361,128 +463,237 @@ footer span {
     <h3>1. 核心结构与数学形式</h3>
     <p>主干网络（卷积或前馈）提取共享特征后分为两条分支：</p>
     <ul>
-    <li><strong>Value Stream：</strong>输出标量 $V(s)$，表示状态本身的价值；</li>
-    <li><strong>Advantage Stream：</strong>输出向量 $A(s,a)$，表示在状态 $s$ 下各动作的相对优势。</li>
+      <li><strong>Value Stream：</strong>输出标量 $V(s)$，表示状态本身的价值；</li>
+      <li><strong>Advantage Stream：</strong>输出向量 $A(s,a)$，表示在状态 $s$ 下各动作的相对优势。</li>
     </ul>
     <p>为使分解可辨识（identifiable），通常用下式重组 Q 值：</p>
-    <p>$$
-    Q(s, a) = V(s) + \Big(A(s, a) - \frac{1}{|\mathcal{A}|} \sum_{a'} A(s, a')\Big)
-    $$</p>
+    <p>$$Q(s, a) = V(s) + \Big(A(s, a) - \frac{1}{|\mathcal{A}|} \sum_{a'} A(s, a')\Big)$$</p>
     <p>减去优势均值能保证 $\sum_a A(s,a)=0$，从而避免任意常数在 V 与 A 之间转移导致的不可辨识问题（见下面的唯一分解证明）。</p>
 
     <h3>2. 直觉与优点</h3>
     <ul>
-    <li>当某些状态下不同动作收益接近时，专门学习 $V(s)$ 会更稳定；</li>
-    <li>$A(s,a)$ 聚焦动作间差异，能更快捕捉微小策略优势；</li>
-    <li>可与 Double DQN、PER、NoisyNet 等改进方法直接结合，常见于强化学习竞技平台（Atari、ProcGen 等）。</li>
+      <li>当某些状态下不同动作收益接近时，专门学习 $V(s)$ 会更稳定；</li>
+      <li>$A(s,a)$ 聚焦动作间差异，能更快捕捉微小策略优势；</li>
+      <li>可与 Double DQN、PER、NoisyNet 等改进方法直接结合，常见于强化学习竞技平台（Atari、ProcGen 等）。</li>
     </ul>
 
     <h3>3. 唯一分解（Identifiability）证明</h3>
     <p>问题：给定 Q(s,a)，将其写成 $Q(s,a)=V(s)+A(s,a)$ 是否唯一？答案：在没有约束时不是唯一的；若对每个 s 施加约束 $\sum_a A(s,a)=0$（或等价的常数约束），则分解唯一。</p>
-    <p>证明：</p>
+    <p><strong>证明步骤：</strong></p>
     <p>假设存在两组分解 $(V, A)$ 与 $(V', A')$ 满足对所有 $(s,a)$：</p>
-    <p>$$Q(s,a)=V(s)+A(s,a)=V'(s)+A'(s,a).$$</p>
+    <p>$$Q(s,a)=V(s)+A(s,a)=V'(s)+A'(s,a)$$</p>
     <p>令 $D(s)=V(s)-V'(s)$，$E(s,a)=A(s,a)-A'(s,a)$，则对所有 $(s,a)$ 有</p>
-    <p>$$D(s)+E(s,a)=0 \quad \Rightarrow \quad E(s,a) = -D(s).$$</p>
+    <p>$$D(s)+E(s,a)=0 \quad \Rightarrow \quad E(s,a) = -D(s)$$</p>
     <p>对动作集合求和并使用约束 $\sum_a E(s,a)=0$：</p>
-    <p>$$\sum_a E(s,a) = -\sum_a D(s) = -|\mathcal{A}|\, D(s) = 0 \Rightarrow D(s)=0.$$</p>
+    <p>$$\sum_a E(s,a) = -\sum_a D(s) = -|\mathcal{A}|\, D(s) = 0 \Rightarrow D(s)=0$$</p>
     <p>于是 $D(s)=0$，进而 $E(s,a)=0$，即 $(V,A)$ 与 $(V',A')$ 在施加均值约束下相同，分解唯一。</p>
 
-    <h3>4. 伪代码</h3>
-    <div style="background: rgba(156, 39, 176, 0.08); border-left: 4px solid #9c27b0; padding: 20px; margin: 20px 0; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6;">
-    <h4 style="color: #9c27b0; margin-bottom: 12px; font-size: 16px;">📋 Dueling DQN（双流 DQN） — 伪代码</h4>
-    <div style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
-      <pre style="margin:0; font-family: 'Courier New', monospace; font-size:13px; color:#e8f4fd; line-height:1.6;">
-<span style="color:#bb86fc; font-weight:bold;">算法名称：</span>Dueling Deep Q-Network (Dueling DQN)
-<span style="color:#bb86fc; font-weight:bold;">输入参数：</span>
-  • 环境 ℰ = ⟨𝒮,𝒜,𝒫,ℛ⟩, 主网络参数 θ（输出 V(s) 与 A(s,·)）
-  • 目标网络参数 θ⁻, 经验回放池 𝒟, 学习率 α, 折扣 γ
-  • 批大小 B, 目标更新频率 C, 训练频率 f
-<span style="color:#bb86fc; font-weight:bold;">输出：</span>训练好的主网络参数 θ*
+    <h3>4. 网络架构详解</h3>
+    <p>Dueling DQN 的网络由三部分组成：</p>
+    <ol>
+      <li><strong>共享特征提取层</strong>：卷积或全连接层用于提取状态特征（作为后两个分支的输入）；</li>
+      <li><strong>Value 分支</strong>：独立的神经网络结构，最终输出单个标量 $V(s)$；</li>
+      <li><strong>Advantage 分支</strong>：独立的神经网络结构，最终输出 $|\mathcal{A}|$ 维向量 $A(s,a)$。</li>
+    </ol>
+    <p>前向传播时，对 Advantage 层输出进行<strong>去均值处理</strong>后与 Value 层组合：</p>
+    <p>$$Q(s,a) = V(s) + \Big(A(s,a) - \frac{1}{|\mathcal{A}|}\sum_a A(s,a)\Big)$$</p>
 
-<span style="color:#ff6b6b; font-weight:bold;">BEGIN</span>
-<span style="color:#4ecdc4; font-weight:bold;">1.</span> <span style="color:#81c784; font-weight:bold;">初始化</span>
-  θ ← random_init();  θ⁻ ← θ;  𝒟 ← ∅
+    <h3>5. 初始化与训练细节</h3>
+    <p>为确保网络稳定性和可辨识性，需要特别注意初始化：</p>
+    <ul>
+      <li><strong>权重初始化</strong>：使用 Xavier uniform 或 Kaiming 初始化；对所有线性层的偏置初始化为 0；</li>
+      <li><strong>为什么需要特殊初始化</strong>：Advantage 分支初期应输出接近 0 的值，这样 $A - \text{mean}(A) \approx 0$，确保 Q 值初期主要由 $V(s)$ 主导，避免优势分支过大导致的数值不稳定；</li>
+      <li><strong>主要优势</strong>：小初始优势保证了分解的可辨识性，使 V 与 A 不会在参数空间中互相抵消。</li>
+    </ul>
 
-<span style="color:#4ecdc4; font-weight:bold;">2.</span> <span style="color:#81c784; font-weight:bold;">FOR</span> episode = 1..MaxEpisodes <span style="color:#81c784; font-weight:bold;">DO</span>
-  s ← env.reset()
-    
-  <span style="color:#4ecdc4; font-weight:bold;">3.</span> <span style="color:#81c784; font-weight:bold;">FOR</span> t = 1..MaxSteps <span style="color:#81c784; font-weight:bold;">DO</span>
-    a ← ε-greedy( argmax_a Q(s,a;θ) )  ⊳ Q 由 V,A 重组得到
-    (r, s', done) ← env.step(a)
-    𝒟.store((s,a,r,s',done))
+    <h3>6. 实现步骤（逐步说明）</h3>
+    <p>下面把 Dueling DQN 的训练过程拆成可直接落地的步骤，便于把代码映射到具体实现：</p>
+    <ol>
+      <li><strong>定义网络</strong>：共享主干提取特征；分出两个头——Value 输出标量 V(s)，Advantage 输出向量 A(s,a)。前向时对 A 去均值再与 V 重构 Q。</li>
+      <li><strong>经验收集</strong>：使用 ε-greedy 或可学习噪声策略采样 transition $(s,a,r,s',\text{done})$，并存入经验回放池 𝒟。</li>
+      <li><strong>小批量采样</strong>：从 𝒟 中随机采样 batch；若使用 PER 请用重要性权重修正损失。</li>
+      <li><strong>目标计算</strong>：用目标网络 $\theta^-$ 前向得到 $V'(s')$ 与 $A'(s',\cdot)$，对 $A'$ 去均值并重构 Q'；目标 $y = r + \gamma \cdot \max_{a'} Q'(s',a')$（若 done 则 $y = r$）。</li>
+      <li><strong>损失与更新</strong>：计算 $L = \text{MSE}(y, Q(s,a;\theta))$ 或 Huber Loss，反向传播并用优化器 step 更新主网络 $\theta$。</li>
+      <li><strong>目标网络同步</strong>：采用硬更新（每 C 步复制）或软更新（$\theta^- \leftarrow \tau\theta + (1-\tau)\theta^-$）。</li>
+    </ol>
 
-    <span style="color:#81c784; font-weight:bold;">IF</span> |𝒟| ≥ B <span style="color:#81c784; font-weight:bold;">AND</span> t mod f = 0 <span style="color:#81c784; font-weight:bold;">THEN</span>
-      batch ← 𝒟.sample(B)
-      <span style="color:#81c784; font-weight:bold;">FOR</span> each (s_i,a_i,r_i,s'_i,done_i) in batch <span style="color:#81c784; font-weight:bold;">DO</span>
-        <span style="color:#81c784; font-weight:bold;">IF</span> done_i <span style="color:#81c784; font-weight:bold;">THEN</span>
-          y_i ← r_i
-        <span style="color:#81c784; font-weight:bold;">ELSE</span>
-          ⊳ 使用目标网络估计 Q'(s',·)
-          V', A' ← network_forward(s'_i; θ⁻)
-          A'_norm ← A' - mean(A')  ⊳ 保证优势均值为 0
-          Q'_vals ← V' + A'_norm
-          y_i ← r_i + γ·max_{a'} Q'_vals[a']
-        <span style="color:#81c784; font-weight:bold;">END IF</span>
-      <span style="color:#81c784; font-weight:bold;">END FOR</span>
-
-      ⊳ 计算损失并更新主网络 θ（经典 MSE 或 Huber）
-      L ← (1/B) ∑ (y_i - Q(s_i,a_i;θ))²
-      θ ← θ - α·∇_θ L
-    <span style="color:#81c784; font-weight:bold;">END IF</span>
-
-    <span style="color:#81c784; font-weight:bold;">IF</span> t mod C = 0 <span style="color:#81c784; font-weight:bold;">THEN</span> θ⁻ ← θ
-    s ← s'
-    <span style="color:#81c784; font-weight:bold;">IF</span> done <span style="color:#81c784; font-weight:bold;">THEN</span> <span style="color:#81c784; font-weight:bold;">BREAK</span>
-  <span style="color:#4ecdc4; font-weight:bold;">4.</span> <span style="color:#81c784; font-weight:bold;">END FOR</span>
-<span style="color:#4ecdc4; font-weight:bold;">5.</span> <span style="color:#81c784; font-weight:bold;">END FOR</span>
-
-<span style="color:#81c784; font-weight:bold;">RETURN</span> θ
-<span style="color:#ff6b6b; font-weight:bold;">END</span>
-
-<span style="color:#ffa726; font-weight:bold;">时间复杂度：</span>O(Episodes × Steps × B × Network_Forward)
-<span style="color:#ffa726; font-weight:bold;">空间复杂度：</span>O(N + |θ|)，可选双网络(θ, θ⁻)
-<span style="color:#ffa726; font-weight:bold;">关键技术：</span>Value/Advantage 分支 + 优化的重构策略（均值归一）
-      </pre>
-    </div>
-
-    <h3>5. PyTorch 代码示例（骨架）</h3>
-    <pre class="language-python line-numbers" style="background:#0b1220; color:#e8f4fd; padding:16px; border-radius:8px; border-left:4px solid #9c27b0; overflow:auto; font-family:'Courier New', monospace; font-size:13px;"><code style="color:inherit">import torch
+    <h3>7. PyTorch 代码示例</h3>
+  <pre><code class="language-python">
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+from collections import deque
 
 class DuelingNetwork(nn.Module):
     def __init__(self, state_dim, action_dim):
-        super().__init__()
-        self.shared = nn.Sequential(
-            nn.Linear(state_dim, 256),
+        super(DuelingNetwork, self).__init__()
+        
+        # 共享特征提取层
+        self.feature = nn.Sequential(
+            nn.Linear(state_dim, 128),
             nn.ReLU(),
-            nn.Linear(256, 256),
-            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU()
         )
+        
+        # Value 分支：输出单个标量
         self.value_stream = nn.Sequential(
-            nn.Linear(256, 128),
+            nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(128, 1),
+            nn.Linear(64, 1)
         )
+        
+        # Advantage 分支：输出 action_dim 维向量
         self.advantage_stream = nn.Sequential(
-            nn.Linear(256, 128),
+            nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(128, action_dim),
+            nn.Linear(64, action_dim)
         )
+        
+        # 权重初始化
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(module.weight)
+                nn.init.constant_(module.bias, 0)
+    
+    def forward(self, state):
+        # 提取共享特征
+        features = self.feature(state)
+        
+        # Value 与 Advantage 独立前向
+        v = self.value_stream(features)
+        a = self.advantage_stream(features)
+        
+        # 重组 Q 值（去均值保证可辨识）
+        a_mean = a.mean(dim=1, keepdim=True)
+        q = v + (a - a_mean)
+        
+        return q
 
-    def forward(self, x):
-        feat = self.shared(x)
-        value = self.value_stream(feat)
-        advantage = self.advantage_stream(feat)
-        advantage = advantage - advantage.mean(dim=1, keepdim=True)
-        return value + advantage</code></pre>
+class DuelingDQN:
+    def __init__(self, state_dim, action_dim, lr=1e-4, gamma=0.99, epsilon=0.1):
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+        self.gamma = gamma
+        self.epsilon = epsilon
+        
+        # 主网络和目标网络
+        self.q_net = DuelingNetwork(state_dim, action_dim)
+        self.target_q_net = DuelingNetwork(state_dim, action_dim)
+        self.target_q_net.load_state_dict(self.q_net.state_dict())
+        
+        self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=lr)
+        self.loss_fn = nn.MSELoss()
+        
+        # 经验回放池
+        self.memory = deque(maxlen=10000)
+    
+    def remember(self, state, action, reward, next_state, done):
+        """存储经验"""
+        self.memory.append((state, action, reward, next_state, done))
+    
+    def act(self, state):
+        """ε-贪婪策略选择动作"""
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.action_dim)
+        else:
+            with torch.no_grad():
+                q_values = self.q_net(torch.FloatTensor(state).unsqueeze(0))
+            return q_values.max(1)[1].item()
+    
+    def train_batch(self, batch_size):
+        """训练一个批次"""
+        if len(self.memory) < batch_size:
+            return
+        
+        # 随机采样
+        indices = np.random.choice(len(self.memory), batch_size, replace=False)
+        batch = [self.memory[i] for i in indices]
+        
+        states = torch.FloatTensor(np.array([x[0] for x in batch]))
+        actions = torch.LongTensor([x[1] for x in batch])
+        rewards = torch.FloatTensor([x[2] for x in batch])
+        next_states = torch.FloatTensor(np.array([x[3] for x in batch]))
+        dones = torch.FloatTensor([x[4] for x in batch])
+        
+        # 当前 Q 值
+        q_values = self.q_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
+        
+        # 目标 Q 值
+        with torch.no_grad():
+            max_next_q = self.target_q_net(next_states).max(1)[0]
+            target_q = rewards + self.gamma * max_next_q * (1 - dones)
+        
+        # 损失和反向传播
+        loss = self.loss_fn(q_values, target_q)
+        self.optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.q_net.parameters(), 1.0)
+        self.optimizer.step()
+        
+        return loss.item()
+    
+    def update_target_network(self):
+        """更新目标网络"""
+        self.target_q_net.load_state_dict(self.q_net.state_dict())
 
-    <h3>6. 实践要点与组合策略</h3>
+# 训练示例
+if __name__ == "__main__":
+    state_dim = 4
+    action_dim = 2
+    agent = DuelingDQN(state_dim, action_dim)
+    
+    # 模拟环境交互
+    for episode in range(100):
+        state = np.random.randn(state_dim)
+        episode_reward = 0
+        
+        for step in range(50):
+            action = agent.act(state)
+            next_state = np.random.randn(state_dim)
+            reward = np.random.randn()
+            done = step == 49
+            
+            agent.remember(state, action, reward, next_state, float(done))
+            agent.train_batch(batch_size=32)
+            
+            episode_reward += reward
+            state = next_state
+        
+        if (episode + 1) % 20 == 0:
+            agent.update_target_network()
+            print(f"Episode {episode+1}, Reward: {episode_reward:.2f}")
+  </code></pre>
+    <table>
+      <tr>
+        <th>问题</th>
+        <th>解答</th>
+      </tr>
+      <tr>
+        <td>为什么要对 Advantage 去均值？</td>
+        <td>去均值保证了分解的唯一性。若不去均值，可以在 V 与 A 间任意转移常数值而产生相同 Q，导致参数不可辨识。</td>
+      </tr>
+      <tr>
+        <td>V 与 A 是否需要同时训练？</td>
+        <td>是的。两个分支共享主干，反向传播会同时更新所有参数。V 学习状态价值，A 学习动作相对优势，两者分工明确。</td>
+      </tr>
+      <tr>
+        <td>初始化为什么很重要？</td>
+        <td>初期 Advantage 应接近 0，使 Q ≈ V，确保网络稳定启动。过大的初始 A 会导致数值震荡，影响收敛。</td>
+      </tr>
+      <tr>
+        <td>如何与 Double DQN 结合？</td>
+        <td>目标计算时用主网络选择动作，用目标网络评估价值，与标准 Double DQN 类似，只是网络结构从单个 Q 改为 V+A。</td>
+      </tr>
+    </table>
+
+    <h3>9. 实践要点与组合策略</h3>
     <ul>
-    <li>常与 Double DQN 的目标计算结合，使用主网络选择动作、目标网络评估价值；</li>
-    <li>与 PER（Prioritized Experience Replay）配合能更快聚焦高 TD 误差样本；</li>
-    <li>在离散动作问题上表现优异；在连续动作空间需与确定性策略（如 DDPG）或策略分支配合改造；</li>
-    <li>调参要点：避免优势分支输出过大导致数值不稳（可加归一或 L2 正则）。</li>
+      <li><strong>与 Double DQN 结合</strong>：目标计算使用主网络选择最优动作，用目标网络评估价值，消除过估计偏差；</li>
+      <li><strong>与 PER 结合</strong>：Prioritized Experience Replay 能更快聚焦高 TD 误差样本，与 Dueling 架构相辅相成；</li>
+      <li><strong>离散 vs 连续动作</strong>：Dueling DQN 在离散动作问题上表现优异；连续控制需与确定性策略（如 DDPG）或策略分支改造；</li>
+      <li><strong>调参建议</strong>：避免优势分支输出过大导致数值不稳（可加 L2 正则或梯度裁剪）；监控 V 与 A 的大小比例。</li>
     </ul>
   </section>
 
