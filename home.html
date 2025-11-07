@@ -771,7 +771,7 @@ footer span {
       <li><a href="#chapter10">DDQN</a></li>
        <li><a href="#chapter11">策略梯度方法</a></li>
        <li><a href="#chapter12">Actor-Critic</a></li>
-  <li><a href="#chapter13">A2C&A3C</a></li>
+  <li><a href="#chapter13">A3C&A2C</a></li>
   <li><a href="#summary">算法总结</a></li>
     </ul>
   </nav>
@@ -863,7 +863,7 @@ git push -u origin main</code></pre>
         <ul>
           <li>第11章：策略梯度（策略参数空间中的梯度上升）</li>
           <li>第12章：Actor-Critic（结合价值函数降低方差）</li>
-          <li>第13章：A2C &amp; A3C（多线程/多进程并行加速）</li>
+          <li>第13章：A3C &amp; A2C（异步并行 → 同步改进）</li>
         </ul>
       </li>
     </ul>
@@ -875,7 +875,7 @@ git push -u origin main</code></pre>
       <li>Q-learning（表格）→ DQN（神经网络）→ DDQN（稳定训练）</li>
       <li>策略梯度 = 绕过Q函数，直接优化策略参数</li>
       <li>Actor-Critic = 用V(s)辅助（Critic）来加速策略梯度（Actor）学习</li>
-      <li>A2C/A3C = 多线程并行化提升采样和训练效率</li>
+      <li>A3C/A2C = N步TD + 并行化提升采样和训练效率（A3C异步 → A2C同步）</li>
     </ol>
 
   </section>
@@ -1597,6 +1597,67 @@ print("Q 表：\n", Q_table)
     <li>核心挑战：训练稳定性，需要经验回放和目标网络</li>
   </ul>
 
+  <h3>深度学习基础：神经网络层详解</h3>
+  <p>在深度强化学习中，神经网络是智能体的"大脑"，不同的层（Layer）扮演着不同的功能角色：</p>
+
+  <h4>1. 输入层（Input Layer）</h4>
+  <ul>
+    <li><strong>作用</strong>：接收来自环境的状态输入</li>
+    <li><strong>举例</strong>：CartPole 的 4 维向量 [位置, 速度, 杆角, 角速度]；Atari 的图像帧 [84×84×4]</li>
+  </ul>
+
+  <h4>2. 线性层（Linear Layer / Fully Connected）</h4>
+  <ul>
+    <li><strong>PyTorch 实现</strong>：<code>nn.Linear(in_features, out_features)</code></li>
+    <li><strong>数学形式</strong>：y = Wx + b</li>
+    <li><strong>作用</strong>：对输入特征进行加权线性变换，是神经网络最基本的"计算层"</li>
+    <li><strong>用途</strong>：Actor/Critic 网络、Q 网络的主体部分</li>
+  </ul>
+
+  <h4>3. 激活层（Activation Layer）</h4>
+  <p>为网络引入非线性，使其能学习复杂函数映射关系：</p>
+  <table>
+    <tr><th>名称</th><th>公式</th><th>输出范围</th><th>常见场景</th></tr>
+    <tr><td>ReLU</td><td>max(0, x)</td><td>[0, ∞)</td><td>MLP、CNN、Actor-Critic</td></tr>
+    <tr><td>Tanh</td><td>(e^x - e^(-x))/(e^x + e^(-x))</td><td>[-1, 1]</td><td>DDPG、SAC 连续动作</td></tr>
+    <tr><td>Softmax</td><td>e^(x_i)/Σe^(x_j)</td><td>[0,1] 且和为1</td><td>离散动作策略 π(a|s)</td></tr>
+  </table>
+
+  <h4>4. 卷积层（Convolutional Layer）</h4>
+  <ul>
+    <li><strong>PyTorch 实现</strong>：<code>nn.Conv2d(in_channels, out_channels, kernel_size, stride)</code></li>
+    <li><strong>作用</strong>：提取空间局部特征，广泛用于图像类输入</li>
+    <li><strong>典型结构</strong>（Atari DQN）：</li>
+  </ul>
+  <pre><code class="language-python">
+nn.Conv2d(4, 32, 8, stride=4)  # 第一层卷积
+nn.ReLU()
+nn.Conv2d(32, 64, 4, stride=2)  # 第二层卷积 
+nn.ReLU()
+nn.Conv2d(64, 64, 3, stride=1)  # 第三层卷积
+nn.ReLU()
+nn.Flatten()  # 展开为一维
+nn.Linear(3136, 512)  # 全连接层
+  </code></pre>
+
+  <h4>5. 输出层（Output Layer）</h4>
+  <p>生成最终输出，形式依任务而定：</p>
+  <table>
+    <tr><th>任务类型</th><th>输出维度</th><th>激活函数</th><th>输出含义</th></tr>
+    <tr><td>离散动作策略 π(a|s)</td><td>动作数量</td><td>Softmax</td><td>动作概率分布</td></tr>
+    <tr><td>连续动作策略 μ(s)</td><td>动作维度</td><td>Tanh</td><td>动作均值</td></tr>
+    <tr><td>价值函数 V(s)</td><td>1</td><td>无激活</td><td>状态价值</td></tr>
+    <tr><td>Q 函数 Q(s,a)</td><td>动作数量</td><td>无激活</td><td>每个动作的价值</td></tr>
+  </table>
+
+  <h4>6. 其他重要层</h4>
+  <ul>
+    <li><strong>循环层（RNN/LSTM/GRU）</strong>：处理时间序列数据，用于 POMDP 或需要记忆的任务</li>
+    <li><strong>归一化层（BatchNorm/LayerNorm）</strong>：让训练过程更稳定，加快收敛</li>
+    <li><strong>Dropout 层</strong>：防止过拟合（强化学习中较少使用）</li>
+    <li><strong>Flatten 层</strong>：将多维输入展开为一维向量，连接卷积层和全连接层</li>
+  </ul>
+
   <h3>二、核心公式</h3>
   <p>DQN 最小化 TD 误差损失：</p>
   <p>$$
@@ -2039,6 +2100,42 @@ class DDQN:
     <li><code>Aπ(s,a)</code>：<strong>优势函数（Advantage）</strong>，衡量动作相对于平均水平的好坏程度</li>
   </ul>
 
+  <h3>策略梯度推导详解</h3>
+  <p><strong>直觉：我们到底想优化什么？</strong></p>
+  <p>在强化学习中，我们希望调整策略参数 θ，让期望累计奖励最大：</p>
+  <p>$$J(\theta) = \mathbb{E}_{\pi_\theta}[R]$$</p>
+  <p>这就像监督学习里最小化损失函数，只不过这里是最大化奖励期望。要让 J(θ) 变大，我们要知道它对参数 θ 的梯度方向——也就是策略梯度。</p>
+
+  <p><strong>推导过程：为什么会出现 log π(a|s) 和优势函数 A(s,a)？</strong></p>
+  
+  <p><strong>第 1 步：从"期望的导数"开始</strong></p>
+  <p>想求 ∇θJ(θ)，可以写成轨迹积分的形式：</p>
+  <p>$$\nabla_\theta J(\theta) = \nabla_\theta \int p_\theta(\tau) R(\tau) d\tau$$</p>
+  <p>其中 p<sub>θ</sub>(τ) 是策略生成整条轨迹的概率。</p>
+  
+  <p><strong>第 2 步：用 log trick（对数技巧）让梯度进到 log 里面</strong></p>
+  <p>利用恒等式：</p>
+  <p>$$\nabla_\theta p_\theta(\tau) = p_\theta(\tau) \nabla_\theta \log p_\theta(\tau)$$</p>
+  <p>于是：</p>
+  <p>$$\nabla_\theta J(\theta) = \int p_\theta(\tau) \nabla_\theta \log p_\theta(\tau) R(\tau) d\tau = \mathbb{E}_{\tau \sim p_\theta}[\nabla_\theta \log p_\theta(\tau) R(\tau)]$$</p>
+  
+  <p><strong>第 3 步：拆轨迹概率，只剩下策略的部分</strong></p>
+  <p>轨迹概率由环境和策略共同决定：</p>
+  <p>$$p_\theta(\tau) = p(s_0) \prod_t \pi_\theta(a_t|s_t) p(s_{t+1}|s_t,a_t)$$</p>
+  <p>环境的状态转移 p(s'|s,a) 不依赖 θ，所以只有策略部分需要导数：</p>
+  <p>$$\nabla_\theta \log p_\theta(\tau) = \sum_t \nabla_\theta \log \pi_\theta(a_t|s_t)$$</p>
+  <p>于是：</p>
+  <p>$$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[\sum_t \nabla_\theta \log \pi_\theta(a_t|s_t) R(\tau)\right]$$</p>
+  
+  <p><strong>为什么用 log 而不是直接对 π(a|s) 求导？</strong></p>
+  <ul>
+    <li><strong>数学稳定性</strong>：log 把乘法变加法，稳定梯度传播</li>
+    <li><strong>计算效率</strong>：log 后的梯度形式更适合神经网络反向传播</li>
+    <li><strong>采样一致性</strong>：我们只能采样到具体动作 a，log π 让我们用单个样本估计整个分布的梯度</li>
+  </ul>
+  
+  <p>这就是经典的 REINFORCE 算法的数学来源！</p>
+
   <h3>三、Advantage（优势函数）的定义</h3>
   <p>Advantage 是<strong>动作价值与状态价值的差</strong>，表示相对优势：</p>
   <p>$$
@@ -2230,7 +2327,7 @@ from torch.distributions import Categorical
 
 class ActorNetwork(nn.Module):
     def __init__(self, state_dim, action_dim):
-        super(ActorNetwork, self).__init__()
+        super().__init__()
         self.fc1 = nn.Linear(state_dim, 128)
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, action_dim)
@@ -2238,11 +2335,12 @@ class ActorNetwork(nn.Module):
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        return torch.softmax(self.fc3(x), dim=-1)
+        logits = self.fc3(x)
+        return torch.softmax(logits, dim=-1), logits  # 同时返回 logits，便于算熵
 
 class CriticNetwork(nn.Module):
     def __init__(self, state_dim):
-        super(CriticNetwork, self).__init__()
+        super().__init__()
         self.fc1 = nn.Linear(state_dim, 128)
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, 1)
@@ -2250,88 +2348,120 @@ class CriticNetwork(nn.Module):
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        return self.fc3(x)
+        return self.fc3(x)  # [B,1]
 
 class ActorCritic:
-    def __init__(self, state_dim, action_dim, gamma=0.99, actor_lr=1e-3, critic_lr=1e-3):
+    def __init__(self, state_dim, action_dim, gamma=0.99, actor_lr=1e-3, critic_lr=1e-3,
+                 entropy_coef=0.01, grad_clip=0.5, device=None):
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.gamma = gamma
+        self.entropy_coef = entropy_coef
+        self.grad_clip = grad_clip
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         
-        self.actor = ActorNetwork(state_dim, action_dim)
-        self.critic = CriticNetwork(state_dim)
+        self.actor = ActorNetwork(state_dim, action_dim).to(self.device)
+        self.critic = CriticNetwork(state_dim).to(self.device)
         
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=critic_lr)
     
+    def _to_tensor(self, s):
+        return torch.as_tensor(s, dtype=torch.float32, device=self.device).unsqueeze(0)
+
     def select_action(self, state):
-        """采样动作"""
-        state_tensor = torch.FloatTensor(state).unsqueeze(0)
-        with torch.no_grad():
-            action_probs = self.actor(state_tensor)
+        """采样动作（保留梯度图），也可以只返回动作，把log_prob放到train_step里再前向一次。"""
+        state_tensor = self._to_tensor(state)
+        action_probs, logits = self.actor(state_tensor)  # 不要用 no_grad
         dist = Categorical(action_probs)
         action = dist.sample()
-        return action.item(), dist.log_prob(action)
+        log_prob = dist.log_prob(action)  # [1] -> 标量
+        entropy = dist.entropy()          # [1]
+        return int(action.item()), log_prob, entropy
     
-    def train_step(self, state, action, reward, next_state, done, log_prob):
-        """单步训练"""
-        state_tensor = torch.FloatTensor(state).unsqueeze(0)
-        next_state_tensor = torch.FloatTensor(next_state).unsqueeze(0)
-        
-        # Critic评估
+    def train_step(self, state, action, reward, next_state, done):
+        """单步训练（TD(0)）"""
+        state_tensor = self._to_tensor(state)
+        next_state_tensor = self._to_tensor(next_state)
+
+        # ---- Critic 前向（要有梯度）----
+        value = self.critic(state_tensor).squeeze(-1)        # [1]
         with torch.no_grad():
-            value = self.critic(state_tensor).squeeze()
-            next_value = self.critic(next_state_tensor).squeeze()
-            if done:
-                target_value = reward
-            else:
-                target_value = reward + self.gamma * next_value
+            next_value = self.critic(next_state_tensor).squeeze(-1)  # [1]
+            target_value = torch.as_tensor([reward], device=self.device, dtype=torch.float32)
+            if not done:
+                target_value = target_value + self.gamma * next_value
         
-        # 计算TD误差（优势函数）
-        advantage = target_value - value
-        
-        # 更新Actor（策略梯度）
-        actor_loss = -log_prob * advantage.detach()
+        advantage = (target_value - value)  # [1]
+
+        # ---- Actor 前向（重新计算log_prob与熵，确保有梯度图）----
+        action_probs, _ = self.actor(state_tensor)
+        dist = Categorical(action_probs)
+        log_prob = dist.log_prob(torch.as_tensor([action], device=self.device))
+        entropy = dist.entropy()
+
+        # ---- 损失 ----
+        actor_loss = -(log_prob * advantage.detach()) - self.entropy_coef * entropy
+        critic_loss = torch.mean((value - target_value.detach()) ** 2)
+
+        # ---- 反传与优化（带梯度裁剪）----
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
+        if self.grad_clip is not None:
+            nn.utils.clip_grad_norm_(self.actor.parameters(), self.grad_clip)
         self.actor_optimizer.step()
-        
-        # 更新Critic（值函数）
-        critic_loss = (advantage ** 2).mean()
+
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
+        if self.grad_clip is not None:
+            nn.utils.clip_grad_norm_(self.critic.parameters(), self.grad_clip)
         self.critic_optimizer.step()
-        
-        return actor_loss.item(), critic_loss.item()
+
+        return actor_loss.item(), critic_loss.item(), float(entropy.item())
     
+    def _reset_env(self, env):
+        """兼容 Gym / Gymnasium 不同 reset 返回格式"""
+        out = env.reset()
+        if isinstance(out, tuple) and len(out) == 2:
+            obs, _ = out
+            return obs
+        return out
+    
+    def _step_env(self, env, action):
+        """兼容 Gym / Gymnasium 不同 step 返回格式"""
+        out = env.step(action)
+        if len(out) == 4:
+            next_state, reward, done, info = out
+        else:
+            next_state, reward, terminated, truncated, info = out
+            done = terminated or truncated
+        return next_state, reward, done, info
+
     def train_episode(self, env):
-        """运行一个完整回合"""
-        state = env.reset()
+        state = self._reset_env(env)
         done = False
-        episode_reward = 0
+        episode_reward = 0.0
         
         while not done:
-            action, log_prob = self.select_action(state)
-            next_state, reward, done, _ = env.step(action)
+            action, _, _ = self.select_action(state)  # 这里不必返回log_prob，train_step里会重新计算
+            next_state, reward, done, _ = self._step_env(env, action)
             
-            self.train_step(state, action, reward, next_state, done, log_prob)
-            
+            self.train_step(state, action, reward, next_state, done)
             episode_reward += reward
             state = next_state
         
         return episode_reward
     
-    def train(self, env, num_episodes=1000):
-        """训练过程"""
+    def train(self, env, num_episodes=1000, print_every=100):
         rewards = []
-        for episode in range(num_episodes):
-            reward = self.train_episode(env)
-            rewards.append(reward)
-            
-            if (episode + 1) % 100 == 0:
-                avg_reward = np.mean(rewards[-100:])
-                print(f"Episode {episode+1}, Avg Reward: {avg_reward:.2f}")
+        for episode in range(1, num_episodes + 1):
+            R = self.train_episode(env)
+            rewards.append(R)
+            if episode % print_every == 0:
+                avg_R = np.mean(rewards[-print_every:])
+                print(f"Episode {episode}, Avg Reward: {avg_R:.2f}")
         return rewards
+
   </code></pre>
 
   <h3>六、训练完成判断</h3>
@@ -2351,401 +2481,113 @@ class ActorCritic:
 </section>
 <!-- 第十三章 -->
 <section id="chapter13" class="chapter">
-  <h2>第十三章：Advantage Actor-Critic (A2C) 与 Asynchronous Advantage Actor-Critic (A3C)</h2>
+  <h2>第十三章：A3C 与 A2C</h2>
 
-  <p>A2C 和 A3C 是 Actor-Critic 系列方法的改进，核心都是使用优势函数 <code>A(s,a) = Q(s,a) - V(s)</code> 来降低策略梯度方差，并引入多线程机制提高训练效率和稳定性。</p>
+  <p>A3C (2016) 开创了N步TD + 并行训练，A2C (2017) 将异步改为同步以更好利用GPU。</p>
 
-  <h3>一、Advantage Actor-Critic (A2C)</h3>
-  <p><b>核心公式：</b></p>
-  <ul>
-    <li>Advantage 计算：
-      <p>$$
-      A(s,a) = r_{t+1} + \gamma V(s_{t+1}) - V(s_t) = \delta_t
-      $$</p>
-      <p>（使用一步 TD 误差作为 Advantage 的无偏估计，与 AC 一致）</p>
-    </li>
-    <li>Actor 更新：
-      <p>$$
-      \theta_\text{Actor} \gets \theta_\text{Actor} + \alpha_\text{Actor} \nabla_\theta \log \pi_\theta(a|s) \, A(s,a)
-      $$</p>
-    </li>
-    <li>Critic 更新：
-      <p>$$
-      \theta_\text{Critic} \gets \theta_\text{Critic} + \alpha_\text{Critic} \delta_t \nabla_\theta V_\theta(s)
-      $$</p>
-    </li>
-  </ul>
+  <h3>一、A3C (Asynchronous Advantage Actor-Critic)</h3>
+  <p><b>核心：</b>N步TD + 异步多线程</p>
+  <p><b>N步回报：</b>$R_t = \sum_{i=0}^{T-1-t} \gamma^i r_{t+1+i} + \gamma^{T-t} V(s_T)$，$A_t = R_t - V(s_t)$</p>
+  <p><b>异步更新：</b>每个线程独立采样T步，立即异步更新全局网络。</p>
 
-  <p><b>多线程机制：</b>同步多环境训练。多个环境同时采样状态-动作序列，将梯度累积后同步更新全局网络。</p>
-  <ul>
-    <li>不异步，所有环境在同一时刻完成一个批量更新</li>
-    <li>充分利用 GPU 并行采样</li>
-    <li>优点：稳定、方差低，训练效率高</li>
-  </ul>
-
-  <h3>A2C 示例代码</h3>
+  <h3>A3C 简化代码</h3>
   <pre><code class="language-python">
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.distributions import Categorical
-from multiprocessing import Process, Queue
-
-class A2CNetwork(nn.Module):
-    def __init__(self, state_dim, action_dim):
-        super(A2CNetwork, self).__init__()
-        self.fc = nn.Linear(state_dim, 256)
-        
-        # Actor头
-        self.actor_head = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, action_dim),
-            nn.Softmax(dim=-1)
-        )
-        
-        # Critic头
-        self.critic_head = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1)
-        )
-    
-    def forward(self, x):
-        shared = self.fc(x)
-        action_probs = self.actor_head(shared)
-        value = self.critic_head(shared)
-        return action_probs, value
-
-class A2C:
-    def __init__(self, state_dim, action_dim, num_envs=8, gamma=0.99, lr=1e-3):
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-        self.num_envs = num_envs
-        self.gamma = gamma
-        
-        self.network = A2CNetwork(state_dim, action_dim)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.network.to(self.device)
-    
-    def compute_gae(self, rewards, values, dones, gamma=0.99, gae_lambda=0.95):
-        """计算广义优势估计（Generalized Advantage Estimation）"""
-        advantages = []
-        gae = 0
-        
-        for t in reversed(range(len(rewards))):
-            if t == len(rewards) - 1:
-                next_nonterminal = 1.0 - dones[t]
-                next_value = 0
-            else:
-                next_nonterminal = 1.0 - dones[t]
-                next_value = values[t + 1]
-            
-            delta = rewards[t] + gamma * next_value * next_nonterminal - values[t]
-            gae = delta + gamma * gae_lambda * next_nonterminal * gae
-            advantages.insert(0, gae)
-        
-        return np.array(advantages)
-    
-    def train_iteration(self, envs, max_steps=2048):
-        """执行一次迭代（多环境同步采样）"""
-        batch_states = []
-        batch_actions = []
-        batch_rewards = []
-        batch_dones = []
-        batch_values = []
-        batch_log_probs = []
-        
-        states = [env.reset() for env in envs]
-        
-        for step in range(max_steps):
-            state_tensors = torch.FloatTensor(np.array(states)).to(self.device)
-            
-            with torch.no_grad():
-                action_probs, values = self.network(state_tensors)
-            
-            # 从每个环境采样动作
-            actions = []
-            log_probs = []
-            for i, (probs, val) in enumerate(zip(action_probs, values)):
-                dist = Categorical(probs)
-                action = dist.sample()
-                log_prob = dist.log_prob(action)
-                actions.append(action.item())
-                log_probs.append(log_prob)
-            
-            # 执行动作
-            rewards = []
-            dones = []
-            next_states = []
-            for i, env in enumerate(envs):
-                next_state, reward, done, _ = env.step(actions[i])
-                rewards.append(reward)
-                dones.append(done)
-                if done:
-                    next_state = env.reset()
-                next_states.append(next_state)
-            
-            batch_states.extend(states)
-            batch_actions.extend(actions)
-            batch_rewards.extend(rewards)
-            batch_dones.extend(dones)
-            batch_values.extend([v.item() for v in values])
-            batch_log_probs.extend(log_probs)
-            
-            states = next_states
-        
-        # 计算优势函数
-        advantages = self.compute_gae(batch_rewards, batch_values, batch_dones, self.gamma)
-        returns = advantages + np.array(batch_values)
-        
-        # 标准化优势
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
-        
-        # 更新网络
-        batch_size = 32
-        for epoch in range(3):
-            indices = np.random.permutation(len(batch_states))
-            for i in range(0, len(batch_states), batch_size):
-                batch_indices = indices[i:i+batch_size]
-                
-                states_batch = torch.FloatTensor(np.array(batch_states)[batch_indices]).to(self.device)
-                actions_batch = torch.LongTensor(np.array(batch_actions)[batch_indices]).to(self.device)
-                advantages_batch = torch.FloatTensor(advantages[batch_indices]).to(self.device)
-                returns_batch = torch.FloatTensor(returns[batch_indices]).to(self.device)
-                
-                action_probs, values = self.network(states_batch)
-                
-                # 计算策略损失
-                dist = Categorical(action_probs)
-                log_probs = dist.log_prob(actions_batch)
-                policy_loss = -(log_probs * advantages_batch).mean()
-                
-                # 计算价值损失
-                value_loss = ((values.squeeze() - returns_batch) ** 2).mean()
-                
-                # 总损失
-                loss = policy_loss + 0.5 * value_loss - 0.01 * dist.entropy().mean()
-                
-                self.optimizer.zero_grad()
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.network.parameters(), 0.5)
-                self.optimizer.step()
-    
-    def train(self, env_fn, num_iterations=1000):
-        """训练过程"""
-        envs = [env_fn() for _ in range(self.num_envs)]
-        
-        for iteration in range(num_iterations):
-            self.train_iteration(envs)
-            
-            if (iteration + 1) % 100 == 0:
-                print(f"Iteration {iteration+1} completed")
-  </code></pre>
-
-  <h3>二、Asynchronous Advantage Actor-Critic (A3C)</h3>
-  <p><b>核心公式：</b>与 A2C 相同，使用优势函数更新 Actor，TD 误差更新 Critic。</p>
-
-  <p><b>多线程机制：</b>异步多线程训练，每个线程独立采样环境并维护局部 Actor-Critic 副本，计算梯度后立即异步更新全局网络：</p>
-  <ul>
-    <li>增强探索性：各线程采样的状态分布不同</li>
-    <li>避免单线程陷入局部最优</li>
-    <li>训练效率更高，收敛稳定性更好</li>
-    <li>缺点：梯度随机性较大，需要较小学习率</li>
-  </ul>
-
-  <h3>A3C 示例代码</h3>
-  <pre><code class="language-python">
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.distributions import Categorical
 import threading
-from multiprocessing import Process, Queue
-import time
 
 class A3CNetwork(nn.Module):
     def __init__(self, state_dim, action_dim):
-        super(A3CNetwork, self).__init__()
-        self.fc = nn.Linear(state_dim, 256)
-        
-        self.actor_head = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, action_dim),
-            nn.Softmax(dim=-1)
-        )
-        
-        self.critic_head = nn.Sequential(
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1)
-        )
+        super().__init__()
+        self.shared = nn.Sequential(nn.Linear(state_dim, 128), nn.ReLU())
+        self.actor = nn.Linear(128, action_dim)
+        self.critic = nn.Linear(128, 1)
     
     def forward(self, x):
-        shared = self.fc(x)
-        return self.actor_head(shared), self.critic_head(shared)
+        shared = self.shared(x)
+        return F.softmax(self.actor(shared), dim=-1), self.critic(shared)
 
 class A3CWorker(threading.Thread):
-    def __init__(self, global_network, global_optimizer, env, worker_id, max_steps=100):
-        super(A3CWorker, self).__init__()
-        self.global_network = global_network
-        self.global_optimizer = global_optimizer
+    def __init__(self, global_net, env, T=20):
+        super().__init__()
+        self.global_net = global_net
+        self.local_net = A3CNetwork(state_dim, action_dim)
         self.env = env
-        self.worker_id = worker_id
-        self.max_steps = max_steps
-        self.daemon = True
-        
-        # 本地网络副本
-        self.local_network = A3CNetwork(
-            self.global_network.fc.in_features,
-            self.global_network.actor_head[-2].out_features
-        )
-        self.local_network.load_state_dict(self.global_network.state_dict())
-        self.local_optimizer = optim.Adam(self.local_network.parameters(), lr=1e-3)
+        self.T = T
     
     def run(self):
-        """异步训练循环"""
-        state = self.env.reset()
-        
         while True:
-            # 采集本地轨迹
-            batch_states = []
-            batch_actions = []
-            batch_rewards = []
-            batch_values = []
+            # 收集T步经验
+            states, actions, rewards = [], [], []
+            state = self.env.reset()
             
-            for step in range(self.max_steps):
-                state_tensor = torch.FloatTensor(state).unsqueeze(0)
+            for _ in range(self.T):
+                probs, _ = self.local_net(torch.FloatTensor(state))
+                action = torch.multinomial(probs, 1).item()
+                next_state, reward, done, _ = self.env.step(action)
                 
-                with torch.no_grad():
-                    action_probs, value = self.local_network(state_tensor)
+                states.append(state)
+                actions.append(action)
+                rewards.append(reward)
                 
-                # 采样动作
-                dist = Categorical(action_probs.squeeze())
-                action = dist.sample()
-                
-                next_state, reward, done, _ = self.env.step(action.item())
-                
-                batch_states.append(state)
-                batch_actions.append(action)
-                batch_rewards.append(reward)
-                batch_values.append(value.item())
-                
-                state = next_state if not done else self.env.reset()
+                if done: break
+                state = next_state
             
-            # 计算TD目标
-            state_tensor = torch.FloatTensor(state).unsqueeze(0)
-            with torch.no_grad():
-                _, bootstrap_value = self.local_network(state_tensor)
-            bootstrap_value = bootstrap_value.item()
-            
-            # 反向计算累计奖励
-            returns = []
-            G = bootstrap_value
-            for reward in reversed(batch_rewards):
-                G = reward + 0.99 * G
-                returns.insert(0, G)
-            returns = np.array(returns)
-            
-            # 标准化优势
-            advantages = returns - np.array(batch_values)
-            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
-            
-            # 更新本地网络
-            for state, action, advantage, ret in zip(batch_states, batch_actions, advantages, returns):
-                state_tensor = torch.FloatTensor(state).unsqueeze(0)
-                action_probs, value = self.local_network(state_tensor)
-                
-                # 计算损失
-                dist = Categorical(action_probs)
-                log_prob = dist.log_prob(action)
-                
-                policy_loss = -(log_prob * advantage)
-                value_loss = ((value.squeeze() - ret) ** 2)
-                entropy_bonus = -0.01 * dist.entropy()
-                
-                loss = policy_loss + 0.5 * value_loss + entropy_bonus
-                
-                self.local_optimizer.zero_grad()
-                loss.backward()
-                self.local_optimizer.step()
-            
-            # 异步更新全局网络
-            self._async_update_global()
-            
-            # 同步本地网络
-            self.local_network.load_state_dict(self.global_network.state_dict())
-    
-    def _async_update_global(self):
-        """异步更新全局网络"""
-        # 将本地梯度累积到全局网络
-        for local_param, global_param in zip(
-            self.local_network.parameters(),
-            self.global_network.parameters()
-        ):
-            if global_param.grad is not None:
-                global_param.grad.data += local_param.grad.data
-
-class A3C:
-    def __init__(self, state_dim, action_dim, num_workers=8):
-        self.global_network = A3CNetwork(state_dim, action_dim)
-        self.global_optimizer = optim.Adam(self.global_network.parameters(), lr=1e-3)
-        self.num_workers = num_workers
-    
-    def train(self, env_fn, num_iterations=10000):
-        """启动多个异步线程训练"""
-        workers = []
-        for i in range(self.num_workers):
-            worker = A3CWorker(
-                self.global_network,
-                self.global_optimizer,
-                env_fn(),
-                worker_id=i
-            )
-            worker.start()
-            workers.append(worker)
-        
-        # 等待所有线程完成
-        for worker in workers:
-            worker.join()
-
-# 使用示例
-if __name__ == '__main__':
-    # env_fn = lambda: gym.make('CartPole-v1')
-    # a3c = A3C(state_dim=4, action_dim=2, num_workers=8)
-    # a3c.train(env_fn, num_iterations=10000)
-    pass
+            # 计算N步回报，更新本地网络，异步更新全局网络
+            # ... 省略具体计算 ...
   </code></pre>
 
-  <h3>三、训练完成判断</h3>
-  <ul>
-    <li>平均累计奖励稳定并收敛</li>
-    <li>Actor 策略概率变化不大</li>
-    <li>Critic TD loss 收敛</li>
-    <li>多线程训练下，梯度更新稳定，奖励曲线平滑</li>
-  </ul>
+  <h3>二、A2C (Advantage Actor-Critic)</h3>
+  <p><b>核心：</b>N步TD + 同步多环境</p>
+  <p><b>同步更新：</b>多个环境同步采样T步，累积梯度后批量更新，GPU友好。</p>
 
-  <h3>四、A2C 与 A3C 对比</h3>
+  <h3>A2C 简化代码</h3>
+  <pre><code class="language-python">
+class A2C:
+    def __init__(self, state_dim, action_dim, n_envs=8, T=5):
+        self.net = A3CNetwork(state_dim, action_dim)  # 复用网络结构
+        self.envs = [gym.make('CartPole-v1') for _ in range(n_envs)]
+        self.T = T
+        
+    def train_step(self):
+        batch_data = []
+        
+        # 所有环境同步采样T步
+        for env in self.envs:
+            states, actions, rewards = [], [], []
+            state = env.reset()
+            
+            for _ in range(self.T):
+                probs, _ = self.net(torch.FloatTensor(state))
+                action = torch.multinomial(probs, 1).item()
+                next_state, reward, done, _ = env.step(action)
+                
+                states.append(state)
+                actions.append(action) 
+                rewards.append(reward)
+                
+                if done: break
+                state = next_state
+            
+            batch_data.extend(list(zip(states, actions, rewards)))
+        
+        # 计算N步回报和损失，同步更新网络
+        # ... 省略具体计算 ...
+  </code></pre>
+
+  <h3>三、核心对比</h3>
   <table>
-    <tr><th>特性</th><th>A2C</th><th>A3C</th></tr>
-    <tr><td>多线程类型</td><td>同步多环境</td><td>异步多线程</td></tr>
-    <tr><td>梯度更新</td><td>所有环境梯度累积后同步更新</td><td>每个线程计算梯度后立即异步更新全局网络</td></tr>
-    <tr><td>探索性</td><td>较好</td><td>更高</td></tr>
-    <tr><td>收敛稳定性</td><td>高</td><td>高，但随机性大</td></tr>
-    <tr><td>实现难度</td><td>中</td><td>高</td></tr>
+    <tr><th>特性</th><th>A3C</th><th>A2C</th></tr>
+    <tr><td>并行方式</td><td>异步多线程</td><td>同步多环境</td></tr>
+    <tr><td>更新时机</td><td>各线程独立更新</td><td>批量累积更新</td></tr>
+    <tr><td>探索性</td><td>更强</td><td>较好</td></tr>
+    <tr><td>稳定性</td><td>一般</td><td>更高</td></tr>
+    <tr><td>GPU利用</td><td>一般</td><td>更好</td></tr>
   </table>
 
 </section>
 
-<!-- 算法总结表 -->
+<!-- 全体算法总结 -->
 <section id="summary" class="chapter">
   <h2>全体算法总结与选择指南</h2>
   

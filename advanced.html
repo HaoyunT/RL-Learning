@@ -699,7 +699,240 @@ if __name__ == "__main__":
 
     <section id="chapter15" class="chapter">
       <h2>第十五章：Prioritized Experience Replay（PER）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <p>在强化学习中，Prioritized Experience Replay (PER) 是一种改进的经验回放方法，它通过优先采样那些对学习更有价值的经验来加速训练。PER 通过计算每个样本的优先级（通常与其 TD 误差成正比），来控制哪些经验更有可能被采样，进而提高学习效率。</p>
+
+      <h3>1. PER 的工作原理</h3>
+      <p>在传统的经验回放中，训练样本是随机采样的，可能会导致许多无关的经验影响模型学习。而 PER 会根据每个经验的 <strong>TD 误差（Temporal Difference Error）</strong> 来评估它的优先级，并按优先级来采样经验。</p>
+
+      <h4>优先级归一化</h4>
+      <p>每个经验的优先级通常是与其 TD 误差 $\delta$ 成正比的。为了使优先级在合理范围内，我们通常会进行<strong>最大优先级归一化</strong>，使每个优先级都在 $[0,1]$ 之间。</p>
+      <p>$$\tilde{p}_i = \frac{p_i}{\max(p_1, p_2, \ldots, p_N)}$$</p>
+      <p>其中，$p_i$ 是样本的原始优先级，$\tilde{p}_i$ 是归一化后的优先级。</p>
+
+      <h4>采样概率</h4>
+      <p>根据归一化后的优先级，我们计算每个样本被采样的概率：</p>
+      <p>$$P(i) = \frac{\tilde{p}_i^\alpha}{\sum_{j=1}^N \tilde{p}_j^\alpha}$$</p>
+      <p>其中 $\alpha$ 控制优先级对采样概率的影响程度（$\alpha=0$ 时是均匀采样，$\alpha=1$ 时完全按照优先级采样）。</p>
+
+      <h4>重要性采样权重（IS 权重）</h4>
+      <p>为了校正采样偏差，我们引入<strong>重要性采样（Importance Sampling, IS）</strong>权重，对损失进行加权。计算公式如下：</p>
+      <p>$$w_i = \left(\frac{1/N}{P(i)}\right)^\beta$$</p>
+      <p>其中，$\beta$ 是控制重要性采样权重的参数，通常会从较小值（如 0.4）逐步增加到 1。</p>
+
+      <h4>加权损失</h4>
+      <p>训练过程中，我们用 IS 权重对损失进行加权，得到加权后的损失：</p>
+      <p>$$L_{\text{weighted}} = \frac{1}{N} \sum_{i=1}^N \tilde{w}_i \cdot L_i$$</p>
+      <p>其中，$L_i$ 是样本 $i$ 的损失。</p>
+
+      <h3>2. PER 的优点</h3>
+      <ul>
+        <li><strong>加速学习</strong>：通过优先采样高 TD 误差的样本，模型可以更快地修正错误，提升训练效率。</li>
+        <li><strong>提高样本效率</strong>：PER 会让网络更多地关注重要经验，减少不必要的训练样本，从而提高样本利用效率。</li>
+      </ul>
+
+      <h3>3. Dueling DQN 与 PER 结合</h3>
+      <p>在强化学习中，Dueling DQN 是 DQN 的一种改进，它通过分开计算<strong>状态价值（V）</strong>和<strong>优势（A）</strong>来提高训练的稳定性和效果。结合 PER，可以让 Dueling DQN 更加高效地从经验池中学习。</p>
+
+      <h3>4. 完整实现代码</h3>
+
+      <h4>Dueling DQN 网络结构</h4>
+  <pre><code class="language-python">
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class DuelingDQN(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(DuelingDQN, self).__init__()
+        self.feature = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU()
+        )
+        self.value_stream = nn.Linear(128, 1)  # 状态价值 V(s)
+        self.advantage_stream = nn.Linear(128, action_dim)  # 优势 A(s, a)
+
+    def forward(self, x):
+        x = self.feature(x)
+        value = self.value_stream(x)  # 状态价值 V(s)
+        advantage = self.advantage_stream(x)  # 优势 A(s, a)
+        q_value = value + (advantage - advantage.mean(dim=1, keepdim=True))  # Q(s, a)
+        return q_value
+  </code></pre>
+
+      <h4>Prioritized Experience Replay (PER) Buffer</h4>
+  <pre><code class="language-python">
+import numpy as np
+import random
+
+class SumTree:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.tree = np.zeros(2 * capacity - 1)  # SumTree结构
+        self.data = [None] * capacity
+        self.write = 0
+        self.n_entries = 0
+
+    def _propagate(self, idx, change):
+        parent = (idx - 1) // 2
+        self.tree[parent] += change
+        if parent != 0:
+            self._propagate(parent, change)
+
+    def update(self, idx, priority):
+        change = priority - self.tree[idx]
+        self.tree[idx] = priority
+        self._propagate(idx, change)
+
+    def add(self, priority, data):
+        leaf = self.write + self.capacity - 1
+        self.data[self.write] = data
+        self.update(leaf, priority)
+        self.write += 1
+        if self.write >= self.capacity:
+            self.write = 0
+        self.n_entries = min(self.n_entries + 1, self.capacity)
+
+    def get(self, s):
+        idx = 0
+        while True:
+            left = 2 * idx + 1
+            right = left + 1
+            if left >= len(self.tree):
+                leaf = idx
+                break
+            else:
+                if s <= self.tree[left]:
+                    idx = left
+                else:
+                    s -= self.tree[left]
+                    idx = right
+        data_idx = leaf - self.capacity + 1
+        return leaf, self.tree[leaf], self.data[data_idx]
+
+    @property
+    def total(self):
+        return self.tree[0]
+
+class PrioritizedReplayBuffer:
+    def __init__(self, capacity, alpha=0.6):
+        self.tree = SumTree(capacity)
+        self.alpha = alpha
+        self.eps = 1e-6
+
+    def add(self, error, sample):
+        p = (abs(error) + self.eps) ** self.alpha
+        self.tree.add(p, sample)
+
+    def sample(self, n, beta=0.4):
+        batch = []
+        idxs = []
+        segment = self.tree.total / n
+        priorities = []
+        for i in range(n):
+            a = segment * i
+            b = segment * (i + 1)
+            s = random.uniform(a, b)
+            idx, p, data = self.tree.get(s)
+            batch.append(data)
+            idxs.append(idx)
+            priorities.append(p)
+        probs = np.array(priorities) / self.tree.total
+        weights = (self.tree.n_entries * probs) ** (-beta)
+        weights /= weights.max()
+        return batch, idxs, weights
+
+    def update(self, idx, error):
+        p = (abs(error) + self.eps) ** self.alpha
+        self.tree.update(idx, p)
+  </code></pre>
+
+      <h4>训练循环：集成 Dueling DQN 和 PER</h4>
+  <pre><code class="language-python">
+import torch.optim as optim
+
+# 初始化环境，模型，优化器
+state_dim = 4
+action_dim = 2
+model = DuelingDQN(state_dim, action_dim)
+target_model = DuelingDQN(state_dim, action_dim)
+target_model.load_state_dict(model.state_dict())  # 将目标模型初始化为主模型
+
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
+
+# 初始化 PER buffer
+buffer = PrioritizedReplayBuffer(capacity=10000, alpha=0.6)
+
+# 训练循环
+for episode in range(1000):
+    state = env.reset()  # 重置环境
+    done = False
+    total_reward = 0
+    
+    while not done:
+        # 选择动作
+        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+        q_values = model(state_tensor)
+        action = torch.argmax(q_values, dim=1).item()
+
+        # 执行动作并获取下一个状态和奖励
+        next_state, reward, done, _ = env.step(action)
+        total_reward += reward
+
+        # 存储经验到 buffer
+        next_state_tensor = torch.tensor(next_state, dtype=torch.float32).unsqueeze(0)
+        next_q_values = target_model(next_state_tensor)
+        max_next_q = torch.max(next_q_values).item()
+
+        td_error = reward + 0.99 * max_next_q - q_values[0, action].item()  # TD误差
+        buffer.add(td_error, (state, action, reward, next_state, done))
+
+        state = next_state
+
+        # 每隔一定步数训练
+        if len(buffer.tree) > 32:
+            batch, idxs, is_weights = buffer.sample(32, beta=0.4)
+
+            states = torch.tensor([b[0] for b in batch], dtype=torch.float32)
+            actions = torch.tensor([b[1] for b in batch], dtype=torch.long)
+            rewards = torch.tensor([b[2] for b in batch], dtype=torch.float32)
+            next_states = torch.tensor([b[3] for b in batch], dtype=torch.float32)
+            dones = torch.tensor([b[4] for b in batch], dtype=torch.float32)
+
+            q_values = model(states)
+            next_q_values = target_model(next_states)
+            max_next_q = next_q_values.max(1)[0]
+
+            expected_q = rewards + (1 - dones) * 0.99 * max_next_q
+            loss = F.mse_loss(q_values.gather(1, actions.unsqueeze(1)), expected_q.unsqueeze(1))
+
+            # 加权损失
+            weighted_loss = (loss * is_weights).mean()
+
+            optimizer.zero_grad()
+            weighted_loss.backward()
+            optimizer.step()
+
+            # 更新优先级
+            for i, idx in enumerate(idxs):
+                td_error = abs(expected_q[i] - q_values[i, actions[i]]).item()
+                buffer.update(idx, td_error)
+
+    # 每隔一定步数更新目标网络
+    if episode % 10 == 0:
+        target_model.load_state_dict(model.state_dict())
+    
+    print(f"Episode {episode}, Total Reward: {total_reward}")
+  </code></pre>
+
+      <h3>5. 总结</h3>
+      <ul>
+        <li><strong>Prioritized Experience Replay (PER)</strong> 通过优先采样和重要性采样权重来改进经验回放，提升强化学习的效率。</li>
+        <li>结合 <strong>Dueling DQN</strong>，可以通过分离状态价值和优势来更稳定地学习，结合 PER 进一步提升学习效率。</li>
+        <li>PER 的核心思想是让模型更多地关注那些 TD 误差较大的经验，从而加速学习过程。</li>
+        <li>实现时需要注意 SumTree 数据结构的维护和重要性采样权重的计算。</li>
+      </ul>
     </section>
 
     <section id="chapter16" class="chapter">
