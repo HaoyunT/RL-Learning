@@ -1597,66 +1597,70 @@ print("Q 表：\n", Q_table)
     <li>核心挑战：训练稳定性，需要经验回放和目标网络</li>
   </ul>
 
-  <h3>深度学习基础：神经网络层详解</h3>
-  <p>在深度强化学习中，神经网络是智能体的"大脑"，不同的层（Layer）扮演着不同的功能角色：</p>
+ <h3>深度学习基础：神经网络层详解</h3>
+<p>在深度强化学习中，神经网络是智能体的“大脑”，不同层（Layer）承担不同的功能角色：</p>
 
-  <h4>1. 输入层（Input Layer）</h4>
-  <ul>
-    <li><strong>作用</strong>：接收来自环境的状态输入</li>
-    <li><strong>举例</strong>：CartPole 的 4 维向量 [位置, 速度, 杆角, 角速度]；Atari 的图像帧 [84×84×4]</li>
-  </ul>
+<h4>1. 输入层（Input Layer）</h4>
+<ul>
+  <li><strong>作用</strong>：接收来自环境的状态输入。</li>
+  <li><strong>示例</strong>：CartPole 的 4 维向量 [位置, 速度, 杆角, 角速度]；Atari 的图像帧 [84×84×4]。</li>
+</ul>
 
-  <h4>2. 线性层（Linear Layer / Fully Connected）</h4>
-  <ul>
-    <li><strong>PyTorch 实现</strong>：<code>nn.Linear(in_features, out_features)</code></li>
-    <li><strong>数学形式</strong>：y = Wx + b</li>
-    <li><strong>作用</strong>：对输入特征进行加权线性变换，是神经网络最基本的"计算层"</li>
-    <li><strong>用途</strong>：Actor/Critic 网络、Q 网络的主体部分</li>
-  </ul>
+<h4>2. 线性层（Linear / 全连接层）</h4>
+<ul>
+  <li><strong>PyTorch</strong>：<code>nn.Linear(in_features, out_features)</code></li>
+  <li><strong>公式</strong>：y = Wx + b</li>
+  <li><strong>作用</strong>：对输入特征进行线性变换，是 MLP、Q 网络、Actor-Critic 等模型的核心组成。</li>
+</ul>
 
-  <h4>3. 激活层（Activation Layer）</h4>
-  <p>为网络引入非线性，使其能学习复杂函数映射关系：</p>
-  <table>
-    <tr><th>名称</th><th>公式</th><th>输出范围</th><th>常见场景</th></tr>
-    <tr><td>ReLU</td><td>max(0, x)</td><td>[0, ∞)</td><td>MLP、CNN、Actor-Critic</td></tr>
-    <tr><td>Tanh</td><td>(e^x - e^(-x))/(e^x + e^(-x))</td><td>[-1, 1]</td><td>DDPG、SAC 连续动作</td></tr>
-    <tr><td>Softmax</td><td>e^(x_i)/Σe^(x_j)</td><td>[0,1] 且和为1</td><td>离散动作策略 π(a|s)</td></tr>
-  </table>
+<h4>3. 激活层（Activation Layer）</h4>
+<p>为网络引入非线性，使模型能拟合复杂函数映射：</p>
+<table>
+  <tr><th>名称</th><th>公式</th><th>输出范围</th><th>常见用途</th></tr>
+  <tr><td>ReLU</td><td>max(0, x)</td><td>[0, ∞)</td><td>常规隐藏层激活</td></tr>
+  <tr><td>Tanh</td><td>(e^x - e^(-x))/(e^x + e^(-x))</td><td>[-1, 1]</td><td>连续动作输出（DDPG、SAC）</td></tr>
+  <tr><td>Softmax</td><td>e^(x_i)/Σe^(x_j)</td><td>[0,1]</td><td>离散动作策略 π(a|s)</td></tr>
+</table>
 
-  <h4>4. 卷积层（Convolutional Layer）</h4>
-  <ul>
-    <li><strong>PyTorch 实现</strong>：<code>nn.Conv2d(in_channels, out_channels, kernel_size, stride)</code></li>
-    <li><strong>作用</strong>：提取空间局部特征，广泛用于图像类输入</li>
-    <li><strong>典型结构</strong>（Atari DQN）：</li>
-  </ul>
-  <pre><code class="language-python">
-nn.Conv2d(4, 32, 8, stride=4)  # 第一层卷积
+<h4>4. 卷积层（Convolutional Layer）</h4>
+<ul>
+  <li><strong>PyTorch</strong>：<code>nn.Conv2d(in_ch, out_ch, kernel_size, stride)</code></li>
+  <li><strong>作用</strong>：提取图像的局部空间特征，是视觉输入任务（Atari 等）的基础。</li>
+</ul>
+<pre><code class="language-python">
+nn.Conv2d(4, 32, 8, stride=4)
 nn.ReLU()
-nn.Conv2d(32, 64, 4, stride=2)  # 第二层卷积 
+nn.Conv2d(32, 64, 4, stride=2)
 nn.ReLU()
-nn.Conv2d(64, 64, 3, stride=1)  # 第三层卷积
+nn.Conv2d(64, 64, 3, stride=1)
 nn.ReLU()
-nn.Flatten()  # 展开为一维
-nn.Linear(3136, 512)  # 全连接层
-  </code></pre>
+nn.Flatten()
+nn.Linear(3136, 512)
+</code></pre>
 
-  <h4>5. 输出层（Output Layer）</h4>
-  <p>生成最终输出，形式依任务而定：</p>
-  <table>
-    <tr><th>任务类型</th><th>输出维度</th><th>激活函数</th><th>输出含义</th></tr>
-    <tr><td>离散动作策略 π(a|s)</td><td>动作数量</td><td>Softmax</td><td>动作概率分布</td></tr>
-    <tr><td>连续动作策略 μ(s)</td><td>动作维度</td><td>Tanh</td><td>动作均值</td></tr>
-    <tr><td>价值函数 V(s)</td><td>1</td><td>无激活</td><td>状态价值</td></tr>
-    <tr><td>Q 函数 Q(s,a)</td><td>动作数量</td><td>无激活</td><td>每个动作的价值</td></tr>
-  </table>
+<h4>5. 输出层（Output Layer）</h4>
+<p>生成最终输出，形式因任务而异：</p>
+<table>
+  <tr><th>任务类型</th><th>输出维度</th><th>激活函数</th><th>输出含义</th></tr>
+  <tr><td>离散动作策略 π(a|s)</td><td>动作数</td><td>Softmax</td><td>动作概率分布</td></tr>
+  <tr><td>连续动作策略 μ(s)</td><td>动作维度</td><td>Tanh</td><td>动作均值</td></tr>
+  <tr><td>价值函数 V(s)</td><td>1</td><td>无</td><td>状态价值</td></tr>
+  <tr><td>Q 函数 Q(s,a)</td><td>动作数</td><td>无</td><td>各动作Q值</td></tr>
+</table>
 
-  <h4>6. 其他重要层</h4>
-  <ul>
-    <li><strong>循环层（RNN/LSTM/GRU）</strong>：处理时间序列数据，用于 POMDP 或需要记忆的任务</li>
-    <li><strong>归一化层（BatchNorm/LayerNorm）</strong>：让训练过程更稳定，加快收敛</li>
-    <li><strong>Dropout 层</strong>：防止过拟合（强化学习中较少使用）</li>
-    <li><strong>Flatten 层</strong>：将多维输入展开为一维向量，连接卷积层和全连接层</li>
-  </ul>
+<h4>6. 其他常见层</h4>
+<ul>
+  <li><strong>循环层（RNN / LSTM / GRU）</strong>：处理时间序列或部分可观测任务（POMDP）。</li>
+  <li><strong>归一化层（BatchNorm / LayerNorm）</strong>：稳定训练、加快收敛。</li>
+  <li><strong>Dropout 层</strong>：防止过拟合（强化学习中较少使用）。</li>
+  <li><strong>Flatten 层</strong>：将卷积输出展平为向量，连接 CNN 与全连接层。</li>
+</ul>
+
+<h4>总结</h4>
+<p>
+向量任务以全连接层为主，图像任务由卷积+Flatten+线性层构成，序列任务引入循环结构。<br>
+隐藏层提取特征，卷积层捕获局部模式，循环层建模时间依赖。所有层协作，共同构成智能体的“思维体系”。
+</p>
 
   <h3>二、核心公式</h3>
   <p>DQN 最小化 TD 误差损失：</p>

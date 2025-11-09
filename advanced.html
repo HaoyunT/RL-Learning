@@ -698,78 +698,91 @@ if __name__ == "__main__":
   </section>
 
     <section id="chapter15" class="chapter">
-      <h2>第十五章：Prioritized Experience Replay（PER）</h2>
-      <p>在强化学习中，Prioritized Experience Replay (PER) 是一种改进的经验回放方法，它通过优先采样那些对学习更有价值的经验来加速训练。PER 通过计算每个样本的优先级（通常与其 TD 误差成正比），来控制哪些经验更有可能被采样，进而提高学习效率。</p>
+      <h2>第十五章：PER</h2>
+      
 
-      <h3>1. PER 的工作原理</h3>
-      <p>在传统的经验回放中，训练样本是随机采样的，可能会导致许多无关的经验影响模型学习。而 PER 会根据每个经验的 <strong>TD 误差（Temporal Difference Error）</strong> 来评估它的优先级，并按优先级来采样经验。</p>
-
-      <h4>优先级归一化</h4>
-      <p>每个经验的优先级通常是与其 TD 误差 $\delta$ 成正比的。为了使优先级在合理范围内，我们通常会进行<strong>最大优先级归一化</strong>，使每个优先级都在 $[0,1]$ 之间。</p>
-      <p>$$\tilde{p}_i = \frac{p_i}{\max(p_1, p_2, \ldots, p_N)}$$</p>
-      <p>其中，$p_i$ 是样本的原始优先级，$\tilde{p}_i$ 是归一化后的优先级。</p>
+      <h3>PER：优先经验回放</h3>
+      
+      <p><strong>问题：</strong>普通经验回放是均匀随机采样，但有些样本信息量大（比如 TD 误差很大），有些没啥用。</p>
+      
+      <p><strong>解决：</strong>给每个样本打分，TD 误差越大 → 优先级越高 → 越容易被采样。</p>
 
       <h4>采样概率</h4>
-      <p>根据归一化后的优先级，我们计算每个样本被采样的概率：</p>
-      <p>$$P(i) = \frac{\tilde{p}_i^\alpha}{\sum_{j=1}^N \tilde{p}_j^\alpha}$$</p>
-      <p>其中 $\alpha$ 控制优先级对采样概率的影响程度（$\alpha=0$ 时是均匀采样，$\alpha=1$ 时完全按照优先级采样）。</p>
+      <p>$$P(i) = \frac{(|\delta_i| + \varepsilon)^\alpha}{\sum_k (|\delta_k| + \varepsilon)^\alpha}$$</p>
+      
+      <table>
+        <tr><th>参数</th><th>含义</th><th>常用值</th></tr>
+        <tr><td>α</td><td>控制优先级影响力度</td><td>0.6</td></tr>
+        <tr><td>ε</td><td>防止优先级为 0</td><td>1e-6</td></tr>
+      </table>
 
-      <h4>重要性采样权重（IS 权重）</h4>
-      <p>为了校正采样偏差，我们引入<strong>重要性采样（Importance Sampling, IS）</strong>权重，对损失进行加权。计算公式如下：</p>
-      <p>$$w_i = \left(\frac{1/N}{P(i)}\right)^\beta$$</p>
-      <p>其中，$\beta$ 是控制重要性采样权重的参数，通常会从较小值（如 0.4）逐步增加到 1。</p>
+      <h4>重要性权重</h4>
+      <p>因为改变了采样分布，需要用权重修正，避免偏差：</p>
+      <p>$$w_i = \left(\frac{1}{N \cdot P(i)}\right)^\beta$$</p>
+      
+      <p>β 从 0.4 逐渐升到 1.0，训练前期允许有点偏差，后期严格修正。</p>
 
-      <h4>加权损失</h4>
-      <p>训练过程中，我们用 IS 权重对损失进行加权，得到加权后的损失：</p>
-      <p>$$L_{\text{weighted}} = \frac{1}{N} \sum_{i=1}^N \tilde{w}_i \cdot L_i$$</p>
-      <p>其中，$L_i$ 是样本 $i$ 的损失。</p>
+      <p><strong>最终损失：</strong></p>
+      <p>$$L = \text{mean}(w_i \cdot \delta_i^2)$$</p>
 
-      <h3>2. PER 的优点</h3>
-      <ul>
-        <li><strong>加速学习</strong>：通过优先采样高 TD 误差的样本，模型可以更快地修正错误，提升训练效率。</li>
-        <li><strong>提高样本效率</strong>：PER 会让网络更多地关注重要经验，减少不必要的训练样本，从而提高样本利用效率。</li>
-      </ul>
+      <h3>三、整合流程：Dueling + PER + Double</h3>
+      
+      <ol>
+        <li>初始化 online 网络（Dueling 结构）、target 网络、PER 缓冲区</li>
+        <li>与环境交互，得到 (s, a, r, s', done)</li>
+        <li>计算 TD 误差：
+          $$\delta = \big|r + \gamma \cdot Q_{\text{target}}\big(s', \arg\max_{a'} Q_{\text{online}}(s',a')\big) - Q_{\text{online}}(s,a)\big|$$
+        </li>
+        <li>存入 PER，优先级 = δ + ε</li>
+        <li>按优先级采样 batch，得到权重 w</li>
+        <li>计算加权损失，反向传播</li>
+        <li>更新 PER 中各样本的优先级</li>
+        <li>定期同步 target 网络</li>
+      </ol>
 
-      <h3>3. Dueling DQN 与 PER 结合</h3>
-      <p>在强化学习中，Dueling DQN 是 DQN 的一种改进，它通过分开计算<strong>状态价值（V）</strong>和<strong>优势（A）</strong>来提高训练的稳定性和效果。结合 PER，可以让 Dueling DQN 更加高效地从经验池中学习。</p>
+      <p><strong>注意：</strong>这里用的是 Double DQN 的目标计算方式（online 选动作，target 评估），防止 Q 值过估计。</p>
 
-      <h3>4. 完整实现代码</h3>
+      <h3>四、完整代码实现</h3>
 
-      <h4>Dueling DQN 网络结构</h4>
-  <pre><code class="language-python">
+      <h4>Dueling 网络</h4>
+<pre><code class="language-python">
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class DuelingDQN(nn.Module):
     def __init__(self, state_dim, action_dim):
-        super(DuelingDQN, self).__init__()
+        super().__init__()
+        # 共享特征层
         self.feature = nn.Sequential(
             nn.Linear(state_dim, 128),
             nn.ReLU(),
             nn.Linear(128, 128),
             nn.ReLU()
         )
-        self.value_stream = nn.Linear(128, 1)  # 状态价值 V(s)
-        self.advantage_stream = nn.Linear(128, action_dim)  # 优势 A(s, a)
+        # 分支 1：状态价值
+        self.value = nn.Linear(128, 1)
+        # 分支 2：动作优势
+        self.advantage = nn.Linear(128, action_dim)
 
     def forward(self, x):
-        x = self.feature(x)
-        value = self.value_stream(x)  # 状态价值 V(s)
-        advantage = self.advantage_stream(x)  # 优势 A(s, a)
-        q_value = value + (advantage - advantage.mean(dim=1, keepdim=True))  # Q(s, a)
-        return q_value
-  </code></pre>
+        feat = self.feature(x)
+        v = self.value(feat)
+        a = self.advantage(feat)
+        # 去均值组合
+        q = v + (a - a.mean(dim=1, keepdim=True))
+        return q
+</code></pre>
 
-      <h4>Prioritized Experience Replay (PER) Buffer</h4>
-  <pre><code class="language-python">
+      <h4>PER 缓冲区（SumTree 实现）</h4>
+<pre><code class="language-python">
 import numpy as np
 import random
 
 class SumTree:
+    """SumTree 用于快速采样，时间复杂度 O(log N)"""
     def __init__(self, capacity):
         self.capacity = capacity
-        self.tree = np.zeros(2 * capacity - 1)  # SumTree结构
+        self.tree = np.zeros(2 * capacity - 1)
         self.data = [None] * capacity
         self.write = 0
         self.n_entries = 0
@@ -786,163 +799,611 @@ class SumTree:
         self._propagate(idx, change)
 
     def add(self, priority, data):
-        leaf = self.write + self.capacity - 1
+        idx = self.write + self.capacity - 1
         self.data[self.write] = data
-        self.update(leaf, priority)
-        self.write += 1
-        if self.write >= self.capacity:
-            self.write = 0
+        self.update(idx, priority)
+        self.write = (self.write + 1) % self.capacity
         self.n_entries = min(self.n_entries + 1, self.capacity)
 
     def get(self, s):
         idx = 0
         while True:
             left = 2 * idx + 1
-            right = left + 1
             if left >= len(self.tree):
-                leaf = idx
                 break
+            if s <= self.tree[left]:
+                idx = left
             else:
-                if s <= self.tree[left]:
-                    idx = left
-                else:
-                    s -= self.tree[left]
-                    idx = right
-        data_idx = leaf - self.capacity + 1
-        return leaf, self.tree[leaf], self.data[data_idx]
+                s -= self.tree[left]
+                idx = left + 1
+        data_idx = idx - self.capacity + 1
+        return idx, self.tree[idx], self.data[data_idx]
 
     @property
     def total(self):
         return self.tree[0]
 
-class PrioritizedReplayBuffer:
-    def __init__(self, capacity, alpha=0.6):
+class PERBuffer:
+    def __init__(self, capacity, alpha=0.6, eps=1e-6):
         self.tree = SumTree(capacity)
         self.alpha = alpha
-        self.eps = 1e-6
+        self.eps = eps
 
-    def add(self, error, sample):
-        p = (abs(error) + self.eps) ** self.alpha
-        self.tree.add(p, sample)
+    def add(self, td_error, sample):
+        priority = (abs(td_error) + self.eps) ** self.alpha
+        self.tree.add(priority, sample)
 
-    def sample(self, n, beta=0.4):
-        batch = []
-        idxs = []
-        segment = self.tree.total / n
-        priorities = []
-        for i in range(n):
-            a = segment * i
-            b = segment * (i + 1)
+    def sample(self, batch_size, beta=0.4):
+        batch, idxs, priorities = [], [], []
+        segment = self.tree.total / batch_size
+        
+        for i in range(batch_size):
+            a, b = segment * i, segment * (i + 1)
             s = random.uniform(a, b)
             idx, p, data = self.tree.get(s)
             batch.append(data)
             idxs.append(idx)
             priorities.append(p)
+        
+        # 计算重要性权重
         probs = np.array(priorities) / self.tree.total
         weights = (self.tree.n_entries * probs) ** (-beta)
-        weights /= weights.max()
-        return batch, idxs, weights
+        weights /= weights.max()  # 归一化
+        
+        return batch, idxs, torch.FloatTensor(weights)
 
-    def update(self, idx, error):
-        p = (abs(error) + self.eps) ** self.alpha
-        self.tree.update(idx, p)
-  </code></pre>
+    def update_priority(self, idx, td_error):
+        priority = (abs(td_error) + self.eps) ** self.alpha
+        self.tree.update(idx, priority)
+</code></pre>
 
-      <h4>训练循环：集成 Dueling DQN 和 PER</h4>
-  <pre><code class="language-python">
+      <h4>训练流程</h4>
+<pre><code class="language-python">
 import torch.optim as optim
+import torch.nn.functional as F
 
-# 初始化环境，模型，优化器
-state_dim = 4
-action_dim = 2
-model = DuelingDQN(state_dim, action_dim)
-target_model = DuelingDQN(state_dim, action_dim)
-target_model.load_state_dict(model.state_dict())  # 将目标模型初始化为主模型
+# 初始化
+online_net = DuelingDQN(state_dim=4, action_dim=2)
+target_net = DuelingDQN(state_dim=4, action_dim=2)
+target_net.load_state_dict(online_net.state_dict())
+optimizer = optim.Adam(online_net.parameters(), lr=1e-4)
 
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+buffer = PERBuffer(capacity=10000, alpha=0.6)
+gamma = 0.99
+beta = 0.4
 
-# 初始化 PER buffer
-buffer = PrioritizedReplayBuffer(capacity=10000, alpha=0.6)
-
-# 训练循环
 for episode in range(1000):
-    state = env.reset()  # 重置环境
+    state = env.reset()
     done = False
-    total_reward = 0
     
     while not done:
-        # 选择动作
-        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-        q_values = model(state_tensor)
-        action = torch.argmax(q_values, dim=1).item()
-
-        # 执行动作并获取下一个状态和奖励
+        # ε-greedy 选动作
+        if random.random() < epsilon:
+            action = random.randint(0, action_dim-1)
+        else:
+            with torch.no_grad():
+                q = online_net(torch.FloatTensor(state).unsqueeze(0))
+                action = q.argmax().item()
+        
         next_state, reward, done, _ = env.step(action)
-        total_reward += reward
-
-        # 存储经验到 buffer
-        next_state_tensor = torch.tensor(next_state, dtype=torch.float32).unsqueeze(0)
-        next_q_values = target_model(next_state_tensor)
-        max_next_q = torch.max(next_q_values).item()
-
-        td_error = reward + 0.99 * max_next_q - q_values[0, action].item()  # TD误差
+        
+        # 计算 TD 误差
+        with torch.no_grad():
+            q_next = target_net(torch.FloatTensor(next_state).unsqueeze(0))
+            best_action = online_net(torch.FloatTensor(next_state).unsqueeze(0)).argmax()
+            td_target = reward + (1 - done) * gamma * q_next[0, best_action]
+            q_current = online_net(torch.FloatTensor(state).unsqueeze(0))[0, action]
+            td_error = abs(td_target - q_current).item()
+        
+        # 存入 PER
         buffer.add(td_error, (state, action, reward, next_state, done))
-
         state = next_state
-
-        # 每隔一定步数训练
-        if len(buffer.tree) > 32:
-            batch, idxs, is_weights = buffer.sample(32, beta=0.4)
-
-            states = torch.tensor([b[0] for b in batch], dtype=torch.float32)
-            actions = torch.tensor([b[1] for b in batch], dtype=torch.long)
-            rewards = torch.tensor([b[2] for b in batch], dtype=torch.float32)
-            next_states = torch.tensor([b[3] for b in batch], dtype=torch.float32)
-            dones = torch.tensor([b[4] for b in batch], dtype=torch.float32)
-
-            q_values = model(states)
-            next_q_values = target_model(next_states)
-            max_next_q = next_q_values.max(1)[0]
-
-            expected_q = rewards + (1 - dones) * 0.99 * max_next_q
-            loss = F.mse_loss(q_values.gather(1, actions.unsqueeze(1)), expected_q.unsqueeze(1))
-
+        
+        # 训练
+        if buffer.tree.n_entries > 64:
+            batch, idxs, weights = buffer.sample(32, beta)
+            
+            states = torch.FloatTensor([x[0] for x in batch])
+            actions = torch.LongTensor([x[1] for x in batch])
+            rewards = torch.FloatTensor([x[2] for x in batch])
+            next_states = torch.FloatTensor([x[3] for x in batch])
+            dones = torch.FloatTensor([x[4] for x in batch])
+            
+            # Double DQN 目标
+            q_eval = online_net(states).gather(1, actions.unsqueeze(1)).squeeze()
+            with torch.no_grad():
+                best_actions = online_net(next_states).argmax(1)
+                q_next = target_net(next_states).gather(1, best_actions.unsqueeze(1)).squeeze()
+                q_target = rewards + (1 - dones) * gamma * q_next
+            
             # 加权损失
-            weighted_loss = (loss * is_weights).mean()
-
+            td_errors = (q_target - q_eval).abs()
+            loss = (weights * F.mse_loss(q_eval, q_target, reduction='none')).mean()
+            
             optimizer.zero_grad()
-            weighted_loss.backward()
+            loss.backward()
             optimizer.step()
-
+            
             # 更新优先级
-            for i, idx in enumerate(idxs):
-                td_error = abs(expected_q[i] - q_values[i, actions[i]]).item()
-                buffer.update(idx, td_error)
-
-    # 每隔一定步数更新目标网络
-    if episode % 10 == 0:
-        target_model.load_state_dict(model.state_dict())
+            for idx, err in zip(idxs, td_errors.detach().numpy()):
+                buffer.update_priority(idx, err)
     
-    print(f"Episode {episode}, Total Reward: {total_reward}")
-  </code></pre>
+    # 定期同步 target 网络
+    if episode % 10 == 0:
+        target_net.load_state_dict(online_net.state_dict())
+</code></pre>
 
-      <h3>5. 总结</h3>
+      <h3>五、效果对比</h3>
       <ul>
-        <li><strong>Prioritized Experience Replay (PER)</strong> 通过优先采样和重要性采样权重来改进经验回放，提升强化学习的效率。</li>
-        <li>结合 <strong>Dueling DQN</strong>，可以通过分离状态价值和优势来更稳定地学习，结合 PER 进一步提升学习效率。</li>
-        <li>PER 的核心思想是让模型更多地关注那些 TD 误差较大的经验，从而加速学习过程。</li>
-        <li>实现时需要注意 SumTree 数据结构的维护和重要性采样权重的计算。</li>
+        <li><strong>Dueling</strong>：网络更高效，尤其在动作影响小的状态</li>
+        <li><strong>PER</strong>：收敛更快，样本利用率更高</li>
+        <li><strong>Double</strong>：防止 Q 值过估计</li>
       </ul>
+
+      <p>三者组合是 Rainbow DQN 的核心，在 Atari 游戏上表现优异。</p>
+
+      <p><strong>改进路线：</strong>DQN → Double DQN → Dueling DQN → PER → Rainbow DQN</p>
     </section>
 
     <section id="chapter16" class="chapter">
-      <h2>第十六章：NoisyNet DQN</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <h2>第十六章：NoisyNet DQN（自适应探索）</h2>
+
+      <p>前面通过 Dueling 和 PER 改进了网络结构和采样效率，但探索问题还没解决好。</p>
+
+      <p>传统的 <strong>ε-greedy</strong> 探索靠人工设定 ε，它的随机性跟网络学习没什么关系，很难自适应调整探索强度。<br>
+      <strong>NoisyNet DQN</strong>（Fortunato et al., 2017）换了个思路 —— 直接在网络参数里加可学习的噪声，让探索变成网络学习的一部分。</p>
+
+      <h3>一、核心想法</h3>
+      <p>用带噪声的线性层替代普通全连接层：</p>
+
+      <pre><code class="language-python">
+y = (W + σ_W ⊙ ε_W) · x + (b + σ_b ⊙ ε_b)
+      </code></pre>
+
+      <ul>
+        <li><code>W, b</code>：标准权重和偏置</li>
+        <li><code>σ_W, σ_b</code>：可学习的噪声强度（网络训练时会调整）</li>
+        <li><code>ε_W, ε_b</code>：每次前向传播重新采样的高斯噪声</li>
+      </ul>
+
+      <p>这样网络输出自带随机性，噪声大小随训练自动调整。不用手动调 ε 了，探索强度网络自己学。</p>
+
+      <h3>二、代码实现</h3>
+<pre><code class="language-python">
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+class NoisyLinear(nn.Module):
+    def __init__(self, in_features, out_features, std_init=0.5):
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.std_init = std_init
+
+        # 可学习参数
+        self.weight_mu = nn.Parameter(torch.empty(out_features, in_features))
+        self.weight_sigma = nn.Parameter(torch.empty(out_features, in_features))
+        self.register_buffer("weight_eps", torch.empty(out_features, in_features))
+
+        self.bias_mu = nn.Parameter(torch.empty(out_features))
+        self.bias_sigma = nn.Parameter(torch.empty(out_features))
+        self.register_buffer("bias_eps", torch.empty(out_features))
+
+        self.reset_parameters()
+        self.sample_noise()
+
+    def reset_parameters(self):
+        mu_range = 1 / math.sqrt(self.in_features)
+        self.weight_mu.data.uniform_(-mu_range, mu_range)
+        self.weight_sigma.data.fill_(self.std_init / math.sqrt(self.in_features))
+        self.bias_mu.data.uniform_(-mu_range, mu_range)
+        self.bias_sigma.data.fill_(self.std_init / math.sqrt(self.out_features))
+
+    def sample_noise(self):
+        """重新采样噪声"""
+        self.weight_eps.normal_()
+        self.bias_eps.normal_()
+
+    def forward(self, x):
+        if self.training:
+            # 训练时加噪声
+            w = self.weight_mu + self.weight_sigma * self.weight_eps
+            b = self.bias_mu + self.bias_sigma * self.bias_eps
+        else:
+            # 测试时不加噪声
+            w, b = self.weight_mu, self.bias_mu
+        return F.linear(x, w, b)
+</code></pre>
+
+      <h3>三、与 Dueling DQN 结合</h3>
+<pre><code class="language-python">
+class NoisyDuelingDQN(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super().__init__()
+        # 共享特征层（普通层）
+        self.feature = nn.Sequential(
+            nn.Linear(state_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU()
+        )
+        # 价值流和优势流用 NoisyLinear
+        self.value = NoisyLinear(128, 1)
+        self.advantage = NoisyLinear(128, action_dim)
+
+    def forward(self, x):
+        feat = self.feature(x)
+        v = self.value(feat)
+        a = self.advantage(feat)
+        q = v + (a - a.mean(dim=1, keepdim=True))
+        return q
+    
+    def sample_noise(self):
+        """重采样所有噪声层"""
+        self.value.sample_noise()
+        self.advantage.sample_noise()
+</code></pre>
+
+      <h3>四、训练流程</h3>
+      <ol>
+        <li>把 Dueling DQN 的 <code>Linear</code> 层换成 <code>NoisyLinear</code></li>
+        <li><strong>去掉 ε-greedy</strong>，探索完全靠噪声驱动</li>
+        <li>每次前向传播前调用 <code>sample_noise()</code> 重新采样噪声</li>
+        <li>损失函数、TD 目标、target 更新都跟 DQN 一样</li>
+      </ol>
+
+<pre><code class="language-python">
+# 训练时无需 ε-greedy
+for episode in range(1000):
+    state = env.reset()
+    online_net.sample_noise()  # 每个 episode 开始重采样噪声
+    
+    while not done:
+        # 直接选最优动作，噪声已经在网络里了
+        with torch.no_grad():
+            q = online_net(torch.FloatTensor(state).unsqueeze(0))
+            action = q.argmax().item()
+        
+        next_state, reward, done, _ = env.step(action)
+        buffer.add((state, action, reward, next_state, done))
+        state = next_state
+        
+        # 训练步骤
+        if len(buffer) > batch_size:
+            batch = buffer.sample(batch_size)
+            online_net.sample_noise()  # 训练前重采样
+            target_net.sample_noise()
+            
+            # 计算损失并更新...
+</code></pre>
+
+      <h3>五、优点</h3>
+      <ul>
+        <li><strong>自适应探索</strong>：网络在不确定的状态自动增大噪声</li>
+        <li><strong>减少超参</strong>：不用手动调 ε 和衰减策略了</li>
+        <li><strong>性能更好</strong>：在 Atari 和 MuJoCo 上普遍优于 ε-greedy</li>
+      </ul>
+
+      <h3>六、典型组合</h3>
+      <p>NoisyNet 经常和这些一起用：</p>
+      <ul>
+        <li><strong>Dueling DQN</strong> → 提升特征表达</li>
+        <li><strong>Double DQN</strong> → 减少过估计</li>
+        <li><strong>PER</strong> → 加速样本利用</li>
+      </ul>
+      <p>组合起来就是 Rainbow DQN 的第三个核心模块。</p>
+
+      <h3>七、小结</h3>
+      <p>NoisyNet 把探索机制融入网络参数，让智能体自己调节探索强度。<br>
+      相比传统 ε-greedy，这才是真正的"可学习探索"，在复杂环境里更高效、更智能。</p>
+
+      <p><strong>改进路线：</strong>DQN → Double DQN → Dueling DQN → PER → <strong>NoisyNet DQN</strong> → Rainbow DQN</p>
     </section>
 
     <section id="chapter17" class="chapter">
-      <h2>第十七章：Rainbow DQN</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <h2>第十七章：Rainbow DQN（集大成者）</h2>
+
+      <h3>预备知识：N-Step Learning（多步时序差分）</h3>
+
+      <p><strong>核心动机：</strong> 相比 1-step TD 只看下一步奖励，N-step 将未来 N 步的真实奖励一次性纳入目标，让奖励信号更快地回传到当前状态，从而加速学习、提高样本利用率。</p>
+
+      <h4>1. 理论背景：介于 TD 与 Monte Carlo 之间的折中</h4>
+      <p>传统时序差分（TD）每步更新一次，只利用下一步奖励：</p>
+      <pre><code>y_t^{(1)} = r_t + γ·max_a Q_target(s_{t+1}, a)
+</code></pre>
+      <p>而 Monte Carlo 方法等整局结束后用完整回报更新：</p>
+      <pre><code>y_t^{(MC)} = r_t + γr_{t+1} + γ^2r_{t+2} + ... + γ^{T-t}r_T
+</code></pre>
+
+      <p>二者特点如下：</p>
+      <ul>
+        <li><strong>TD：</strong> 更新快、低方差，但仅看一步，传播慢。</li>
+        <li><strong>Monte Carlo：</strong> 利用完整信息、无偏，但需等整局结束、方差大。</li>
+      </ul>
+
+      <p><strong>N-step Learning</strong> 介于两者之间，通过固定长度 N 的滚动窗口，将未来 N 步的真实奖励纳入更新目标：</p>
+      <pre><code>y_t^{(N)} = r_t + γr_{t+1} + ... + γ^{N-1}r_{t+N-1} + γ^N·max_a Q_target(s_{t+N}, a)
+</code></pre>
+
+      <p>这样可以同时保留 TD 的在线更新能力，又引入 Monte Carlo 的长远视角，兼顾稳定性与高效性。</p>
+
+      <h4>2. 实现逻辑（滑动窗口机制）</h4>
+      <ol>
+        <li>维护长度为 N 的队列 <code>n_step_buffer</code>，每次环境交互后入队样本 <code>(s, a, r, s_next, done)</code>。</li>
+        <li>当队列满 N 时，计算累计折扣奖励：
+        <pre><code>R = Σ_{i=0}^{N-1} γ^i · r_{t+i}</code></pre></li>
+        <li>取队首状态 <code>(s_t, a_t)</code> 和队尾下一个状态 <code>s_{t+N}</code> 构造 N-step 样本：
+        <pre><code>(s_t, a_t, R, s_{t+N}, done)</code></pre></li>
+        <li>存入经验回放池，训练时以目标：
+        <pre><code>y_t^{(N)} = R + (γ^N)·max_a Q_target(s_{t+N}, a)</code></pre></li>
+      </ol>
+
+      <h4>3. 参数与注意事项</h4>
+      <ul>
+        <li>N 通常取 <strong>3~5</strong>（Rainbow 默认 N=3）。</li>
+        <li>若回合提前结束（不足 N 步），直接用已观测到的奖励累加。</li>
+        <li>与 PER、NoisyNet、Dueling 可无缝结合，增强训练效率与稳定性。</li>
+      </ul>
+
+      <hr>
+
+      <h3>预备知识：C51（Categorical DQN，分布式价值学习）</h3>
+
+      <p><strong>核心动机：</strong> DQN 只学习回报的期望 Q(s,a)，而 C51 直接学习回报分布 Z(s,a)，捕捉风险与不确定性，使智能体的策略更稳健、更具表达力。</p>
+
+      <h4>1. 固定支持区间与 51 个离散原子（atoms）</h4>
+      <ul>
+        <li>C51 将未来回报的范围固定在 <code>[V_min, V_max]</code> 上，并均匀划分为 51 个取值点：</li>
+        <pre><code>z_i = V_min + i·(V_max - V_min)/50 , i = 0..50</code></pre>
+        <li>每个动作 a 输出 51 个概率 <code>p_i(s,a)</code>，表示回报落在 z_i 处的概率。</li>
+      </ul>
+
+      <h4>2. V<sub>min</sub> / V<sub>max</sub> 的选取依据</h4>
+      <ul>
+        <li>理论上：若每步奖励范围为 <code>[r_min, r_max]</code>，折扣因子为 γ，则未来累计回报的上下限为：
+        <pre><code>V_min = r_min / (1 - γ)
+V_max = r_max / (1 - γ)</code></pre></li>
+        <li>实践中可根据任务经验选取更紧区间。例如：
+          <ul>
+            <li>Atari 环境：通常设为 [-10, 10] 或 [-100, 100]</li>
+            <li>连续控制任务（如 MuJoCo）：根据奖励尺度适当缩放</li>
+          </ul>
+        </li>
+        <li>固定 <code>[V_min, V_max]</code> 使网络输出维度稳定，便于分布投影。</li>
+      </ul>
+
+      <h4>3. 网络输出与动作选择</h4>
+      <ul>
+        <li>输出：每个动作对应 51 维概率分布，经 softmax 归一化。</li>
+        <li>训练：优化整条分布；执行动作时取期望：
+        <pre><code>Q(s,a) = Σ_i p_i(s,a)·z_i</code></pre></li>
+      </ul>
+
+      <h4>4. 分布式 Bellman 更新与投影</h4>
+      <ol>
+        <li>用 Double DQN 思想选择下一动作：
+        <pre><code>a* = argmax_a Σ_i p_i(s',a)·z_i</code></pre></li>
+        <li>构造目标分布：
+        <pre><code>TZ = r + γ·Z_target(s', a*)</code></pre></li>
+        <li>将其线性投影回固定支持区间，得到目标概率分布 m_i。</li>
+      </ol>
+
+      <h4>5. 损失函数：交叉熵（Cross-Entropy）</h4>
+      <p>训练目标：让预测分布 <code>p</code> 逼近目标分布 <code>m</code>。</p>
+      <pre><code>L = - Σ_i m_i · log p_i</code></pre>
+
+      <h5>交叉熵最小值证明（基于 Jensen 不等式）</h5>
+      <p>定义交叉熵：<code>H(p,q) = -Σ_i p_i ln q_i</code>，证明当 p=q 时 H(p,q) 最小。</p>
+      <pre><code>H(p,q) - H(p,p)
+= Σ_i p_i ln(q_i/p_i)
+
+因 ln(x) 为凹函数，Jensen 不等式：
+Σ_i p_i ln(x_i) ≤ ln(Σ_i p_i x_i)，其中 Σ_i p_i=1
+
+取 x_i = q_i / p_i：
+Σ_i p_i ln(q_i/p_i) ≤ ln(Σ_i q_i) = ln(1) = 0
+
+⇒ H(p,p) - H(p,q) ≤ 0
+⇒ H(p,p) ≤ H(p,q)
+
+当 p=q 时等号成立。
+</code></pre>
+      <p>因此，预测分布等于目标分布时，交叉熵取得最小值，这就是分布学习稳定的理论基础。</p>
+
+      <h4>6. 小结</h4>
+      <ul>
+        <li><strong>N-Step：</strong> 是 TD 与 Monte Carlo 的中间形态，结合短期稳定与长期视野，加快奖励传播。</li>
+        <li><strong>C51：</strong> 直接学习回报分布（51 个概率），通过交叉熵优化预测分布与目标分布的一致性。</li>
+        <li><strong>V<sub>min</sub>/V<sub>max</sub>：</strong> 表示环境可能回报的全局上下界，通常设为 <code>[r_min/(1-γ), r_max/(1-γ)]</code> 或经验范围。</li>
+        <li>两者均为 Rainbow DQN 的关键组成模块，与 Double、Dueling、PER、NoisyNet 共同组成完整强化学习彩虹体系。</li>
+      </ul>
+
+      <hr>
+
+      <h3>强化学习进阶：Rainbow DQN 🌈（终极 DQN 改进版）</h3>
+
+      <p><strong>论文：</strong> Hessel et al., "<em>Rainbow: Combining Improvements in Deep Reinforcement Learning</em>", DeepMind, 2018</p>
+
+      <p><strong>核心思想：</strong> Rainbow 将六大强化学习改进模块整合入 DQN 框架，使智能体在稳定性、样本效率、探索能力与表达能力上全面提升。</p>
+
+      <h4>1. Rainbow 的六大组成模块</h4>
+
+      <table>
+        <tr><th>模块</th><th>改进方向</th><th>主要作用</th></tr>
+        <tr><td><strong>Double DQN</strong></td><td>目标计算</td><td>减少 Q 值过估计偏差</td></tr>
+        <tr><td><strong>Dueling DQN</strong></td><td>网络结构</td><td>分离状态价值与动作优势</td></tr>
+        <tr><td><strong>PER（Prioritized Experience Replay）</strong></td><td>数据采样</td><td>提高关键样本采样频率</td></tr>
+        <tr><td><strong>NoisyNet</strong></td><td>探索策略</td><td>在参数中注入可学习噪声，替代 ε-greedy</td></tr>
+        <tr><td><strong>N-Step Learning</strong></td><td>学习信号</td><td>加速奖励传播，兼顾 TD 与 Monte Carlo</td></tr>
+        <tr><td><strong>C51</strong></td><td>价值表示</td><td>预测回报分布而非单一期望值</td></tr>
+      </table>
+
+      <p>这六个模块构成了 DQN 的"彩虹"增强体系。</p>
+
+      <hr>
+
+      <h4>2. 网络结构（Dueling + NoisyNet + C51）</h4>
+
+      <ul>
+        <li><strong>Dueling 结构：</strong> 共享特征提取层后分为两支：
+        <pre><code>Q(s,a) = V(s) + [A(s,a) - mean(A(s,·))]</code></pre>
+        使网络能区分"状态本身价值"与"动作带来的增益"，提升训练稳定性。</li>
+
+        <li><strong>NoisyNet：</strong> 将全连接层替换为带噪声线性层：
+        <pre><code>W' = W + σ_W ⊙ ε_W,   b' = b + σ_b ⊙ ε_b</code></pre>
+        每次前向传播前采样随机噪声 ε，σ 为可学习参数，形成可学习探索机制。</li>
+
+        <li><strong>C51 输出层：</strong> 每个动作输出 51 个 logits，经 softmax 得到分布概率：
+        <pre><code>p_i(s,a) = softmax(z_i)</code></pre>
+        最终 Q 值为期望：
+        <pre><code>Q(s,a) = Σ_i p_i(s,a) · z_i</code></pre></li>
+      </ul>
+
+      <hr>
+
+      <h4>3. 数据与目标构建（N-Step + Double + C51 Projection）</h4>
+
+      <h5>3.1 N-Step 滑动窗口机制</h5>
+      <p>维护长度为 N 的队列 <code>n_step_buffer</code>，每次交互后存入样本：</p>
+      <pre><code>(s_t, a_t, r_t, s_{t+1}, done_t)</code></pre>
+      <p>当队列满 N 步时，计算累计折扣奖励：</p>
+      <pre><code>R = Σ_{i=0}^{N-1} γ^i · r_{t+i}</code></pre>
+      <p>并生成 N-Step 样本 <code>(s_t, a_t, R, s_{t+N}, done_{t+N})</code> 存入回放池。</p>
+
+      <h5>3.2 Double DQN 目标动作选择</h5>
+      <ul>
+        <li>在线网络（Q<sub>online</sub>）选动作：  
+        <pre><code>a* = argmax_a Σ_i p_i(s',a)·z_i</code></pre></li>
+        <li>目标网络（Q<sub>target</sub>）用来评估分布：  
+        <pre><code>Z_target = Z_target(s', a*)</code></pre></li>
+      </ul>
+
+      <h5>3.3 C51 分布式 Bellman 投影</h5>
+      <p>对目标分布的每个原子 z<sub>j</sub> 计算仿射平移：</p>
+      <pre><code>t_z = clip(r_acc + γ^N · z_j, V_min, V_max)</code></pre>
+      <p>将其投影回固定支持点集合 <code>{z_i}</code> 上，按线性权重分摊概率质量，得到目标分布 m。</p>
+
+      <hr>
+
+      <h4>4. 损失函数与 PER 优先采样</h4>
+
+      <h5>4.1 交叉熵与 KL 散度的关系</h5>
+
+      <p>给定目标分布 <code>p</code>（真实）与预测分布 <code>q</code>（模型输出），有：</p>
+      <pre><code>D_KL(p||q) = Σ p(x) log(p(x)/q(x))
+H(p,q) = -Σ p(x) log q(x)
+</code></pre>
+      <p>展开后可得：</p>
+      <pre><code>H(p,q) = H(p) + D_KL(p||q)</code></pre>
+      <p>由于 H(p) 是常数，最小化交叉熵 <code>H(p,q)</code> 等价于最小化 KL 散度 <code>D_KL(p||q)</code>。</p>
+      <p>因此，C51 使用的交叉熵损失，本质上就是最小化目标分布与预测分布之间的 KL 差异。</p>
+
+      <h5>4.2 三种常见损失函数设计方式</h5>
+
+      <table>
+        <tr><th>类型</th><th>定义</th><th>说明</th></tr>
+        <tr>
+          <td><strong>(1) 分布交叉熵损失</strong></td>
+          <td><code>L = -Σ_i m_i · log p_i</code></td>
+          <td>最常用，与 C51 原论文一致；直接度量分布差异，等价于最小化 KL 散度。</td>
+        </tr>
+        <tr>
+          <td><strong>(2) 期望 TD 误差损失</strong></td>
+          <td><code>L = (R + γ^N·Q_target - Q_online)^2</code></td>
+          <td>将分布取期望后回退到传统 TD 形式，计算更直观，但丢失分布信息。</td>
+        </tr>
+        <tr>
+          <td><strong>(3) 混合损失</strong></td>
+          <td><code>L = λ·L_CE + (1−λ)·L_TD</code></td>
+          <td>融合交叉熵与 TD 误差信号，兼顾分布拟合与稳定性（λ≈0.5 常用）。</td>
+        </tr>
+      </table>
+
+      <p>一般推荐使用分布交叉熵损失（方案 1），与 C51 理论完全一致；在某些任务中，为增强稳定性可使用混合损失。</p>
+
+      <h5>4.3 PER 优先级计算（分布式版本）</h5>
+      <ul>
+        <li><strong>方法 1：</strong> 使用样本交叉熵 <code>CE_i = -Σ m_i log p_i</code> 作为优先级。</li>
+        <li><strong>方法 2：</strong> 取分布期望计算 TD 误差 <code>|δ| = |y - Q|</code>。</li>
+        <li><strong>方法 3：</strong> 混合优先级 <code>prio_i = λ·CE_i + (1−λ)·|δ|</code>。</li>
+      </ul>
+      <p>采样概率与重要性权重如下：</p>
+      <pre><code>P(i) = prio_i^α / Σ_j prio_j^α
+w_i = (N·P(i))^-β
+</code></pre>
+      <p>其中 α≈0.6 控制采样偏好强度，β 从 0.4 线性上升至 1.0 用于校正采样偏差。</p>
+
+      <hr>
+
+      <h4>5. 目标网络更新与噪声刷新</h4>
+      <ul>
+        <li>Target 网络参数每 K 步"硬更新"：<code>θ^- ← θ</code>（例如每 2000 步）。</li>
+        <li>或采用软更新：<code>θ^- ← τθ + (1−τ)θ^−</code>，τ≈1e−3。</li>
+        <li>每次前向传播前 <code>sample_noise()</code>，以刷新探索噪声。</li>
+      </ul>
+
+      <hr>
+
+      <h4>6. 训练主流程（伪代码）</h4>
+
+<pre><code class="language-python"># Rainbow DQN 主循环
+
+Initialize Q_online, Q_target ← Q_online
+Initialize prioritized replay buffer
+
+for each episode:
+    s ← env.reset()
+    n_step_buffer ← deque(maxlen=N)
+
+    while not done:
+        # 1. 使用 NoisyNet 选择动作
+        a ← argmax_a E[Z(s,a;θ)]
+        s_next, r, done ← env.step(a)
+        n_step_buffer.append((s, a, r, s_next, done))
+
+        # 2. 若 n_step_buffer 满 N 步，生成 N-Step 样本
+        if len(n_step_buffer) == N:
+            R ← Σ γ^i·r_{t+i}
+            store_transition(s, a, R, s_{t+N}, done)
+
+        s ← s_next
+
+        # 3. 每步训练
+        batch ← replay_buffer.sample(B)
+        compute target distribution m
+        compute loss L = -Σ m_i·log p_i
+        update θ with weighted loss
+        update priorities with per-sample loss
+        periodically update Q_target
+</code></pre>
+
+      <hr>
+
+      <h4>7. 超参数参考</h4>
+
+      <table>
+        <tr><th>参数</th><th>典型值</th><th>说明</th></tr>
+        <tr><td>折扣 γ</td><td>0.99</td><td>长期奖励折扣</td></tr>
+        <tr><td>N-Step</td><td>3</td><td>奖励传播步数</td></tr>
+        <tr><td>α</td><td>0.6</td><td>PER 采样偏好强度</td></tr>
+        <tr><td>β</td><td>0.4 → 1.0</td><td>重要性权重修正</td></tr>
+        <tr><td>V_min, V_max</td><td>[-10, 10] 或 [-100, 100]</td><td>C51 支持区间</td></tr>
+        <tr><td>学习率</td><td>1e−4</td><td>Adam 优化器</td></tr>
+        <tr><td>批量大小</td><td>32 / 64</td><td>训练批次大小</td></tr>
+      </table>
+
+      <hr>
+
+      <h4>8. 总结</h4>
+
+      <ul>
+        <li><strong>Rainbow</strong> 是 DQN 的全面整合版本，融合六大模块：</li>
+        <pre><code>Rainbow = Dueling + NoisyNet + PER + N-Step + Double + C51</code></pre>
+        <li>在线网络选动作，目标网络评估分布；N-Step 奖励传播更快；交叉熵损失最小化预测与目标分布的 KL 散度差距。</li>
+        <li>结合所有改进后，Rainbow 在 Atari 系列环境中大幅超越原始 DQN 与各独立变体，成为深度强化学习的重要基线算法。</li>
+      </ul>
     </section>
 
     <section id="chapter18" class="chapter">
