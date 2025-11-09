@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多智能体强化学习（MARL）| Yun</title>
+<!-- 数学公式渲染 -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']]
+    }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- Prism.js 样式与脚本 -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-coy.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Roboto", -apple-system, sans-serif;
+  background: linear-gradient(135deg, #1a233c 0%, #2d3b60 40%, #1a2332 100%);
+  color: #f5f5f5;
+  line-height: 1.8;
+  scroll-behavior: smooth;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  text-align: center;
+  background: rgba(26, 35, 60, 0.92);
+  padding: 28px 20px 18px;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+}
+
+header h1 {
+  font-size: 2.3rem;
+  color: #3b82f6;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  margin: 18px 0 0;
+}
+
+nav a {
+  color: #dbeafe;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 6px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+nav a:hover, nav a.active {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+}
+
+.container {
+  display: flex;
+  position: relative;
+  z-index: 5;
+  max-width: 1400px;
+  margin: 30px auto;
+  gap: 30px;
+  padding: 0 20px 40px;
+}
+
+aside {
+  position: sticky;
+  top: 130px;
+  width: 260px;
+  height: fit-content;
+  background: rgba(26, 35, 60, 0.88);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px;
+  padding: 22px;
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+
+aside h3 {
+  color: #3b82f6;
+  font-size: 1.15rem;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.35);
+}
+
+aside ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+aside a {
+  color: #dbeafe;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  background: transparent;
+}
+
+aside a:hover, aside a.active {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  border-left-color: #3b82f6;
+  padding-left: 16px;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+}
+
+.chapter {
+  background: rgba(26, 35, 60, 0.82);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 14px;
+  padding: 36px;
+  margin-bottom: 35px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.chapter:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55);
+}
+
+.chapter h2 {
+  color: #3b82f6;
+  font-size: 1.85rem;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  font-weight: 700;
+}
+
+.chapter h3 {
+  color: #60a5fa;
+  font-size: 1.25rem;
+  margin-top: 26px;
+  border-left: 4px solid rgba(96, 165, 250, 0.6);
+  padding-left: 12px;
+}
+
+.chapter p, .chapter li {
+  color: #e8f0ed;
+}
+
+.chapter strong {
+  color: #60a5fa;
+}
+
+.chapter code {
+  background: rgba(59, 130, 246, 0.15);
+  color: #dbeafe;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+/* 代码块样式 */
+pre[class*="language-"] {
+  background: linear-gradient(135deg, #1a233c 0%, #2d3b60 100%) !important;
+  padding: 20px !important;
+  padding-left: 3.2em !important;
+  border-radius: 10px !important;
+  overflow-x: auto !important;
+  font-size: 0.92rem !important;
+  line-height: 1.6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  position: relative;
+  font-family: 'Fira Code', 'Courier New', 'Consolas', 'Monaco', monospace !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2) !important;
+}
+
+pre.line-numbers {
+  padding-left: 60px !important;
+}
+
+.line-numbers .line-numbers-rows {
+  left: 0 !important;
+  width: 3em !important;
+  background: transparent !important;
+  border-right: 1px solid #444 !important;
+}
+
+.line-numbers-rows > span:before {
+  color: rgba(59, 130, 246, 0.8) !important;
+  font-weight: bold;
+}
+
+pre code {
+  color: inherit !important;
+  background: none !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #9c9c9c !important;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #f8f8f2 !important;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff79c6 !important;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #50fa7b !important;
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: #8be9fd !important;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #bd93f9 !important;
+}
+
+.token.function,
+.token.class-name {
+  color: #ffb86c !important;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #f1fa8c !important;
+}
+
+pre[class*="language-"] code,
+pre[class*="language-"] {
+  color: #f8f8f2 !important;
+}
+
+pre[class*="language-"]:hover {
+  box-shadow: 
+    0 12px 48px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+pre[class*="language-"]::-webkit-scrollbar {
+  height: 10px;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  background: rgba(59, 130, 246, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+table th, table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  color: #e0f2f1;
+}
+
+table th {
+  background: rgba(59, 130, 246, 0.22);
+  color: #f0fdfa;
+  font-size: 1.05rem;
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+footer {
+  text-align: center;
+  padding: 28px 20px;
+  background: rgba(26, 35, 60, 0.9);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+  color: #dbeafe;
+  margin-top: 60px;
+  font-size: 0.9rem;
+}
+
+footer span {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+  }
+  aside {
+    position: relative;
+    top: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 2rem;
+  }
+  nav a {
+    font-size: 0.85rem;
+    padding: 4px 12px;
+  }
+  .container {
+    padding: 0 12px 30px;
+  }
+  .chapter {
+    padding: 24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>多智能体强化学习（MARL）</h1>
+  <nav>
+    <ul>
+      <li><a href="index.html">首页</a></li>
+      <li><a href="home.html">基础理论</a></li>
+      <li><a href="advanced.html">进阶算法</a></li>
+      <li><a href="MARL.html" class="active">多智能体学习</a></li>
+      <li><a href="papers.html">论文研读</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="container">
+  <aside>
+    <h3>章节目录</h3>
+    <ul>
+      <li><a href="#intro">MARL 概述</a></li>
+      <li><a href="#overview">算法总览</a></li>
+      <li><a href="#iql">IQL</a></li>
+      <li><a href="#vdn">VDN</a></li>
+      <li><a href="#qmix">QMIX</a></li>
+      <li><a href="#qtran">QTRAN</a></li>
+      <li><a href="#maddpg">MADDPG</a></li>
+      <li><a href="#coma">COMA</a></li>
+      <li><a href="#mappo">MAPPO</a></li>
+      <li><a href="#commnet">CommNet</a></li>
+      <li><a href="#tarmac">TarMAC</a></li>
+      <li><a href="#alphazero">AlphaZero</a></li>
+      <li><a href="#summary">总结与展望</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <!-- MARL 概述 -->
+    <section id="intro" class="chapter">
+      <h2>MARL 概述</h2>
+      <p>多智能体强化学习（Multi-Agent Reinforcement Learning, MARL）研究多个智能体在共享环境中通过交互学习策略的问题。与单智能体强化学习不同，MARL 需要处理：</p>
+      <ul>
+        <li><strong>非平稳性</strong>：其他智能体的策略变化导致环境动态不稳定。</li>
+        <li><strong>信用分配</strong>：多智能体协作时，如何分配全局奖励到个体。</li>
+        <li><strong>可扩展性</strong>：智能体数量增加，状态-动作空间指数级增长。</li>
+        <li><strong>通信与协调</strong>：智能体间如何有效沟通与协作。</li>
+      </ul>
+      <p>MARL 广泛应用于自动驾驶、机器人协作、游戏 AI、交通控制、市场模拟等领域。</p>
+    </section>
+
+    <!-- 算法总览 -->
+    <section id="overview" class="chapter">
+      <h2>算法总览</h2>
+      <p>以下按照不同维度对 MARL 算法进行分类，帮助建立全局认知：</p>
+      
+      <h3>🎯 按任务类型划分</h3>
+      <table>
+        <tr>
+          <th>类型</th>
+          <th>特点</th>
+          <th>代表算法</th>
+        </tr>
+        <tr>
+          <td><strong>对抗型</strong></td>
+          <td>智能体目标冲突，博弈均衡</td>
+          <td>Minimax-Q, Nash Q-learning, AlphaZero, PSRO</td>
+        </tr>
+        <tr>
+          <td><strong>协作型</strong></td>
+          <td>共享全局奖励，协同优化</td>
+          <td>VDN, QMIX, QTRAN, MADDPG, MAPPO, COMA</td>
+        </tr>
+        <tr>
+          <td><strong>混合型</strong></td>
+          <td>部分竞争、部分合作</td>
+          <td>GR2, LOLA</td>
+        </tr>
+      </table>
+
+      <h3>👁️ 按信息可观测性划分</h3>
+      <table>
+        <tr>
+          <th>类型</th>
+          <th>特点</th>
+          <th>代表算法</th>
+        </tr>
+        <tr>
+          <td><strong>全信息</strong></td>
+          <td>集中训练+集中执行</td>
+          <td>集中式 Q-learning</td>
+        </tr>
+        <tr>
+          <td><strong>局部观测 (CTDE)</strong></td>
+          <td>集中训练+分散执行</td>
+          <td>MADDPG, QMIX, VDN, MAPPO, COMA</td>
+        </tr>
+        <tr>
+          <td><strong>完全分散</strong></td>
+          <td>独立训练+独立执行</td>
+          <td>IQL (Independent Q-Learning)</td>
+        </tr>
+      </table>
+
+      <h3>🧠 按算法基础划分</h3>
+      <table>
+        <tr>
+          <th>类型</th>
+          <th>特点</th>
+          <th>代表算法</th>
+        </tr>
+        <tr>
+          <td><strong>值函数类</strong></td>
+          <td>基于 Q 值分解</td>
+          <td>IQL, VDN, QMIX, QTRAN</td>
+        </tr>
+        <tr>
+          <td><strong>策略梯度类</strong></td>
+          <td>直接优化策略</td>
+          <td>MADDPG, MAPPO, COMA</td>
+        </tr>
+        <tr>
+          <td><strong>混合类</strong></td>
+          <td>Actor-Critic 架构</td>
+          <td>MADDPG, COMA, MAPPO</td>
+        </tr>
+      </table>
+
+      <h3>📡 按通信机制划分</h3>
+      <table>
+        <tr>
+          <th>类型</th>
+          <th>特点</th>
+          <th>代表算法</th>
+        </tr>
+        <tr>
+          <td><strong>无通信</strong></td>
+          <td>隐式协调，通过观测推断</td>
+          <td>IQL, VDN, QMIX, MADDPG</td>
+        </tr>
+        <tr>
+          <td><strong>显式通信</strong></td>
+          <td>智能体间传递消息</td>
+          <td>CommNet, TarMAC, DIAL, Graph-based MARL</td>
+        </tr>
+      </table>
+
+      <h3>🚀 前沿方向</h3>
+      <ul>
+        <li><strong>元多智能体学习（Meta-MARL）</strong>：快速适应新队友或对手</li>
+        <li><strong>博弈论结合</strong>：研究均衡解与稳定性</li>
+        <li><strong>可解释性与公平性</strong>：解决不平衡贡献问题</li>
+        <li><strong>大规模 MARL</strong>：支持百万级智能体仿真</li>
+        <li><strong>图神经网络结合（GNN-MARL）</strong>：建模结构化依赖关系</li>
+      </ul>
+    </section>
+
+    <!-- 独立算法章节 -->
+    <section id="iql" class="chapter">
+      <h2>第一章：IQL（Independent Q-Learning）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="vdn" class="chapter">
+      <h2>第二章：VDN（Value Decomposition Networks）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="qmix" class="chapter">
+      <h2>第三章：QMIX</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="qtran" class="chapter">
+      <h2>第四章：QTRAN</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="maddpg" class="chapter">
+      <h2>第五章：MADDPG（Multi-Agent DDPG）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="coma" class="chapter">
+      <h2>第六章：COMA（Counterfactual Multi-Agent Policy Gradients）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="mappo" class="chapter">
+      <h2>第七章：MAPPO（Multi-Agent PPO）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="commnet" class="chapter">
+      <h2>第八章：CommNet（Communication Neural Networks）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="tarmac" class="chapter">
+      <h2>第九章：TarMAC（Targeted Multi-Agent Communication）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <section id="alphazero" class="chapter">
+      <h2>第十章：AlphaZero（自博弈强化学习）</h2>
+      <p>占位：本章节内容待补充。</p>
+    </section>
+
+    <!-- 总结与展望 -->
+    <section id="summary" class="chapter">
+      <h2>总结与展望</h2>
+      <p>多智能体强化学习是强化学习领域最具挑战性和应用潜力的方向之一。从对抗博弈到协作任务，从独立学习到集中训练分散执行，MARL 的研究不断深入。</p>
+      <p>未来的研究将聚焦于：</p>
+      <ul>
+        <li>更高效的信用分配机制</li>
+        <li>更稳定的训练算法（应对非平稳性）</li>
+        <li>更灵活的通信协议（显式与隐式结合）</li>
+        <li>更强的可扩展性（支持大规模智能体系统）</li>
+        <li>与其他领域结合（如图神经网络、元学习、博弈论）</li>
+      </ul>
+      <p>随着算法与工程实践的进步，MARL 将在自动驾驶、智能交通、机器人协作、金融市场等领域发挥更大作用。</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <p>© 2025 <span>Haoyun Tang</span> | Multi-Agent Reinforcement Learning Notes</p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
+    if (!pre.classList.contains('line-numbers')) {
+      pre.classList.add('line-numbers');
+    }
+  });
+  if (window.Prism) {
+    Prism.highlightAll();
+  }
+});
+
+window.addEventListener('load', () => {
+  if (window.Prism) {
+    Prism.highlightAll();
+  }
+});
+
+const navLinks = document.querySelectorAll('nav a');
+const asideLinks = document.querySelectorAll('aside a');
+const combined = [...navLinks, ...asideLinks];
+
+window.addEventListener('scroll', () => {
+  const offset = window.scrollY + 160;
+  combined.forEach(link => {
+    const section = document.querySelector(link.getAttribute('href'));
+    if (!section) return;
+    if (section.offsetTop <= offset && section.offsetTop + section.offsetHeight > offset) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

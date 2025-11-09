@@ -413,6 +413,43 @@ footer span {
     padding: 24px;
   }
 }
+/* 数学公式（第16-19章）显示：恢复为“正常”MathJax，无背景/边框，仅保留适度间距 */
+#chapter16 mjx-container[display="true"],
+#chapter17 mjx-container[display="true"],
+#chapter18 mjx-container[display="true"],
+#chapter19 mjx-container[display="true"] {
+  display: block;
+  margin: 1.1em auto;       /* 仅留白，便于阅读 */
+  padding: 0;               /* 无额外内边距 */
+  background: none !important;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: 100%;
+}
+
+/* 行内公式：保持默认，不做色块/边框修饰 */
+#chapter16 mjx-container:not([display="true"]),
+#chapter17 mjx-container:not([display="true"]),
+#chapter18 mjx-container:not([display="true"]),
+#chapter19 mjx-container:not([display="true"]) {
+  vertical-align: baseline;
+  padding: 0;
+  background: none;
+}
+
+/* equation 辅助类：中性样式（无底色/边框） */
+.equation {
+  margin: 1.1em auto;
+  padding: 0;
+  text-align: center;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: 100%;
+}
+.equation mjx-container { margin: 0 !important; }
 </style>
 </head>
 <body>
@@ -421,18 +458,10 @@ footer span {
   <nav>
     <ul>
       <li><a href="index.html">首页</a></li>
-      <li><a href="home.html">基础笔记</a></li>
-      <li><a href="#chapter14">Dueling DQN</a></li>
-      <li><a href="#chapter15">PER</a></li>
-      <li><a href="#chapter16">NoisyNet</a></li>
-      <li><a href="#chapter17">Rainbow</a></li>
-  <li><a href="#chapter18">DDPG</a></li>
-  <li><a href="#chapter19">TD3</a></li>
-  <li><a href="#chapter20">TRPO</a></li>
-  <li><a href="#chapter21">PPO</a></li>
-  <li><a href="#chapter22">SAC</a></li>
-  <li><a href="#chapter23">组合策略</a></li>
-  <li><a href="#chapter_summary">进阶总结</a></li>
+      <li><a href="home.html">基础理论</a></li>
+      <li><a href="advanced.html" class="active">进阶算法</a></li>
+      <li><a href="MARL.html">多智能体学习</a></li>
+      <li><a href="papers.html">论文研读</a></li>
     </ul>
   </nav>
 </header>
@@ -445,7 +474,7 @@ footer span {
       <li><a href="#chapter15">第十五章：PER</a></li>
       <li><a href="#chapter16">第十六章：NoisyNet DQN</a></li>
       <li><a href="#chapter17">第十七章：Rainbow DQN</a></li>
-      <li><a href="#chapter18">第十八章：DDPG</a></li>
+      <li><a href="#chapter18">第十八章：DPG & DDPG</a></li>
       <li><a href="#chapter19">第十九章：TD3</a></li>
       <li><a href="#chapter20">第二十章：TRPO</a></li>
       <li><a href="#chapter21">第二十一章：PPO</a></li>
@@ -1110,12 +1139,10 @@ for episode in range(1000):
       <p><strong>核心动机：</strong> 相比 1-step TD 只看下一步奖励，N-step 将未来 N 步的真实奖励一次性纳入目标，让奖励信号更快地回传到当前状态，从而加速学习、提高样本利用率。</p>
 
       <h4>1. 理论背景：介于 TD 与 Monte Carlo 之间的折中</h4>
-      <p>传统时序差分（TD）每步更新一次，只利用下一步奖励：</p>
-      <pre><code>y_t^{(1)} = r_t + γ·max_a Q_target(s_{t+1}, a)
-</code></pre>
-      <p>而 Monte Carlo 方法等整局结束后用完整回报更新：</p>
-      <pre><code>y_t^{(MC)} = r_t + γr_{t+1} + γ^2r_{t+2} + ... + γ^{T-t}r_T
-</code></pre>
+  <p>传统时序差分（TD）每步更新一次，只利用下一步奖励：</p>
+  $$y_t^{(1)} = r_t + \gamma \max_{a} Q_{\text{target}}(s_{t+1}, a)$$
+  <p>而 Monte Carlo 方法等整局结束后用完整回报更新：</p>
+  $$y_t^{(MC)} = r_t + \gamma r_{t+1} + \gamma^{2} r_{t+2} + \dots + \gamma^{T-t} r_T$$
 
       <p>二者特点如下：</p>
       <ul>
@@ -1123,9 +1150,8 @@ for episode in range(1000):
         <li><strong>Monte Carlo：</strong> 利用完整信息、无偏，但需等整局结束、方差大。</li>
       </ul>
 
-      <p><strong>N-step Learning</strong> 介于两者之间，通过固定长度 N 的滚动窗口，将未来 N 步的真实奖励纳入更新目标：</p>
-      <pre><code>y_t^{(N)} = r_t + γr_{t+1} + ... + γ^{N-1}r_{t+N-1} + γ^N·max_a Q_target(s_{t+N}, a)
-</code></pre>
+  <p><strong>N-step Learning</strong> 介于两者之间，通过固定长度 N 的滚动窗口，将未来 N 步的真实奖励纳入更新目标：</p>
+  $$y_t^{(N)} = \sum_{i=0}^{N-1} \gamma^{i} r_{t+i} + \gamma^{N} \max_{a} Q_{\text{target}}(s_{t+N}, a)$$
 
       <p>这样可以同时保留 TD 的在线更新能力，又引入 Monte Carlo 的长远视角，兼顾稳定性与高效性。</p>
 
@@ -1133,11 +1159,11 @@ for episode in range(1000):
       <ol>
         <li>维护长度为 N 的队列 <code>n_step_buffer</code>，每次环境交互后入队样本 <code>(s, a, r, s_next, done)</code>。</li>
         <li>当队列满 N 时，计算累计折扣奖励：
-        <pre><code>R = Σ_{i=0}^{N-1} γ^i · r_{t+i}</code></pre></li>
-        <li>取队首状态 <code>(s_t, a_t)</code> 和队尾下一个状态 <code>s_{t+N}</code> 构造 N-step 样本：
-        <pre><code>(s_t, a_t, R, s_{t+N}, done)</code></pre></li>
-        <li>存入经验回放池，训练时以目标：
-        <pre><code>y_t^{(N)} = R + (γ^N)·max_a Q_target(s_{t+N}, a)</code></pre></li>
+  $$R = \sum_{i=0}^{N-1} \gamma^{i} r_{t+i}$$</li>
+  <li>取队首状态 <code>(s_t, a_t)</code> 和队尾下一个状态 <code>s_{t+N}</code> 构造 N-step 样本：
+  $$(s_t, a_t, R, s_{t+N}, done)$$</li>
+  <li>存入经验回放池，训练时以目标：
+  $$y_t^{(N)} = R + \gamma^{N}\max_{a} Q_{\text{target}}(s_{t+N}, a)$$</li>
       </ol>
 
       <h4>3. 参数与注意事项</h4>
@@ -1156,15 +1182,14 @@ for episode in range(1000):
       <h4>1. 固定支持区间与 51 个离散原子（atoms）</h4>
       <ul>
         <li>C51 将未来回报的范围固定在 <code>[V_min, V_max]</code> 上，并均匀划分为 51 个取值点：</li>
-        <pre><code>z_i = V_min + i·(V_max - V_min)/50 , i = 0..50</code></pre>
+  $$z_i = V_{\min} + i\,\frac{V_{\max}-V_{\min}}{50},\quad i=0,1,\dots,50$$
         <li>每个动作 a 输出 51 个概率 <code>p_i(s,a)</code>，表示回报落在 z_i 处的概率。</li>
       </ul>
 
       <h4>2. V<sub>min</sub> / V<sub>max</sub> 的选取依据</h4>
       <ul>
         <li>理论上：若每步奖励范围为 <code>[r_min, r_max]</code>，折扣因子为 γ，则未来累计回报的上下限为：
-        <pre><code>V_min = r_min / (1 - γ)
-V_max = r_max / (1 - γ)</code></pre></li>
+  $$V_{\min} = \frac{r_{\min}}{1-\gamma},\quad V_{\max} = \frac{r_{\max}}{1-\gamma}$$</li>
         <li>实践中可根据任务经验选取更紧区间。例如：
           <ul>
             <li>Atari 环境：通常设为 [-10, 10] 或 [-100, 100]</li>
@@ -1178,39 +1203,32 @@ V_max = r_max / (1 - γ)</code></pre></li>
       <ul>
         <li>输出：每个动作对应 51 维概率分布，经 softmax 归一化。</li>
         <li>训练：优化整条分布；执行动作时取期望：
-        <pre><code>Q(s,a) = Σ_i p_i(s,a)·z_i</code></pre></li>
+  $$Q(s,a) = \sum_i p_i(s,a) z_i$$</li>
       </ul>
 
       <h4>4. 分布式 Bellman 更新与投影</h4>
       <ol>
         <li>用 Double DQN 思想选择下一动作：
-        <pre><code>a* = argmax_a Σ_i p_i(s',a)·z_i</code></pre></li>
+  $$a^* = \arg\max_{a} \sum_i p_i(s',a) z_i$$</li>
         <li>构造目标分布：
-        <pre><code>TZ = r + γ·Z_target(s', a*)</code></pre></li>
+  $$T Z = r + \gamma \; Z_{target}(s', a^*)$$</li>
         <li>将其线性投影回固定支持区间，得到目标概率分布 m_i。</li>
       </ol>
 
       <h4>5. 损失函数：交叉熵（Cross-Entropy）</h4>
       <p>训练目标：让预测分布 <code>p</code> 逼近目标分布 <code>m</code>。</p>
-      <pre><code>L = - Σ_i m_i · log p_i</code></pre>
+  $$L = - \sum_i m_i \log p_i$$
 
       <h5>交叉熵最小值证明（基于 Jensen 不等式）</h5>
-      <p>定义交叉熵：<code>H(p,q) = -Σ_i p_i ln q_i</code>，证明当 p=q 时 H(p,q) 最小。</p>
-      <pre><code>H(p,q) - H(p,p)
-= Σ_i p_i ln(q_i/p_i)
-
-因 ln(x) 为凹函数，Jensen 不等式：
-Σ_i p_i ln(x_i) ≤ ln(Σ_i p_i x_i)，其中 Σ_i p_i=1
-
-取 x_i = q_i / p_i：
-Σ_i p_i ln(q_i/p_i) ≤ ln(Σ_i q_i) = ln(1) = 0
-
-⇒ H(p,p) - H(p,q) ≤ 0
-⇒ H(p,p) ≤ H(p,q)
-
-当 p=q 时等号成立。
-</code></pre>
-      <p>因此，预测分布等于目标分布时，交叉熵取得最小值，这就是分布学习稳定的理论基础。</p>
+  <p>定义交叉熵：$$H(p,q) = -\sum_i p_i \ln q_i$$ ，证明当 $p=q$ 时 $H(p,q)$ 最小。</p>
+  $$H(p,q)-H(p,p)=\sum_i p_i \ln \frac{q_i}{p_i}$$
+  <p>由于 $\ln(x)$ 为凹函数，Jensen 不等式：</p>
+  $$\sum_i p_i \ln x_i \le \ln\Big(\sum_i p_i x_i\Big),\; \sum_i p_i = 1$$
+  <p>取 $x_i = q_i/p_i$ 得：</p>
+  $$\sum_i p_i \ln \frac{q_i}{p_i} \le \ln\Big(\sum_i q_i\Big)=\ln 1=0$$
+  $$\Rightarrow\; H(p,p) - H(p,q) \le 0 \;\Rightarrow\; H(p,p) \le H(p,q)$$
+  <p>当 $p=q$ 时等号成立。</p>
+      <p>因此，预测分布等于目标分布時，交叉熵取得最小值，这就是分布学习稳定的理论基础。</p>
 
       <h4>6. 小结</h4>
       <ul>
@@ -1257,8 +1275,8 @@ V_max = r_max / (1 - γ)</code></pre></li>
 
         <li><strong>C51 输出层：</strong> 每个动作输出 51 个 logits，经 softmax 得到分布概率：
         <pre><code>p_i(s,a) = softmax(z_i)</code></pre>
-        最终 Q 值为期望：
-        <pre><code>Q(s,a) = Σ_i p_i(s,a) · z_i</code></pre></li>
+  最终 Q 值为期望：
+  <div class="equation">$$Q(s,a) = \sum_i p_i(s,a)\, z_i$$</div></li>
       </ul>
 
       <hr>
@@ -1269,20 +1287,20 @@ V_max = r_max / (1 - γ)</code></pre></li>
       <p>维护长度为 N 的队列 <code>n_step_buffer</code>，每次交互后存入样本：</p>
       <pre><code>(s_t, a_t, r_t, s_{t+1}, done_t)</code></pre>
       <p>当队列满 N 步时，计算累计折扣奖励：</p>
-      <pre><code>R = Σ_{i=0}^{N-1} γ^i · r_{t+i}</code></pre>
+  <div class="equation">$$R = \sum_{i=0}^{N-1} \gamma^{i} r_{t+i}$$</div>
       <p>并生成 N-Step 样本 <code>(s_t, a_t, R, s_{t+N}, done_{t+N})</code> 存入回放池。</p>
 
       <h5>3.2 Double DQN 目标动作选择</h5>
       <ul>
         <li>在线网络（Q<sub>online</sub>）选动作：  
-        <pre><code>a* = argmax_a Σ_i p_i(s',a)·z_i</code></pre></li>
+  $$a^* = \arg\max_{a} \sum_i p_i(s',a) z_i$$</li>
         <li>目标网络（Q<sub>target</sub>）用来评估分布：  
         <pre><code>Z_target = Z_target(s', a*)</code></pre></li>
       </ul>
 
       <h5>3.3 C51 分布式 Bellman 投影</h5>
       <p>对目标分布的每个原子 z<sub>j</sub> 计算仿射平移：</p>
-      <pre><code>t_z = clip(r_acc + γ^N · z_j, V_min, V_max)</code></pre>
+  $$t_z = \operatorname{clip}(r_{acc} + \gamma^{N} z_j, V_{\min}, V_{\max})$$
       <p>将其投影回固定支持点集合 <code>{z_i}</code> 上，按线性权重分摊概率质量，得到目标分布 m。</p>
 
       <hr>
@@ -1292,11 +1310,9 @@ V_max = r_max / (1 - γ)</code></pre></li>
       <h5>4.1 交叉熵与 KL 散度的关系</h5>
 
       <p>给定目标分布 <code>p</code>（真实）与预测分布 <code>q</code>（模型输出），有：</p>
-      <pre><code>D_KL(p||q) = Σ p(x) log(p(x)/q(x))
-H(p,q) = -Σ p(x) log q(x)
-</code></pre>
+  $$D_{KL}(p\Vert q) = \sum_x p(x) \log \frac{p(x)}{q(x)},\quad H(p,q) = -\sum_x p(x) \log q(x)$$
       <p>展开后可得：</p>
-      <pre><code>H(p,q) = H(p) + D_KL(p||q)</code></pre>
+  $$H(p,q)=H(p)+D_{KL}(p\Vert q)$$
       <p>由于 H(p) 是常数，最小化交叉熵 <code>H(p,q)</code> 等价于最小化 KL 散度 <code>D_KL(p||q)</code>。</p>
       <p>因此，C51 使用的交叉熵损失，本质上就是最小化目标分布与预测分布之间的 KL 差异。</p>
 
@@ -1306,7 +1322,7 @@ H(p,q) = -Σ p(x) log q(x)
         <tr><th>类型</th><th>定义</th><th>说明</th></tr>
         <tr>
           <td><strong>(1) 分布交叉熵损失</strong></td>
-          <td><code>L = -Σ_i m_i · log p_i</code></td>
+          <td>$$L = -\sum_i m_i \log p_i$$</td>
           <td>最常用，与 C51 原论文一致；直接度量分布差异，等价于最小化 KL 散度。</td>
         </tr>
         <tr>
@@ -1325,7 +1341,7 @@ H(p,q) = -Σ p(x) log q(x)
 
       <h5>4.3 PER 优先级计算（分布式版本）</h5>
       <ul>
-        <li><strong>方法 1：</strong> 使用样本交叉熵 <code>CE_i = -Σ m_i log p_i</code> 作为优先级。</li>
+  <li><strong>方法 1：</strong> 使用样本交叉熵 $$CE_i = -\sum_i m_i \log p_i$$ 作为优先级。</li>
         <li><strong>方法 2：</strong> 取分布期望计算 TD 误差 <code>|δ| = |y - Q|</code>。</li>
         <li><strong>方法 3：</strong> 混合优先级 <code>prio_i = λ·CE_i + (1−λ)·|δ|</code>。</li>
       </ul>
@@ -1373,7 +1389,7 @@ for each episode:
         # 3. 每步训练
         batch ← replay_buffer.sample(B)
         compute target distribution m
-        compute loss L = -Σ m_i·log p_i
+  compute loss  \(L = -\sum_i m_i \log p_i\)
         update θ with weighted loss
         update priorities with per-sample loss
         periodically update Q_target
@@ -1407,23 +1423,658 @@ for each episode:
     </section>
 
     <section id="chapter18" class="chapter">
-      <h2>第十八章：DDPG（Deep Deterministic Policy Gradient）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <h2>第十八章：DPG & DDPG（从确定性策略梯度到深度实现）</h2>
+
+      <p><strong> 深入理解 DPG（Deterministic Policy Gradient）：从随机到确定性策略的桥梁</strong></p>
+
+      <p>强化学习的策略梯度方法（Policy Gradient）家族中，从最早的 REINFORCE 到 Actor-Critic（AC）、A2C/A3C 再到 DPG/DDPG/TD3/SAC，其核心思想一直围绕一个问题：</p>
+      <blockquote>
+
+      <p><strong>如何直接优化一个参数化的策略，使得长期回报最大？</strong></p>
+      </blockquote>
+
+      <p>DPG（Deterministic Policy Gradient）是其中的重要分支，它通过将随机策略简化为确定性函数，大幅降低方差、提高学习效率，成为连续动作控制任务（如机械臂、无人驾驶、仿真控制等）的关键算法。</p>
+
+      <hr>
+
+      <h3>一、从随机到确定性：DPG 的诞生动机</h3>
+
+      <p>在经典的 Actor-Critic (AC) 算法中，策略是<strong>随机的</strong>：</p>
+      <pre><code>π_θ(a|s)</code></pre>
+      <p>也就是说，给定状态 $s$，Actor 输出一个动作分布（通常是高斯分布），再从中采样动作 $a$。</p>
+
+      <p>这样的好处是——可以自然地实现探索。但问题也很明显：</p>
+      <ul>
+        <li><strong>方差高</strong>：梯度估计依赖采样，更新方向噪声大；</li>
+        <li><strong>效率低</strong>：连续动作空间下的积分极难估计；</li>
+        <li><strong>不稳定</strong>：动作采样引入的随机性增加了策略学习的不确定性。</li>
+      </ul>
+
+      <p>于是，Silver 等人在 2014 年提出了 <strong>DPG</strong>（论文：<em>Deterministic Policy Gradient Algorithms</em>, ICML 2014），核心思想是：</p>
+      <blockquote>
+        <p>在连续控制任务中，我们可以让策略直接输出一个<strong>确定性的动作</strong> $a = \mu_\theta(s)$，而不是动作分布。</p>
+      </blockquote>
+
+      <hr>
+
+      <h3>二、DPG 定理（Deterministic Policy Gradient Theorem）</h3>
+
+      <p>DPG 理论的根基就是这个定理：</p>
+
+      <div style="background: rgba(255, 140, 66, 0.1); padding: 15px; border-left: 4px solid #ff8c42; margin: 20px 0;">
+        <p><strong>Theorem (Deterministic Policy Gradient Theorem)</strong></p>
+        <p>设策略为确定性函数 $\mu_\theta(s)$，其性能目标为：</p>
+        <p>$$
+        J(\mu_\theta) = \mathbb{E}_{s \sim \rho^\mu}[Q^\mu(s, \mu_\theta(s))]
+        $$</p>
+        <p>其中 $\rho^\mu$ 是策略 $\mu$ 下的折扣状态分布。</p>
+        <p>则在满足可导条件下，有：</p>
+        <p>$$
+        \nabla_\theta J(\mu_\theta) = \mathbb{E}_{s \sim \rho^\beta}\left[\nabla_\theta \mu_\theta(s) \, \nabla_a Q^\mu(s,a)\Big|_{a=\mu_\theta(s)}\right]
+        $$</p>
+        <p>其中 $\rho^\beta$ 为任意行为策略的状态分布，因此该梯度可<strong>离策略（off-policy）</strong>估计。</p>
+      </div>
+
+      <p><em>（详细证明见论文：Silver et al., 2014, ICML）</em></p>
+
+      <h4>📘 定理要点解读</h4>
+      <ul>
+        <li>不再需要 $\log \pi_\theta(a|s)$；</li>
+        <li>梯度通过链式法则直接计算：$\nabla_\theta \mu_\theta(s) \times \nabla_a Q(s,a)$；</li>
+        <li>不需要对动作空间积分；</li>
+        <li>计算方差大大降低；</li>
+        <li>可以离策略训练（使用经验回放）。</li>
+      </ul>
+
+      <hr>
+
+      <h3>三、为什么可以确定性输出 μ(s)？</h3>
+
+  <p>在随机策略下：</p>
+  $$a \sim \pi_\theta(a\mid s)$$
+
+      <p>在连续动作任务中，通常假设 $\pi_\theta(a|s) = \mathcal{N}(\mu_\theta(s), \sigma^2 I)$。</p>
+  <p>如果我们让 $\sigma \rightarrow 0$，则分布收敛为 $\delta$ 分布：</p>
+  $$\pi_\theta(a\mid s) \;\Rightarrow\; \delta\big(a - \mu_\theta(s)\big)$$
+
+  <p>此时梯度从</p>
+  $$\nabla_\theta J = \mathbb{E}\big[\nabla_\theta \log \pi_\theta(a\mid s)\; Q(s,a)\big]$$
+  <p>自然过渡到</p>
+  $$\nabla_\theta J = \mathbb{E}\big[\nabla_\theta \mu_\theta(s)\; \nabla_a Q(s,a)\big]$$
+
+      <p>这正是 DPG 的梯度形式。</p>
+
+      <p><strong>因此：DPG 是随机策略梯度的零方差极限形式。</strong></p>
+
+      <hr>
+
+      <h3>四、为什么 DPG 可以 off-policy？</h3>
+
+      <p>DPG 之所以可以 off-policy，是因为它的梯度形式<strong>不依赖动作分布</strong>，只依赖状态分布；而状态分布的偏差可以用经验回放近似补齐。</p>
+
+      <p>具体来说：</p>
+      <ul>
+        <li>随机策略梯度依赖 $\pi(a|s)$，必须是当前策略采样的数据；</li>
+        <li>确定性策略梯度只依赖 $Q(s, \mu(s))$ 的梯度方向，与采样策略无关；</li>
+        <li>只要状态分布 $\rho^\beta$ 覆盖了 $\rho^\mu$，梯度估计就是无偏的；</li>
+        <li>经验回放池中的历史数据可以近似提供这种覆盖。</li>
+      </ul>
+
+      <hr>
+
+      <h3>五、从理论上如何验证"确定性策略假设"是合理的？</h3>
+
+      <p>你可能会问：<strong>为什么我们可以把策略"限定"为确定性函数 $\mu_\theta(s)$？这个假设是否丢失了最优解？</strong></p>
+
+      <p>验证它"有用"且"正确"，其实要看三层逻辑：</p>
+
+      <h4>层次 ① 存在性层面：最优策略是否可以是确定性的？</h4>
+
+      <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0;">
+        <p><strong>结论：✅ 是的（由 Bellman 最优性原理保证）</strong></p>
+        <p><strong>理论依据：</strong></p>
+        <p>在 MDP 框架下，对于任何随机策略 $\pi(a|s)$，总存在一个确定性策略 $\mu(s)$ 使得：</p>
+        <p>$$
+        V^{\mu}(s) \geq V^{\pi}(s), \quad \forall s
+        $$</p>
+        <p>这是因为最优策略可以通过 Bellman 最优方程直接构造：</p>
+        <p>$$
+        \mu^*(s) = \arg\max_a Q^*(s, a)
+        $$</p>
+        <p>也就是说，<strong>至少存在一个确定性策略是最优的</strong>。</p>
+      </div>
+
+      <p><strong>直觉解释：</strong></p>
+      <ul>
+        <li>如果某个状态下，动作 $a_1$ 的 Q 值最高，那么总是选 $a_1$ 就是最优的；</li>
+        <li>没有必要按概率"掷骰子"在 $a_1$ 和次优动作之间随机选择；</li>
+        <li>随机性只会降低期望回报（除非是为了探索）。</li>
+      </ul>
+
+      <h4>层次 ② 可优化性层面：在确定性策略类中，性能目标 $J(\mu_\theta)$ 是否可微、可优化？</h4>
+
+      <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0;">
+        <p><strong>结论：✅ 是的（DPG 定理给出梯度表达式）</strong></p>
+        <p><strong>理论依据：</strong></p>
+        <p>Silver et al. (2014) 证明了，在确定性策略下，性能目标关于参数 $\theta$ 的梯度为：</p>
+        <p>$$
+        \nabla_\theta J(\mu_\theta) = \mathbb{E}_{s \sim \rho}\left[\nabla_\theta \mu_\theta(s) \, \nabla_a Q(s,a)\Big|_{a=\mu_\theta(s)}\right]
+        $$</p>
+        <p>这个梯度：</p>
+        <ul>
+          <li>✅ <strong>可计算</strong>：通过链式法则从神经网络反向传播；</li>
+          <li>✅ <strong>无偏</strong>：期望与真实梯度方向一致；</li>
+          <li>✅ <strong>低方差</strong>：不需要采样动作，方差远低于随机策略梯度。</li>
+        </ul>
+      </div>
+
+      <p><strong>直觉解释：</strong></p>
+      <ul>
+        <li>我们可以把 $J(\mu_\theta)$ 看作是一个关于 $\theta$ 的函数；</li>
+        <li>只要 $\mu_\theta(s)$ 和 $Q(s,a)$ 可微，$J$ 就可微；</li>
+        <li>因此可以用梯度上升法优化它。</li>
+      </ul>
+
+      <h4>层次 ③ 逼近性层面：参数化函数 $\mu_\theta$ 是否足够表达丰富策略？</h4>
+
+      <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0;">
+        <p><strong>结论：✅ 若神经网络足够大/非线性足够强，则可逼近任意确定性策略</strong></p>
+        <p><strong>理论依据：</strong></p>
+        <p>根据<strong>万能逼近定理（Universal Approximation Theorem）</strong>：</p>
+        <p>一个足够宽的单层神经网络（或足够深的多层网络）可以逼近任意连续函数 $f: \mathbb{R}^n \to \mathbb{R}^m$。</p>
+        <p>因此，对于任意确定性策略 $\mu^*(s)$，只要它是连续的（或分段连续），就存在参数 $\theta$ 使得：</p>
+        <p>$$
+        \mu_\theta(s) \approx \mu^*(s)
+        $$</p>
+      </div>
+
+      <p><strong>直觉解释：</strong></p>
+      <ul>
+        <li>神经网络是一个"函数逼近器"；</li>
+        <li>只要网络够大、训练足够，它可以学到复杂的从状态到动作的映射；</li>
+        <li>实践中，这个假设在高维连续控制任务上表现很好（如 MuJoCo、机器人控制）。</li>
+      </ul>
+
+      <hr>
+
+      <h4>📊 三层验证总结表</h4>
+
+      <table>
+        <tr><th>层次</th><th>检验内容</th><th>结论</th></tr>
+        <tr>
+          <td><strong>① 存在性层面</strong></td>
+          <td>最优策略是否可以是确定性的？</td>
+          <td>✅ 是（由 Bellman 原理保证）</td>
+        </tr>
+        <tr>
+          <td><strong>② 可优化性层面</strong></td>
+          <td>在确定性策略类中，性能目标 $J(\mu_\theta)$ 是否可微、可优化？</td>
+          <td>✅ 是（DPG 定理给出梯度表达式）</td>
+        </tr>
+        <tr>
+          <td><strong>③ 逼近性层面</strong></td>
+          <td>参数化函数 $\mu_\theta$ 是否足够表达丰富策略？</td>
+          <td>✅ 若神经网络足够大/非线性足够强，则可逼近任意确定性策略</td>
+        </tr>
+      </table>
+
+      <p><strong>结论：确定性策略假设是理论上合理、实践上可行的。</strong></p>
+
+      <p>这三层验证告诉我们：</p>
+      <ul>
+        <li>我们<strong>没有丢失最优解</strong>（至少存在一个确定性最优策略）；</li>
+        <li>我们<strong>可以找到它</strong>（梯度可计算、方向正确）；</li>
+        <li>我们<strong>可以用神经网络表示它</strong>（万能逼近定理保证）。</li>
+      </ul>
+
+      <hr>
+
+      <h3>六、DPG 与 AC 的对比</h3>
+
+      <table>
+        <tr><th>特征</th><th>AC / A2C / A3C</th><th>DPG / DDPG</th></tr>
+        <tr><td>策略类型</td><td>随机策略 $\pi(a|s)$</td><td>确定性策略 $\mu(s)$</td></tr>
+        <tr><td>动作选择</td><td>采样 $a \sim \pi(a|s)$</td><td>直接输出 $a = \mu(s)$</td></tr>
+        <tr><td>更新形式</td><td>$\nabla_\theta \log \pi(a|s) A(s,a)$</td><td>$\nabla_\theta \mu(s) \nabla_a Q(s,a)$</td></tr>
+        <tr><td>方差</td><td>高</td><td>低</td></tr>
+        <tr><td>数据类型</td><td>on-policy</td><td>off-policy</td></tr>
+        <tr><td>方差抑制</td><td>值函数基线</td><td>目标网络 + 回放池</td></tr>
+        <tr><td>探索来源</td><td>策略采样</td><td>外部噪声</td></tr>
+        <tr><td>稳定机制</td><td>Advantage + 多线程</td><td>Target Net + Replay Buffer</td></tr>
+        <tr><td>典型任务</td><td>离散/低维连续</td><td>高维连续控制</td></tr>
+        <tr><td>核心理论</td><td>随机策略梯度定理</td><td>确定性策略梯度定理</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>七、DDPG 算法流程（工程版）</h3>
+
+      <p>DPG 理论很优雅，但在实践中通常与 DQN 的稳定化技巧结合，形成 <strong>DDPG（Deep DPG）</strong>。以下流程是带目标网络和回放池的可用版。</p>
+
+      <h4>0️⃣ 初始化</h4>
+      <ul>
+        <li>随机初始化 Actor $\mu_\theta$、Critic $Q_\phi$</li>
+        <li>复制到目标网络 $\mu_{\theta'}, Q_{\phi'}$</li>
+        <li>建立经验回放池 $\mathcal{D}$</li>
+        <li>设定超参数：学习率、$\gamma$、$\tau$、批大小、噪声标准差等</li>
+      </ul>
+
+      <h4>1️⃣ 交互采样（带探索噪声）</h4>
+      <p>在每个时间步：</p>
+  $$a_t = \operatorname{clip}\big(\mu_\theta(s_t) + \epsilon_t,\; \text{bounds}\big),\quad \epsilon_t \sim \mathcal{N}(0,\, \sigma_{\text{explore}}^{2} I)$$
+      <p>执行 $a_t$，收集 $(s_t, a_t, r_t, s_{t+1}, d_t)$，加入回放池。</p>
+
+      <h4>2️⃣ 采样批次</h4>
+      <p>从 $\mathcal{D}$ 中随机采样 $N$ 条经验：</p>
+  $$(s_i, a_i, r_i, s'_i, d_i)$$
+
+      <h4>3️⃣ Critic 更新</h4>
+  <p>目标值（TD 目标）：</p>
+  $$y_i = r_i + \gamma\,(1-d_i)\, Q_{\phi'}\!\big(s'_i,\, \mu_{\theta'}(s'_i)\big)$$
+  <p>Critic 损失：</p>
+  $$L_Q = \frac{1}{N} \sum_i \big(Q_{\phi}(s_i,a_i) - y_i\big)^2$$
+  <p>优化：</p>
+  <div class="equation">$$\phi \leftarrow \phi - \eta_Q \, \nabla_{\phi} L_Q$$</div>
+
+      <h4>4️⃣ Actor 更新（确定性策略梯度）</h4>
+  $$\nabla_{\theta} J \;\approx\; \frac{1}{N} \sum_i \nabla_{\theta} \mu_{\theta}(s_i)\; \nabla_{a} Q_{\phi}(s_i, a)\big|_{a=\mu_{\theta}(s_i)}$$
+  <p>通常通过最小化：</p>
+  $$L_\pi = -\frac{1}{N} \sum_i Q_{\phi}\big(s_i, \mu_{\theta}(s_i)\big)$$
+  <p>优化：</p>
+  $$\theta \leftarrow \theta - \eta_\pi \, \nabla_{\theta} L_\pi$$
+
+      <h4>5️⃣ 目标网络软更新</h4>
+  $$\theta' \leftarrow \tau\,\theta + (1-\tau)\,\theta',\quad \phi' \leftarrow \tau\,\phi + (1-\tau)\,\phi'$$
+
+      <h4>6️⃣ 重复直到收敛</h4>
+      <p>定期在无噪声条件下评估策略性能。</p>
+
+      <hr>
+
+      <h3>八、DDPG 伪代码</h3>
+
+<pre><code class="language-python"># DDPG 算法伪代码
+
+Initialize Actor μ_θ, Critic Q_φ
+Initialize target networks μ_θ' ← μ_θ, Q_φ' ← Q_φ
+Initialize replay buffer D
+Set hyperparameters: γ, τ, σ, batch_size, max_episodes
+
+for episode = 1 to max_episodes:
+    s ← env.reset()
+    done ← False
+    
+    while not done:
+        # 1. 选择动作（带探索噪声）
+        a ← clip(μ_θ(s) + ε),  ε ∼ N(0, σ²)
+        
+        # 2. 执行动作
+        s', r, done ← env.step(a)
+        
+        # 3. 存储经验
+        D.store((s, a, r, s', done))
+        
+        # 4. 采样批次训练
+        if |D| ≥ batch_size:
+            batch ← D.sample(batch_size)
+            
+            # 5. 计算 Critic 目标
+            for (s_i, a_i, r_i, s'_i, d_i) in batch:
+                y_i ← r_i + γ(1 - d_i) * Q_φ'（s'_i, μ_θ'（s'_i）)
+            
+            # 6. 更新 Critic
+            L_Q ← mean((Q_φ(s_i, a_i) - y_i)²)
+            φ ← φ - η_Q * ∇_φ L_Q
+            
+            # 7. 更新 Actor
+            L_π ← -mean(Q_φ(s_i, μ_θ(s_i)))
+            θ ← θ - η_π * ∇_θ L_π
+            
+            # 8. 软更新目标网络
+            θ' ← τθ + (1-τ)θ'
+            φ' ← τφ + (1-τ)φ'
+        
+        s ← s'
+</code></pre>
+
+      <hr>
+
+      <h3>九、直觉总结</h3>
+
+      <p><strong>在 AC 中：</strong></p>
+      <ul>
+        <li>Actor 学习一个分布，Critic 评估动作的好坏。</li>
+        <li>Actor 更新依赖 $\log \pi$，存在采样方差。</li>
+      </ul>
+
+      <p><strong>在 DPG 中：</strong></p>
+      <ul>
+        <li>Actor 直接给出动作，Critic 通过 $Q(s,a)$ 曲面告诉 Actor 哪个方向更好。</li>
+        <li>Actor 顺着 $\nabla_a Q$ 的上升方向更新，像是在爬价值函数的"山丘"。</li>
+      </ul>
+
+      <blockquote>
+        <p><strong>一句话记住：</strong></p>
+        <p>AC 在掷骰子学策略；<br>
+        DPG 直接爬山找最优；<br>
+        两者的区别，就是从"期望意义的随机上升"变为"确定性方向的精确上升"。</p>
+      </blockquote>
+
+      <hr>
+
+      <h3>十、常见问题与扩展</h3>
+
+      <table>
+        <tr><th>问题</th><th>解决方式</th></tr>
+        <tr><td>过估计 Q</td><td>用 TD3：双 Q 网络取最小值</td></tr>
+        <tr><td>探索不足</td><td>调整噪声强度或使用参数噪声</td></tr>
+        <tr><td>发散</td><td>降低学习率、使用目标平滑</td></tr>
+        <tr><td>训练慢</td><td>增大批大小、归一化状态/奖励</td></tr>
+      </table>
+
+      <hr>
+
+      <h3>十一、总结</h3>
+
+      <table>
+        <tr><th>模块</th><th>变化要点</th></tr>
+        <tr><td>策略形式</td><td>从随机分布 → 确定性函数</td></tr>
+        <tr><td>学习信号</td><td>从 log π → 链式法则 (μ, Q)</td></tr>
+        <tr><td>稳定性来源</td><td>从 Advantage → 目标网络/回放池</td></tr>
+        <tr><td>数据类型</td><td>从 on-policy → off-policy</td></tr>
+        <tr><td>核心优点</td><td>低方差、高数据效率、适合连续控制</td></tr>
+        <tr><td>理论支撑</td><td>Deterministic Policy Gradient Theorem (Silver et al., 2014)</td></tr>
+      </table>
+
+      <p><strong> 结语</strong></p>
+      <p>DPG 是"从随机到确定性"的重要桥梁。它让强化学习在连续控制领域拥有了实用可行的路径，并成为后续 DDPG、TD3、SAC 等算法的理论基础。</p>
     </section>
 
     <section id="chapter19" class="chapter">
       <h2>第十九章：TD3（Twin Delayed DDPG）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <h3>0. 一句话与定位</h3>
+      <p><strong>TD3 = DDPG 的三件套稳态升级：</strong></p>
+
+
+      <ul>
+        <li><strong>Clipped Double Q（双 Q 取最小）</strong>：抑制 Q 的系统性过估计</li>
+        <li><strong>Delayed Policy Update（延迟策略更新）</strong>：先稳 Critic 再动 Actor</li>
+        <li><strong>Target Policy Smoothing（目标策略平滑）</strong>：让 TD 目标对尖锐 Q 峰不敏感</li>
+      </ul>
+      <p>在连续控制任务（MuJoCo、机械臂等）里，TD3 通常比 DDPG 明显更稳、更高效。</p>
+
+      <h3>1. 背景：为什么需要 TD3？</h3>
+      <h4>1.1 DDPG 的三大痛点</h4>
+      <ul>
+        <li><strong>过估计偏差</strong>：单 Critic + “最大化 Q” 的结构，会把噪声当优势放大，长期偏乐观。</li>
+        <li><strong>策略—值函数步调失衡</strong>：Critic 还没学稳，Actor 就跟着不稳定的信号移动，易发散。</li>
+        <li><strong>目标值对动作微扰极敏感</strong>：目标用 Q(s', μ'(s'))，在尖峰处对微小动作变化剧烈，过拟合“脆弱峰”。</li>
+      </ul>
+
+      <h4>1.2 TD3 的三剂药</h4>
+      <ul>
+        <li><strong>双 Q 取最小</strong>：用两套独立的目标 Q，TD 目标里取 min(Q1', Q2')，数值上“向下裁剪”掉高估。</li>
+        <li><strong>延迟策略更新</strong>：Critic 每步都更；Actor/目标网每 d 步（常为 2）才更，避免策略追逐未收敛的 Q。</li>
+        <li><strong>目标平滑</strong>：在目标端给 μ'(s') 加小高斯噪声并裁剪，再送入 Q'，降低对尖锐峰值的依赖。</li>
+      </ul>
+
+      <h3>2. 算法细节与公式</h3>
+      <h4>2.1 组件</h4>
+      <ul>
+        <li>Actor（确定性策略）：a = μθ(s)，输出缩放到动作边界。</li>
+        <li>两个 Critic：Qϕ1(s,a), Qϕ2(s,a)；以及各自的目标网络 Qϕ1', Qϕ2'。</li>
+        <li>目标 Actor：μθ'。</li>
+        <li>回放池 D 存 (s,a,r,s',d)。</li>
+      </ul>
+
+      <h4>2.2 行为策略（探索）</h4>
+  <p>训练交互时执行：</p>
+  $$a_t = \operatorname{clip}\big(\mu_{\theta}(s_t) + \epsilon_t,\; \text{bounds}\big),\quad \epsilon_t \sim \mathcal{N}(0,\sigma_{\text{explore}}^2 I)$$
+      <p>评估/测试时去掉噪声，只用 μθ(s)。</p>
+
+      <h4>2.3 TD 目标（核心三件套）</h4>
+      <p>目标动作平滑：</p>
+  $$\tilde a' = \operatorname{clip}\big(\mu_{\theta'}(s') + \epsilon,\; \text{bounds}\big),\quad \epsilon \sim \operatorname{clip}\big(\mathcal{N}(0,\sigma_{\text{targ}}^2),\,-c,\,c\big)$$
+      <p>Clipped Double Q：</p>
+  $$y = r + \gamma(1-d)\, \min\!\big(Q_{\phi_1'}(s', \tilde a'),\; Q_{\phi_2'}(s', \tilde a')\big)$$
+  <p>Critic 损失：</p>
+  $$L_{Q_j} = \frac{1}{N} \sum_i \Big(Q_{\phi_j}(s_i, a_i) - y_i\Big)^2,\quad j\in\{1,2\}$$
+  <p>Actor 损失（延迟更新）：</p>
+  $$L_\pi = -\frac{1}{N} \sum_i Q_{\phi_1}(s_i, \mu_{\theta}(s_i))$$
+  <p>软更新目标网络（与 Actor 同步延迟）：</p>
+  $$\theta' \leftarrow \tau\,\theta + (1-\tau)\,\theta',\quad \phi_j' \leftarrow \tau\,\phi_j + (1-\tau)\,\phi_j'$$
+
+      <h3>3. 完整训练流程（工程化笔记）</h3>
+      <ol>
+        <li>初始化：随机初始化 μθ, Qϕ1, Qϕ2；复制到目标网 θ', ϕj'；建回放池 D；设超参 γ, τ, σ_explore, σ_targ, c, d。</li>
+        <li>交互 & 存储：用 a_t = clip(μθ(s_t) + ϵ_t) 与环境交互，存 (s_t, a_t, r_t, s_{t+1}, d_t) 到 D。</li>
+        <li>采样批次：从 D 均匀采样 N 条样本。</li>
+        <li>目标动作平滑 & 构造 TD 目标：按 2.3。</li>
+        <li>更新两个 Critic：最小化 L_Q1, L_Q2。</li>
+        <li>每隔 d 步：更新 Actor（最大化 Q1）；软更新 θ', ϕ1', ϕ2'。</li>
+        <li>评估：定期在无噪声条件下运行若干回合求平均回报、保存最佳模型。</li>
+        <li>循环至收敛。</li>
+      </ol>
+
+      <h3>4. TD3 伪代码（高密度工程版）</h3>
+<pre><code class="language-python"># TD3 算法伪代码
+init μθ, Qφ1, Qφ2; targets μθ', Qφ1', Qφ2'; replay D
+for t in 1..T:
+  a = clip( μθ(s) + N(0, σ_explore^2), bounds )
+  s', r, d = env.step(a); D.add(s,a,r,s',d); s ← (s' if not d else reset)
+
+  if len(D) < batch or t < warmup: continue
+  S,A,R,SN,Dn = sample(D, N)
+
+  ε = clip(N(0, σ_targ^2), -c, c)
+  a_targ = clip( μθ'(SN) + ε, bounds )
+
+  y = R + γ(1-Dn) * min( Qφ1'(SN, a_targ), Qφ2'(SN, a_targ) )
+  update φ1, φ2 to minimize MSE(Qφj(S,A), y)
+
+  if t % policy_delay == 0:
+     update θ to maximize mean Qφ1(S, μθ(S))
+     soft_update(θ', θ, τ); soft_update(φ1', φ1, τ); soft_update(φ2', φ2, τ)
+</code></pre>
+
+      <h3>5. 总结与工程建议</h3>
+      <ul>
+        <li>TD3 的三大技巧本质都是“稳住Critic，慢慢动Actor”，让策略更新更可靠。</li>
+        <li>实际用 TD3，建议先用默认参数，优先关注 Q 估计和策略收敛曲线。</li>
+        <li>如遇训练不稳定，优先检查噪声、目标平滑、延迟步数等超参。</li>
+        <li>TD3 适合大多数连续控制任务，是 DDPG 的工程升级版。</li>
+      </ul>
     </section>
 
     <section id="chapter20" class="chapter">
       <h2>第二十章：TRPO（Trust Region Policy Optimization）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+      <h3>一、为什么需要 TRPO？</h3>
+      <p>在策略梯度类算法（如 REINFORCE、A2C、A3C）中，每次更新都会导致策略分布变化。神经网络的非线性特性使得一次“合理”的梯度步可能导致策略输出完全崩溃（policy collapse）。因此，TRPO 的核心思想是：<strong>既要让策略改进，又要保证它不要离旧策略太远</strong>，即“信赖域优化”。</p>
+
+      <h3>二、性能差分公式</h3>
+      <p>TRPO 推导始于 Performance Difference Lemma：</p>
+      $$
+      J(\pi_{\text{new}}) - J(\pi_{\text{old}}) = \frac{1}{1-\gamma} \, \mathbb{E}_{s \sim d_{\pi_{\text{new}}}, a \sim \pi_{\text{new}}} [A_{\pi_{\text{old}}}(s, a)]
+      $$
+      <p>策略改进量取决于新策略在旧策略优势函数下的期望。</p>
+
+      <h3>三、重要性采样与替代目标</h3>
+      <p>实际采样来自旧策略，需用重要性采样：</p>
+      $$
+      \mathbb{E}_{a \sim \pi_{\text{new}}}[f(a)] = \mathbb{E}_{a \sim \pi_{\text{old}}} \left[ \frac{\pi_{\text{new}}(a)}{\pi_{\text{old}}(a)} f(a) \right]
+      $$
+      <p>于是：</p>
+      $$
+      J(\pi_{\text{new}}) - J(\pi_{\text{old}}) \approx \frac{1}{1-\gamma} \, \mathbb{E}_{s,a \sim \pi_{\text{old}}} [r_\theta(s,a) A_{\pi_{\text{old}}}(s,a)]
+      $$
+      $$
+      r_\theta(s,a) = \frac{\pi_\theta(a|s)}{\pi_{\text{old}}(a|s)}
+      $$
+      <p>假设状态分布变化小，得到 TRPO 的核心替代目标：</p>
+      $$
+      L(\theta) = \mathbb{E}_{s,a \sim \pi_{\text{old}}} [r_\theta(s,a) A_{\pi_{\text{old}}}(s,a)]
+      $$
+
+      <h3>四、约束策略更新幅度：KL 散度</h3>
+      <p>为防止策略偏离，TRPO引入约束：</p>
+      $$
+      \mathbb{E}_{s \sim \pi_{\text{old}}} [KL(\pi_{\text{old}}(\cdot|s) \| \pi_\theta(\cdot|s))] \leq \delta
+      $$
+      <p>目标变为：</p>
+      $$
+      \max_{\theta} L(\theta) \quad \text{s.t.} \quad \bar{D}_{KL}(\pi_{\text{old}}, \pi_\theta) \leq \delta
+      $$
+
+      <h3>五、二阶近似与 Fisher 信息矩阵</h3>
+      <p>对 KL 散度做二阶泰勒展开：</p>
+      $$
+      \bar{D}_{KL}(\pi_{\text{old}}, \pi_\theta) \approx \frac{1}{2} (\theta - \theta_{\text{old}})^\top F (\theta - \theta_{\text{old}})
+      $$
+      $$
+      F = \mathbb{E}_{s,a \sim \pi_{\text{old}}} [\nabla_\theta \log \pi_\theta(a|s) \nabla_\theta \log \pi_\theta(a|s)^\top]
+      $$
+      <p>即 Fisher 信息矩阵。</p>
+
+      <h3>六、自然梯度方向与解析解</h3>
+      <p>构造拉格朗日函数：</p>
+      $$
+      L(\Delta\theta, \lambda) = g^\top \Delta\theta - \lambda \left( \frac{1}{2} \Delta\theta^\top F \Delta\theta - \delta \right)
+      $$
+      <p>对 \(\Delta\theta\) 求导并令其为 0：</p>
+      $$
+      g - \lambda F \Delta\theta = 0 \Rightarrow \Delta\theta = \frac{1}{\lambda} F^{-1} g
+      $$
+      <p>代回约束边界：</p>
+      $$
+      \lambda = \sqrt{\frac{g^\top F^{-1} g}{2\delta}}
+      $$
+      <p>最终解：</p>
+      $$
+      \Delta\theta = \sqrt{\frac{2\delta}{g^\top F^{-1} g}} F^{-1} g
+      $$
+      <p>这就是著名的 <strong>自然梯度（Natural Gradient）</strong>。</p>
+
+      <h3>七、线搜索与实际更新</h3>
+      <p>实际目标和 KL 都是非线性的，需沿自然梯度方向做 backtracking line search：</p>
+      <ol>
+        <li>从 \(\alpha=1\) 开始，每次减半（1, 1/2, 1/4, ...）；</li>
+        <li>直到 surrogate 目标提升且实际 KL 未超过阈值：</li>
+      </ol>
+      $$
+      L(\theta_{\text{new}}) > L(\theta_{\text{old}}), \quad \hat{D}_{KL}(\pi_{\text{old}} \| \pi_{\text{new}}) \leq \delta
+      $$
+
+      <h3>八、数值实现要点</h3>
+      <ol>
+        <li><strong>共轭梯度（Conjugate Gradient, CG）</strong>：迭代近似求解 \(F^{-1}g\)。</li>
+        <li><strong>Fisher 向量积（FVP）</strong>：用 Pearlmutter trick 计算 FVP，无需显式矩阵。</li>
+        <li><strong>线搜索（Backtracking）</strong>：在真实目标上验证步长安全性。</li>
+      </ol>
+      <p>最终参数更新：</p>
+      $$
+      	heta_{\text{new}} = \theta_{\text{old}} + \alpha \Delta\theta, \quad \alpha \in \{1, 1/2, 1/4, ...\}
+      $$
+
+      <h3>九、TRPO 算法流程</h3>
+      <ol>
+        <li>采样（on-policy）：用当前策略与环境交互，收集轨迹。</li>
+        <li>计算优势与回报目标（GAE）。</li>
+        <li>值函数回归（多轮 mini-batch）。</li>
+        <li>策略更新（单步大更新 + 线搜索）：<br> 1）构造替代目标与梯度；<br> 2）Fisher 向量积；<br> 3）共轭梯度近似；<br> 4）计算理想步长方向；<br> 5）回溯线搜索。</li>
+        <li>替换策略，进入下一轮。</li>
+      </ol>
+      <p>TRPO 通过信赖域约束，保证每次策略更新都安全且高效，是深度强化学习中稳定性极高的策略优化方法。</p>
     </section>
 
     <section id="chapter21" class="chapter">
       <h2>第二十一章：PPO（Proximal Policy Optimization）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+
+      <p>“TRPO 给了我们理论上的安全感，PPO 把它变成了能跑在显卡上的现实。”</p>
+
+      <h3>一、从策略梯度说起</h3>
+      <p>策略梯度方法的目标是直接优化参数化策略 $\pi_{\theta}(a|s)$，最大化期望回报：</p>
+      <p class="equation">$$J(\theta)=\mathbb{E}_{\pi_{\theta}}\Big[\sum_{t} \gamma^{t} r_t\Big].$$</p>
+      <p>基本的梯度估计为：</p>
+      <p class="equation">$$\nabla_{\theta} J(\theta)=\mathbb{E}\big[\nabla_{\theta} \log \pi_{\theta}(a|s)\; A^{\pi}(s,a)\big],$$</p>
+      <p>其中 $A^{\pi}(s,a)$ 是优势函数，表示某个动作相比平均决策的增益。</p>
+
+      <h3>二、从 TRPO 到 PPO 的动机</h3>
+      <p>TRPO 通过对平均 KL 散度施加约束，保证策略不“跳得太远”。然而 TRPO 的实现依赖二阶信息（Fisher 矩阵）、共轭梯度与线搜索，工程上复杂且计算开销大。</p>
+      <p>PPO 的设计原则是保留 TRPO 的“限制更新幅度”思想，但用简单可靠的一阶方法替代复杂的二阶步骤，从而易实现且高效。</p>
+
+      <h3>三、PPO 的核心：剪切替代目标（Clipped Surrogate Objective）</h3>
+      <p>定义概率比率：</p>
+      <p class="equation">$$r_{\theta}=\dfrac{\pi_{\theta}(a|s)}{\pi_{\text{old}}(a|s)}.$$</p>
+      <p>剪切目标为：</p>
+      <p class="equation">$$L_{\text{CLIP}}(\theta)=\mathbb{E}\Big[\min\big(r_{\theta} A,\; \operatorname{clip}(r_{\theta},1-\epsilon,1+\epsilon) A\big)\Big].$$</p>
+      <p>直观上，对于 $A>0$ 我们希望增大 $r_{\theta}$；对于 $A<0$ 则希望减小 $r_{\theta}$。但当比率变化过大，clip 会把增益截断到 $[1-\epsilon,1+\epsilon]$，从而防止过大的更新。</p>
+
+      <h3>四、完整训练目标（策略 + 值函数 + 熵正则）</h3>
+      <p>实际训练中，PPO 同时优化策略参数 $\theta$ 与值函数参数 $\psi$，总损失常写为：</p>
+      <p class="equation">$$L(\theta,\psi)=L_{\text{CLIP}}(\theta)-c_v\,\mathbb{E}\big[(V_{\psi}(s)-\hat{R})^2\big]+c_e\,\mathbb{E}\big[\mathcal{H}(\pi_{\theta}(\cdot|s))\big],$$</p>
+      <p>其中 $c_v$、$c_e$ 分别控制值函数回归项和熵项的权重，$\hat R$ 为回报或 target 值。</p>
+
+      <h3>五、训练流程要点</h3>
+      <ol>
+        <li><strong>采样：</strong>用当前策略 $\pi_{\text{old}}$ 与环境交互，收集一批轨迹 $(s_t,a_t,r_t,s_{t+1},d_t,\log\pi_{\text{old}}(a_t|s_t))$；</li>
+        <li><strong>优势估计：</strong>常用 GAE（Generalized Advantage Estimation）：</li>
+      </ol>
+      <p class="equation">$$\delta_t=r_t+\gamma(1-d_t)V(s_{t+1})-V(s_t),\\
+      \hat A_t=\sum_{l=0}^{\infty}(\gamma\lambda)^l \delta_{t+l}.$$</p>
+      <ol start="3">
+        <li>对 $\hat A_t$ 做标准化（mean 0, std 1）以稳定训练；</li>
+        <li><strong>多轮小批量 SGD：</strong>将轨迹打乱为 minibatches，进行多轮 epoch（常见 3–10），使用 Adam 进行优化；</li>
+        <li>如监控到平均 KL 超过阈值（如 0.02），可提前停止当前 epoch；</li>
+        <li>更新 $\pi_{\text{old}}\leftarrow\pi_{\theta}$，重复采样。</li>
+      </ol>
+
+      <h3>六、关键超参数建议</h3>
+      <table>
+        <tr><th>参数</th><th>含义</th><th>推荐值</th></tr>
+        <tr><td>$\gamma$</td><td>折扣因子</td><td>0.99</td></tr>
+        <tr><td>$\lambda$</td><td>GAE 衰减</td><td>0.95</td></tr>
+        <tr><td>$\epsilon$</td><td>Clip 边界</td><td>0.1–0.2</td></tr>
+        <tr><td>$c_v$</td><td>值函数系数</td><td>0.5</td></tr>
+        <tr><td>$c_e$</td><td>熵系数</td><td>0.01 (continuous 更大)</td></tr>
+        <tr><td>学习率（Adam）</td><td>学习率</td><td>3e-4（任务依赖）</td></tr>
+        <tr><td>T</td><td>每轮采样步数</td><td>2048 或更多</td></tr>
+        <tr><td>Epochs</td><td>每轮训练轮数</td><td>3–10</td></tr>
+        <tr><td>Minibatch</td><td>小批大小</td><td>64–256</td></tr>
+      </table>
+
+      <h3>七、常见问题与工程建议</h3>
+      <ul>
+        <li><strong>训练发散：</strong>检查学习率与 $\epsilon$，尝试减小二者；</li>
+        <li><strong>提升后又退步：</strong>可能是 epoch 太多或过拟合当前采样，减少 epoch 或监控 KL；</li>
+        <li><strong>策略塌缩：</strong>增大熵系数或使用熵目标衰减策略；</li>
+        <li><strong>值函数不准确：</strong>尝试 value clipping 与更稳定的目标（如双网络），减小值函数学习率；</li>
+        <li><strong>GAE 调参：</strong>较高的 $\lambda$ 更偏向低方差高偏差，常取 $0.92\sim0.98$；</li>
+        <li><strong>样本复用：</strong>PPO 的多 epoch 更新提高了样本利用率，但也增加了过拟合风险，实践中需要折中选择。</li>
+      </ul>
+
+      <h3>八、PPO 与 TRPO 的关系</h3>
+      <p>简要对比：</p>
+      <table>
+        <tr><th>方面</th><th>TRPO</th><th>PPO</th></tr>
+        <tr><td>策略约束</td><td>硬 KL 约束</td><td>比率剪切 / KL 惩罚</td></tr>
+        <tr><td>优化方法</td><td>二阶（Fisher）</td><td>一阶（Adam / SGD）</td></tr>
+        <tr><td>实现复杂度</td><td>高</td><td>低</td></tr>
+        <tr><td>样本利用率</td><td>低</td><td>高（多轮复用）</td></tr>
+      </table>
+
+      <h3>九、小结（Blog 风格补充）</h3>
+      <p>PPO 之所以被广泛采用，不仅因为它在多数基准上表现良好，更重要的是它提供了一条工程可行的路径：
+      用简单的剪切与多轮小批训练替代复杂的二阶求解，使得策略优化可以直接受益于深度学习现有的一阶优化器与并行化实现。
+      在工程实践中，我的经验是：</p>
+      <ul>
+        <li>先用推荐的超参数跑通（例如 Adam lr=3e-4，$\epsilon=0.1$，T=2048，Epochs=4），观察学习曲线；</li>
+        <li>若发散，先调小 lr，其次减小 $\epsilon$；</li>
+        <li>在连续控制任务中保留熵正则并逐步衰减；</li>
+        <li>借助现成实现（OpenAI Spinning Up、Stable-Baselines3）作为基线再做改进。</li>
+      </ul>
+
+      <p>参考实现：OpenAI Spinning Up、OpenAI 原始实现与 Stable-Baselines3 的 PPO 模块均是很好的工程模板。</p>
+
     </section>
 
     <section id="chapter22" class="chapter">

@@ -14,328 +14,412 @@
     html, body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     body {
-      font-family: "Segoe UI", "Roboto", -apple-system, sans-serif;
-      background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #c8cdd3;
+      font-family: "Palatino Linotype", "Georgia", "Times New Roman", "SimSun", serif;
+      background: #1a1f2e;
+      color: #e8eaed;
+      line-height: 1.8;
     }
 
-    /* 背景动画 */
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
+    /* 学术风格页眉 */
+    .academic-header {
+      background: linear-gradient(to bottom, #212836 0%, #1a1f2e 100%);
+      border-bottom: 3px solid #14b8a6;
+      padding: 60px 40px 40px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .university-mark {
+      font-size: 0.9rem;
+      color: #8b95a5;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-family: "Segoe UI", sans-serif;
     }
 
     /* 主容器 */
     .container {
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      max-width: 600px;
-      padding: 40px;
-      animation: slideIn 0.8s ease-out;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      background: #212836;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* 标题 */
+    /* 标题样式 - 学术论文风格 */
     .title {
-      font-size: 3.5rem;
+      font-size: 2.8rem;
       font-weight: 700;
       margin-bottom: 20px;
-      background: linear-gradient(135deg, #56ab91 0%, #7ec8a3 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 1px;
+      color: #f8f9fa;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+      font-family: "Georgia", "Times New Roman", serif;
     }
 
-    /* 副标题 */
-    .subtitle {
+    .title-en {
+      font-size: 1.6rem;
+      color: #14b8a6;
+      font-style: italic;
+      margin-top: 10px;
+      font-weight: 400;
+      font-family: "Georgia", "Times New Roman", serif;
+    }
+
+    /* 作者信息 */
+    .author-line {
+      font-size: 1.1rem;
+      color: #b0b8c3;
+      margin: 25px 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .author-line strong {
+      color: #14b8a6;
+      font-weight: 600;
+    }
+
+    /* 摘要样式 */
+    .abstract {
+      background: rgba(20, 184, 166, 0.08);
+      border-left: 4px solid #14b8a6;
+      padding: 30px 35px;
+      margin: 40px 0;
+      line-height: 2;
+      font-size: 1.05rem;
+      color: #c8d1dc;
+      border-radius: 0 4px 4px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .abstract-title {
       font-size: 1.2rem;
-      color: #b0b5bb;
+      font-weight: 700;
+      color: #14b8a6;
       margin-bottom: 15px;
-      line-height: 1.6;
-      font-weight: 300;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: "Segoe UI", sans-serif;
     }
 
-    /* 描述文本 */
-    .description {
-      font-size: 1rem;
-      color: #8a8f95;
-      margin-bottom: 50px;
-      line-height: 1.8;
-      opacity: 0.9;
+    /* 关键词 */
+    .keywords {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #8b95a5;
     }
 
-    /* 特性列表 */
-    .features {
+    .keywords strong {
+      color: #14b8a6;
+      font-weight: 600;
+    }
+
+    .keyword-tag {
+      display: inline-block;
+      background: rgba(20, 184, 166, 0.15);
+      color: #5eead4;
+      padding: 4px 12px;
+      margin: 5px 5px 5px 0;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: "Segoe UI", sans-serif;
+      border: 1px solid rgba(20, 184, 166, 0.3);
+    }
+
+    /* 章节列表 - 学术目录风格 */
+    .section-title {
+      font-size: 1.8rem;
+      color: #f8f9fa;
+      margin: 50px 0 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #14b8a6;
+      font-weight: 700;
+      font-family: "Georgia", "Times New Roman", serif;
+    }
+
+    .modules {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
       margin-bottom: 50px;
+    }
+
+    .module-item {
+      background: #2a3142;
+      border: 2px solid #3a4052;
+      border-left: 5px solid #14b8a6;
+      padding: 30px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .module-item:hover {
+      border-color: #14b8a6;
+      box-shadow: 0 8px 20px rgba(20, 184, 166, 0.3);
+      transform: translateX(5px);
+      background: rgba(20, 184, 166, 0.05);
+    }
+
+    .module-number {
+      font-size: 0.85rem;
+      color: #14b8a6;
+      font-weight: 600;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .module-title {
+      color: #f8f9fa;
+      font-weight: 700;
+      margin-bottom: 12px;
+      font-size: 1.3rem;
+      font-family: "Georgia", "Times New Roman", serif;
+    }
+
+    .module-desc {
+      font-size: 1rem;
+      color: #b0b8c3;
+      line-height: 1.8;
+      margin-bottom: 15px;
+    }
+
+    .module-meta {
+      font-size: 0.9rem;
+      color: #7a8394;
+      font-style: italic;
+    }
+
+    /* 分隔线 */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(20, 184, 166, 0.3), transparent);
+      margin: 50px 0;
+    }
+
+    /* 作者信息卡片 - 学术风格 */
+    .author-card {
+      background: rgba(20, 184, 166, 0.08);
+      border: 2px solid rgba(20, 184, 166, 0.2);
+      border-radius: 4px;
+      padding: 35px;
+      margin-top: 50px;
       text-align: left;
     }
 
-    .feature-item {
-      background: rgba(86, 171, 145, 0.08);
-      border: 1px solid rgba(86, 171, 145, 0.15);
-      border-radius: 10px;
-      padding: 20px;
-      transition: all 0.3s ease;
-      cursor: default;
-      text-decoration: none;
+    .author-card-title {
+      font-size: 1.4rem;
+      color: #f8f9fa;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-family: "Georgia", "Times New Roman", serif;
     }
 
-    .feature-item:hover {
-      background: rgba(86, 171, 145, 0.12);
-      border-color: rgba(86, 171, 145, 0.3);
-      box-shadow: 0 4px 12px rgba(86, 171, 145, 0.1);
-      transform: translateY(-3px);
-    }
-
-    .feature-icon {
-      font-size: 1.8rem;
-      margin-bottom: 10px;
-    }
-
-    .feature-title {
-      color: #56ab91;
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 0.95rem;
-    }
-
-    .feature-desc {
-      font-size: 0.85rem;
-      color: #b0b5bb;
-      line-height: 1.5;
-    }
-
-    /* 按钮组 */
-    .buttons {
-      display: flex;
+    .author-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 15px;
-      justify-content: center;
-      margin-top: 40px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 14px 32px;
       font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
+      color: #c8d1dc;
+      line-height: 1.8;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #56ab91 0%, #7ec8a3 100%);
-      color: #ffffff;
-      box-shadow: 0 8px 24px rgba(86, 171, 145, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(86, 171, 145, 0.4);
-    }
-
-    .btn-secondary {
-      background: rgba(86, 171, 145, 0.1);
-      color: #56ab91;
-      border: 2px solid rgba(86, 171, 145, 0.3);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(86, 171, 145, 0.15);
-      border-color: rgba(86, 171, 145, 0.5);
-      transform: translateY(-2px);
-    }
-
-    /* 作者简介模块 */
-    .author-section {
-      background: rgba(86, 171, 145, 0.06);
-      border: 1px solid rgba(86, 171, 145, 0.2);
-      border-radius: 12px;
-      padding: 25px;
-      margin-top: 30px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .author-section:hover {
-      background: rgba(86, 171, 145, 0.1);
-      border-color: rgba(86, 171, 145, 0.3);
-      box-shadow: 0 6px 20px rgba(86, 171, 145, 0.15);
-      transform: translateY(-2px);
-    }
-
-    .author-section h3 {
-      color: #56ab91;
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 15px;
+    .info-item {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
     }
 
-    .author-content p {
-      color: #b0b5bb;
-      font-size: 0.95rem;
-      margin: 8px 0;
-      line-height: 1.6;
+    .info-label {
+      color: #14b8a6;
+      font-weight: 600;
+      min-width: 100px;
     }
 
-    .author-content a {
-      color: #56ab91;
+    .info-item a {
+      color: #5eead4;
       text-decoration: none;
+      border-bottom: 1px solid transparent;
       transition: all 0.3s ease;
     }
 
-    .author-content a:hover {
-      color: #7ec8a3;
-      text-decoration: underline;
+    .info-item a:hover {
+      border-bottom-color: #5eead4;
     }
 
     /* 页脚 */
     .footer {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
+      background: #212836;
+      border-top: 2px solid rgba(20, 184, 166, 0.3);
+      padding: 30px 40px;
       text-align: center;
-      font-size: 0.85rem;
-      color: #8a8f95;
+      font-size: 0.9rem;
+      color: #8b95a5;
+      margin-top: 60px;
     }
 
     .footer a {
-      color: #56ab91;
+      color: #14b8a6;
       text-decoration: none;
+      border-bottom: 1px solid transparent;
       transition: all 0.3s ease;
     }
 
     .footer a:hover {
-      text-decoration: underline;
+      border-bottom-color: #14b8a6;
     }
 
     /* 响应式设计 */
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px;
-      }
-
-      .title {
-        font-size: 2.5rem;
-      }
-
-      .subtitle {
-        font-size: 1rem;
-      }
-
-      .description {
-        font-size: 0.9rem;
-      }
-
-      .features {
+    @media (max-width: 992px) {
+      .modules {
         grid-template-columns: 1fr;
-        gap: 15px;
-        margin-bottom: 30px;
       }
 
-      .btn {
-        padding: 12px 24px;
-        font-size: 0.95rem;
+      .author-info {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
+      .academic-header {
+        padding: 40px 20px 30px;
+      }
+
+      .container {
+        padding: 40px 20px;
+      }
+
       .title {
         font-size: 2rem;
       }
 
-      .buttons {
-        flex-direction: column;
+      .title-en {
+        font-size: 1.2rem;
       }
 
-      .btn {
-        width: 100%;
+      .abstract {
+        padding: 20px;
+      }
+
+      .module-item {
+        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
-  <canvas id="particleCanvas"></canvas>
+  <!-- 学术风格页眉 -->
+  <div class="academic-header">
+    <div class="university-mark">Xinjiang University · School of Mathematics and System Science</div>
+    <h1 class="title">强化学习理论与算法研究笔记</h1>
+    <div class="title-en">Research Notes on Reinforcement Learning: Theory and Algorithms</div>
+    <div class="author-line">
+      作者：唐浩云 | 新疆大学数学与系统科学学院
+    </div>
+  </div>
 
   <div class="container">
-    <h1 class="title">强化学习笔记</h1>
-    <p class="subtitle">深度强化学习 | 多智能体学习 | 博弈论</p>
-    <p class="description">
-      我是来自新疆大学数学系的唐浩云。本笔记记录了我在学习过程中的一些思考和总结，主要阐述了强化学习的理论基础与算法演进过程，
-      从经典方法到深度强化学习前沿技术，涵盖了理论分析、算法实现与论文研读。
-    </p>
-
-    <div class="features">
-      <a href="home.html" class="feature-item" style="text-decoration: none;">
-        <div class="feature-icon">📚</div>
-        <div class="feature-title">基础学习</div>
-        <div class="feature-desc">从零开始，掌握强化学习的核心概念和经典算法</div>
-      </a>
-      <a href="advanced.html" class="feature-item" style="text-decoration: none;">
-        <div class="feature-icon">🚀</div>
-        <div class="feature-title">进阶算法</div>
-        <div class="feature-desc">深度学习与强化学习结合，探索前沿的深度强化学习方法</div>
-      </a>
-      <a href="papers.html" class="feature-item" style="text-decoration: none;">
-        <div class="feature-icon">📖</div>
-        <div class="feature-title">论文研读</div>
-        <div class="feature-desc">剖析经典论文，理解算法背后的创新思想</div>
-      </a>
-    </div>
-
-    <!-- 作者简介模块 -->
-    <div class="author-section">
-      <h3>👨‍🎓 作者简介</h3>
-      <div class="author-content">
-        <p>唐浩云，新疆大学数学系学生，专注于强化学习理论与应用研究。</p>
-        <p>📧 <a href="https://haoyunt.github.io/" target="_blank">个人主页</a></p>
-        <p>🎯 研究兴趣：深度强化学习、多智能体系统、博弈论</p>
+    <!-- 摘要 -->
+    <div class="abstract">
+      <div class="abstract-title">关于本笔记</div>
+      <p>
+        大家好，我是唐浩云。在学习强化学习的过程中，我整理了这份笔记，记录了从基本概念和一些经典算法（如Q-learning、DQN、Actor-Critic）再到由这些经典算法衍生出来的一些“进阶版”（如DDPG、PPO、SAC）、再到多智能体学习的完整学习路径。笔记涵盖了经典算法的数学推导、前沿方法的核心思想，
+        以及一些重要论文的研读心得。希望这份笔记能帮助到同样在学习强化学习的你。
+      </p>
+      <div class="keywords">
+        <strong>关键词：</strong>
+        <span class="keyword-tag">强化学习</span>
+        <span class="keyword-tag">深度学习</span>
+        <span class="keyword-tag">多智能体系统</span>
       </div>
     </div>
 
+    <!-- 目录 -->
+    <h2 class="section-title">目录 / Contents</h2>
+
+    <div class="modules">
+      <a href="home.html" class="module-item">
+        <div class="module-number">SECTION I</div>
+        <div class="module-title">基础篇 / Foundations</div>
+        <div class="module-desc">
+          马尔可夫决策过程、动态规划、蒙特卡洛方法、时序差分学习等经典理论框架的系统性阐述。
+        </div>
+        <div class="module-meta">包含 MDP、Bellman方程、Q-Learning、SARSA 等核心算法</div>
+      </a>
+
+      <a href="advanced.html" class="module-item">
+        <div class="module-number">SECTION II</div>
+        <div class="module-title">进阶篇 / Advanced</div>
+        <div class="module-desc">
+          深度神经网络与强化学习的结合，探讨 DQN、策略梯度、Actor-Critic 的一些变体算法与实践。
+        </div>
+        <div class="module-meta">涵盖 PPO、SAC、TRPO 等前沿算法</div>
+      </a>
+
+      <a href="MARL.html" class="module-item">
+        <div class="module-number">SECTION III</div>
+        <div class="module-title">多智能体强化学习 / MARL</div>
+        <div class="module-desc">
+          多智能体环境下的协作、竞争与混合博弈，研究智能体间的通信、协调与策略演化机制。
+        </div>
+        <div class="module-meta">包括 QMIX、MADDPG、COMA、CommNet 等多智能体算法</div>
+      </a>
+
+      <a href="papers.html" class="module-item">
+        <div class="module-number">SECTION IV</div>
+        <div class="module-title">论文研读 / Paper Reading</div>
+        <div class="module-desc">
+          对强化学习领域经典与前沿论文的深度剖析，理解算法背后的创新思想与技术细节。
+        </div>
+        <div class="module-meta">精选高影响力论文进行详细解读与评析</div>
+      </a>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 作者信息 -->
+    <div class="author-card">
+      <div class="author-card-title">作者信息 / About the Author</div>
+      <div class="author-info">
+        <div class="info-item">
+          <span class="info-label">姓名：</span>
+          <span>唐浩云</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">单位：</span>
+          <span>新疆大学数学与系统科学学院</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">个人主页：</span>
+          <a href="https://haoyunt.github.io/" target="_blank">haoyunt.github.io</a>
+        </div>
+        <div class="info-item">
+          <span class="info-label">兴趣领域：</span>
+          <span>多智能体强化学习、智能博弈论与群体智能</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">电子邮件：</span>
+          <a href="mailto:haoyuntang224@163.com">haoyuntang224@163.com</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <footer class="footer">
-    <p>© 2025 唐浩云 | 强化学习笔记 | 
-      <a href="https://github.com" target="_blank">GitHub</a>
+    <p>© 2025 唐浩云 · 强化学习研究笔记 · 新疆大学数学与系统科学学院</p>
+    <p style="margin-top: 10px; font-size: 0.85rem;">
+      本笔记仅供学术交流使用 | Last Updated: November 2025
     </p>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>

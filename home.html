@@ -758,21 +758,10 @@ footer span {
   <nav>
     <ul>
       <li><a href="index.html">首页</a></li>
-      <li><a href="#chapter0">环境配置</a></li>
-      <li><a href="#chapter1">基本概念</a></li>
-      <li><a href="#chapter2">贝尔曼方程</a></li>
-      <li><a href="#chapter3">贝尔曼最优方程</a></li>
-      <li><a href="#chapter4">策略迭代</a></li>
-      <li><a href="#chapter5">值迭代</a></li>
-      <li><a href="#chapter6">蒙特卡洛方法</a></li>
-      <li><a href="#chapter7">时间差分学习</a></li>
-      <li><a href="#chapter8">Q-learning</a></li>
-      <li><a href="#chapter9">DQN</a></li>
-      <li><a href="#chapter10">DDQN</a></li>
-       <li><a href="#chapter11">策略梯度方法</a></li>
-       <li><a href="#chapter12">Actor-Critic</a></li>
-  <li><a href="#chapter13">A3C&A2C</a></li>
-  <li><a href="#summary">算法总结</a></li>
+      <li><a href="home.html" class="active">基础理论</a></li>
+      <li><a href="advanced.html">进阶算法</a></li>
+      <li><a href="MARL.html">多智能体学习</a></li>
+      <li><a href="papers.html">论文研读</a></li>
     </ul>
   </nav>
 </header>
@@ -2296,32 +2285,167 @@ for episode in range(num_episodes):
 
   <p><strong>这就是为什么在 AC、A2C、PPO 等所有现代策略梯度方法中，都用 TD 误差或其多步版本来近似 Advantage。</strong></p>
 
-  <h3>四、核心公式总结</h3>
+  <h3>四、梯度更新的数学原理：为什么 Actor 是"加"、Critic 是"减"？</h3>
+
+  <h4>4.1 梯度的几何含义</h4>
+  <p>设有一个函数 $f(\theta)$，其中 $\theta$ 是模型参数。</p>
+  <p><strong>梯度（Gradient）$\nabla_\theta f(\theta)$</strong> 表示在当前位置，函数增长最快的方向。</p>
   <ul>
-    <li><b>Actor 更新（使用 Advantage）</b>：
+    <li>沿着<strong>梯度方向</strong>走一步，$f(\theta)$ 会变大得最快；</li>
+    <li>沿着<strong>反梯度方向</strong>走一步，$f(\theta)$ 会变小得最快。</li>
+  </ul>
+  <p><strong>直觉上：</strong></p>
+  <ul>
+    <li>梯度告诉我们"往哪边爬山最快"；</li>
+    <li>反梯度告诉我们"往哪边下山最快"。</li>
+  </ul>
+
+  <h4>4.2 梯度下降（最小化损失）</h4>
+  <p>假设我们要<strong>最小化</strong>损失函数 $L(\theta)$。</p>
+  <p>我们希望每一步让 $L$ 变小，因此要往下走：</p>
+  <p>$$
+  \theta \gets \theta - \alpha \nabla_\theta L(\theta)
+  $$</p>
+  <p>其中：</p>
+  <ul>
+    <li>$\alpha > 0$ 是学习率；</li>
+    <li><strong>减号代表"反梯度方向"</strong>；</li>
+    <li>因为梯度是"上升方向"，要最小化就要往反方向走。</li>
+  </ul>
+  <pre><code>    ↑  梯度方向：L增加最快
+θ ←── 反梯度方向：L减小最快</code></pre>
+  <p><strong>这就是"最小化 ⇒ 减梯度"的原因。</strong></p>
+
+  <h4>4.3 梯度上升（最大化回报）</h4>
+  <p>相反，如果目标是<strong>最大化</strong>某个函数 $J(\theta)$（比如在强化学习中最大化期望回报）：</p>
+  <p>$$
+  \theta \gets \theta + \alpha \nabla_\theta J(\theta)
+  $$</p>
+  <p>这里我们<strong>沿梯度方向走</strong>，因为梯度指向"上升最快"的方向。</p>
+  <pre><code>θ ──→ 梯度方向：J增加最快</code></pre>
+
+  <h4>4.4 联系 Actor-Critic 的更新公式</h4>
+  
+  <p><strong>① Critic 要最小化 TD 误差平方：</strong></p>
+  <p>$$
+  L = \frac{1}{2} \delta_t^2
+  $$</p>
+  <p>所以：</p>
+  <p>$$
+  \theta_\text{Critic} \gets \theta_\text{Critic} - \alpha \nabla_\theta L = \theta_\text{Critic} + \alpha \delta_t \nabla_\theta V_\theta(s)
+  $$</p>
+  <p>（因为 $-\nabla_\theta L = \delta_t \nabla_\theta V_\theta(s)$）</p>
+  <p><em>这实际上是反向传播梯度形式的数学表达式。</em></p>
+
+  <p><strong>② Actor 要最大化期望回报：</strong></p>
+  <p>$$
+  J = \mathbb{E}[\log \pi_\theta(a|s) A_t]
+  $$</p>
+  <p>所以：</p>
+  <p>$$
+  \theta_\text{Actor} \gets \theta_\text{Actor} + \alpha \nabla_\theta J = \theta_\text{Actor} + \alpha \nabla_\theta \log \pi_\theta(a|s) \delta_t
+  $$</p>
+  <p><em>其中 $\nabla_\theta \log \pi_\theta(a_t|s_t)$ 是从 Actor 网络反向传播得到的梯度；$\delta_t$ 是权重信号（告诉 Actor 这次动作是好还是坏）。</em></p>
+
+  <p><strong>总结：为什么两个更新式一个是"加"，一个是"减"？</strong></p>
+  <ul>
+    <li><strong>Critic 是最小化误差</strong> → 反梯度下降（实际写成加号形式是因为已经展开了负号）；</li>
+    <li><strong>Actor 是最大化回报</strong> → 顺梯度上升。</li>
+  </ul>
+
+  <h3>五、动作采样机制：$a_t \sim \pi(a|s_t)$ 的具体实现</h3>
+
+  <p>在 Actor-Critic 算法中，Actor 是一个策略网络，它的输出不是一个单一动作，而是一个<strong>动作分布</strong>（例如"在状态 $s_t$ 下各个动作的概率"）。</p>
+  <p>然后：</p>
+  <ul>
+    <li>AC 算法会<strong>从这个概率分布中采样（sample）</strong>一个动作，执行它与环境交互。</li>
+  </ul>
+  <p>所以：</p>
+  <p>$$
+  a_t \sim \pi_\theta(a|s_t)
+  $$</p>
+  <p>意思是"从由 Actor 网络定义的分布 π 中抽取一个动作 $a_t$"。</p>
+
+  <h4>5.1 离散动作空间（例如 CartPole, Atari）</h4>
+  <p>在这种情况下，Actor 输出一个<strong>离散分布</strong>：</p>
+  <p>$$
+  \pi_\theta(a|s) = \text{softmax}(f_\theta(s))
+  $$</p>
+  <p>也就是说，网络输出每个动作的概率 $p_i$，然后从中采样。</p>
+
+  <p><strong>示例（PyTorch）：</strong></p>
+  <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+# 假设 Actor 输出 logits
+logits = actor_net(state)              # shape [n_actions]
+probs = F.softmax(logits, dim=-1)      # 转成概率分布
+dist = torch.distributions.Categorical(probs)
+action = dist.sample()                 # 从分布中采样一个动作</code></pre>
+
+  <ul>
+    <li><code>Categorical</code> 表示多项式分布；</li>
+    <li><code>dist.sample()</code> 就是实现 $a_t \sim \pi_\theta(a|s_t)$；</li>
+    <li><code>dist.log_prob(action)</code> 之后会用于策略梯度更新。</li>
+  </ul>
+
+  <p><strong>这就对应伪代码里的那一行："选择动作 $a_t \sim \pi(a|s_t)$"</strong></p>
+  <p>实际上就是从 softmax 概率中抽样动作。</p>
+
+  <h4>5.2 连续动作空间（例如 Pendulum, Mujoco）</h4>
+  <p>在连续动作空间下，我们无法用 softmax，因为动作是实数。</p>
+  <p>于是 Actor 输出一个<strong>高斯分布参数</strong>：</p>
+  <p>$$
+  \pi_\theta(a|s) = \mathcal{N}(\mu_\theta(s), \sigma_\theta(s)^2)
+  $$</p>
+  <p>然后从该分布采样：</p>
+  <p>$$
+  a_t = \mu_\theta(s_t) + \sigma_\theta(s_t) \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
+  $$</p>
+
+  <p><strong>示例（PyTorch）：</strong></p>
+  <pre><code class="language-python">mu, log_std = actor_net(state)
+std = log_std.exp()
+dist = torch.distributions.Normal(mu, std)
+action = dist.sample()                 # 连续采样
+action = torch.tanh(action)            # 限制在[-1,1]范围</code></pre>
+
+  <ul>
+    <li>有些实现还会用 <code>dist.rsample()</code>（重参数化采样）来保持梯度可传播。</li>
+  </ul>
+
+  <h3>六、核心公式总结</h3>
+  <ul>
+    <li><b>TD 误差（用于 Advantage 估计）</b>：
+      <p>$$
+      \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)
+      $$</p>
+    </li>
+    <li><b>Actor 更新（梯度上升，最大化回报）</b>：
       <p>$$
       \theta_\text{Actor} \gets \theta_\text{Actor} + \alpha_\text{Actor} \nabla_\theta \log \pi_\theta(a|s) \, \delta_t
       $$</p>
     </li>
-    <li><b>Critic 更新</b>：
+    <li><b>Critic 更新（梯度下降，最小化误差）</b>：
       <p>$$
-      \theta_\text{Critic} \gets \theta_\text{Critic} + \alpha_\text{Critic} \delta_t \nabla_\theta V_\theta(s)
+      \phi_\text{Critic} \gets \phi_\text{Critic} + \alpha_\text{Critic} \delta_t \nabla_\phi V_\phi(s)
       $$</p>
+      <p><em>（等价于 $\phi \gets \phi - \alpha \nabla_\phi \frac{1}{2}\delta_t^2$）</em></p>
     </li>
   </ul>
 
-  <h3>五、训练流程</h3>
+  <h3>七、训练流程</h3>
   <ol>
     <li>初始化 Actor 和 Critic 网络</li>
-    <li>与环境交互，选择动作 a_t ∼ π(a|s_t)</li>
-    <li>执行动作，获得 r_{t+1}, s_{t+1}</li>
-    <li>Critic 计算 TD 误差 δ_t</li>
-    <li>Actor 使用 δ_t 更新策略</li>
-    <li>Critic 使用 δ_t 更新价值函数</li>
+    <li>与环境交互，<strong>选择动作 $a_t \sim \pi(a|s_t)$</strong>（从概率分布中采样）</li>
+    <li>执行动作，获得 $r_{t+1}, s_{t+1}$</li>
+    <li>Critic 计算 TD 误差 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$</li>
+    <li>Actor 使用 $\delta_t$ 进行<strong>梯度上升</strong>更新策略</li>
+    <li>Critic 使用 $\delta_t$ 进行<strong>梯度下降</strong>更新价值函数</li>
     <li>重复以上步骤直到训练完成</li>
   </ol>
 
-  <h3>五、Actor-Critic 示例代码</h3>
+  <h3>八、Actor-Critic 示例代码（离散动作空间）</h3>
   <pre><code class="language-python">
 import numpy as np
 import torch
