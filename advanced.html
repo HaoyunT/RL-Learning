@@ -470,23 +470,23 @@ footer span {
   <aside>
     <h3>🔥 进阶目录</h3>
     <ul>
-      <li><a href="#chapter14">第十四章：Dueling DQN</a></li>
-      <li><a href="#chapter15">第十五章：PER</a></li>
-      <li><a href="#chapter16">第十六章：NoisyNet DQN</a></li>
-      <li><a href="#chapter17">第十七章：Rainbow DQN</a></li>
-      <li><a href="#chapter18">第十八章：DPG & DDPG</a></li>
-      <li><a href="#chapter19">第十九章：TD3</a></li>
-      <li><a href="#chapter20">第二十章：TRPO</a></li>
-      <li><a href="#chapter21">第二十一章：PPO</a></li>
-      <li><a href="#chapter22">第二十二章：SAC</a></li>
-      <li><a href="#chapter23">第二十三章：策略梯度增强组合</a></li>
+      <li><a href="#chapter1">第一章：Dueling DQN</a></li>
+      <li><a href="#chapter2">第二章：PER</a></li>
+      <li><a href="#chapter3">第三章：NoisyNet DQN</a></li>
+      <li><a href="#chapter4">第四章：Rainbow DQN</a></li>
+      <li><a href="#chapter5">第五章：DPG & DDPG</a></li>
+      <li><a href="#chapter6">第六章：TD3</a></li>
+      <li><a href="#chapter7">第七章：TRPO</a></li>
+      <li><a href="#chapter8">第八章：PPO</a></li>
+      <li><a href="#chapter9">第九章：SAC</a></li>
+      <li><a href="#chapter10">第十章：策略梯度增强组合</a></li>
       <li><a href="#chapter_summary">进阶总结</a></li>
     </ul>
   </aside>
 
   <main>
-  <section id="chapter14" class="chapter">
-    <h2>第十四章：Dueling DQN（双流架构）</h2>
+  <section id="chapter1" class="chapter">
+    <h2>第一章：Dueling DQN（双流架构）</h2>
     <p>Dueling DQN 将 Q 网络拆分为<strong>状态价值分支 V(s)</strong>与<strong>动作优势分支 A(s,a)</strong>，用两条并行的子网络分别估计状态的整体价值与动作的相对优势，再将二者组合得到 Q 值。这种设计在一些状态下动作差异较小（或动作无关）的场景下能显著提升估计稳定性与收敛速度。</p>
 
     <h3>1. 核心结构与数学形式</h3>
@@ -726,8 +726,8 @@ if __name__ == "__main__":
     </ul>
   </section>
 
-    <section id="chapter15" class="chapter">
-      <h2>第十五章：PER</h2>
+    <section id="chapter2" class="chapter">
+      <h2>第二章：PER</h2>
       
 
       <h3>PER：优先经验回放</h3>
@@ -974,8 +974,8 @@ for episode in range(1000):
       <p><strong>改进路线：</strong>DQN → Double DQN → Dueling DQN → PER → Rainbow DQN</p>
     </section>
 
-    <section id="chapter16" class="chapter">
-      <h2>第十六章：NoisyNet DQN（自适应探索）</h2>
+    <section id="chapter3" class="chapter">
+      <h2>第三章：NoisyNet DQN（自适应探索）</h2>
 
       <p>前面通过 Dueling 和 PER 改进了网络结构和采样效率，但探索问题还没解决好。</p>
 
@@ -1131,8 +1131,8 @@ for episode in range(1000):
       <p><strong>改进路线：</strong>DQN → Double DQN → Dueling DQN → PER → <strong>NoisyNet DQN</strong> → Rainbow DQN</p>
     </section>
 
-    <section id="chapter17" class="chapter">
-      <h2>第十七章：Rainbow DQN（集大成者）</h2>
+    <section id="chapter4" class="chapter">
+      <h2>第四章：Rainbow DQN（集大成者）</h2>
 
       <h3>预备知识：N-Step Learning（多步时序差分）</h3>
 
@@ -1422,8 +1422,8 @@ for each episode:
       </ul>
     </section>
 
-    <section id="chapter18" class="chapter">
-      <h2>第十八章：DPG & DDPG（从确定性策略梯度到深度实现）</h2>
+    <section id="chapter5" class="chapter">
+      <h2>第五章：DPG & DDPG（从确定性策略梯度到深度实现）</h2>
 
       <p><strong> 深入理解 DPG（Deterministic Policy Gradient）：从随机到确定性策略的桥梁</strong></p>
 
@@ -1597,7 +1597,7 @@ for each episode:
 
       <hr>
 
-      <h4>📊 三层验证总结表</h4>
+      <h4>三层验证总结表</h4>
 
       <table>
         <tr><th>层次</th><th>检验内容</th><th>结论</th></tr>
@@ -1651,7 +1651,7 @@ for each episode:
 
       <p>DPG 理论很优雅，但在实践中通常与 DQN 的稳定化技巧结合，形成 <strong>DDPG（Deep DPG）</strong>。以下流程是带目标网络和回放池的可用版。</p>
 
-      <h4>0️⃣ 初始化</h4>
+      <h4>初始化</h4>
       <ul>
         <li>随机初始化 Actor $\mu_\theta$、Critic $Q_\phi$</li>
         <li>复制到目标网络 $\mu_{\theta'}, Q_{\phi'}$</li>
@@ -1659,16 +1659,16 @@ for each episode:
         <li>设定超参数：学习率、$\gamma$、$\tau$、批大小、噪声标准差等</li>
       </ul>
 
-      <h4>1️⃣ 交互采样（带探索噪声）</h4>
+      <h4>交互采样（带探索噪声）</h4>
       <p>在每个时间步：</p>
   $$a_t = \operatorname{clip}\big(\mu_\theta(s_t) + \epsilon_t,\; \text{bounds}\big),\quad \epsilon_t \sim \mathcal{N}(0,\, \sigma_{\text{explore}}^{2} I)$$
       <p>执行 $a_t$，收集 $(s_t, a_t, r_t, s_{t+1}, d_t)$，加入回放池。</p>
 
-      <h4>2️⃣ 采样批次</h4>
+      <h4>采样批次</h4>
       <p>从 $\mathcal{D}$ 中随机采样 $N$ 条经验：</p>
   $$(s_i, a_i, r_i, s'_i, d_i)$$
 
-      <h4>3️⃣ Critic 更新</h4>
+      <h4>Critic 更新</h4>
   <p>目标值（TD 目标）：</p>
   $$y_i = r_i + \gamma\,(1-d_i)\, Q_{\phi'}\!\big(s'_i,\, \mu_{\theta'}(s'_i)\big)$$
   <p>Critic 损失：</p>
@@ -1676,17 +1676,17 @@ for each episode:
   <p>优化：</p>
   <div class="equation">$$\phi \leftarrow \phi - \eta_Q \, \nabla_{\phi} L_Q$$</div>
 
-      <h4>4️⃣ Actor 更新（确定性策略梯度）</h4>
+      <h4>Actor 更新（确定性策略梯度）</h4>
   $$\nabla_{\theta} J \;\approx\; \frac{1}{N} \sum_i \nabla_{\theta} \mu_{\theta}(s_i)\; \nabla_{a} Q_{\phi}(s_i, a)\big|_{a=\mu_{\theta}(s_i)}$$
   <p>通常通过最小化：</p>
   $$L_\pi = -\frac{1}{N} \sum_i Q_{\phi}\big(s_i, \mu_{\theta}(s_i)\big)$$
   <p>优化：</p>
   $$\theta \leftarrow \theta - \eta_\pi \, \nabla_{\theta} L_\pi$$
 
-      <h4>5️⃣ 目标网络软更新</h4>
+      <h4>目标网络软更新</h4>
   $$\theta' \leftarrow \tau\,\theta + (1-\tau)\,\theta',\quad \phi' \leftarrow \tau\,\phi + (1-\tau)\,\phi'$$
 
-      <h4>6️⃣ 重复直到收敛</h4>
+      <h4>重复直到收敛</h4>
       <p>定期在无噪声条件下评估策略性能。</p>
 
       <hr>
@@ -1790,8 +1790,8 @@ for episode = 1 to max_episodes:
       <p>DPG 是"从随机到确定性"的重要桥梁。它让强化学习在连续控制领域拥有了实用可行的路径，并成为后续 DDPG、TD3、SAC 等算法的理论基础。</p>
     </section>
 
-    <section id="chapter19" class="chapter">
-      <h2>第十九章：TD3（Twin Delayed DDPG）</h2>
+    <section id="chapter6" class="chapter">
+      <h2>第六章：TD3（Twin Delayed DDPG）</h2>
       <h3>0. 一句话与定位</h3>
       <p><strong>TD3 = DDPG 的三件套稳态升级：</strong></p>
 
@@ -1886,8 +1886,8 @@ for t in 1..T:
       </ul>
     </section>
 
-    <section id="chapter20" class="chapter">
-      <h2>第二十章：TRPO（Trust Region Policy Optimization）</h2>
+    <section id="chapter7" class="chapter">
+      <h2>第七章：TRPO（Trust Region Policy Optimization）</h2>
       <h3>一、为什么需要 TRPO？</h3>
       <p>在策略梯度类算法（如 REINFORCE、A2C、A3C）中，每次更新都会导致策略分布变化。神经网络的非线性特性使得一次“合理”的梯度步可能导致策略输出完全崩溃（policy collapse）。因此，TRPO 的核心思想是：<strong>既要让策略改进，又要保证它不要离旧策略太远</strong>，即“信赖域优化”。</p>
 
@@ -1986,13 +1986,13 @@ for t in 1..T:
       <p>TRPO 通过信赖域约束，保证每次策略更新都安全且高效，是深度强化学习中稳定性极高的策略优化方法。</p>
     </section>
 
-    <section id="chapter21" class="chapter">
-      <h2>第二十一章：PPO 全解析——让策略优化又稳又简单</h2>
+    <section id="chapter8" class="chapter">
+      <h2>第八章：PPO 全解析——让策略优化又稳又简单</h2>
 
       <p>“TRPO 给了我们理论上的安全感，PPO 把它变成了能跑在显卡上的现实。”</p>
 
 
-      <h3>🧩 核心洞察：PPO 是"小范围 Off-Policy"算法</h3>
+      <h3>核心洞察：PPO 是"小范围 Off-Policy"算法</h3>
       <p>虽然 PPO 通常被归类为 <strong>on-policy</strong> 算法，但严格来说，它是一种 <strong>"局部 off-policy（small off-policy）"</strong> 策略优化方法。</p>
       
       <p><strong>为什么这么说？</strong></p>
@@ -2048,7 +2048,7 @@ for t in 1..T:
       </table>
       <p>这样可以<strong>共享同一网络骨干</strong>（特征层），一次反向传播同时更新策略与价值网络。</p>
 
-      <h3>五、⚙️ 完整算法流程详解</h3>
+      <h3>五、完整算法流程详解</h3>
       
       <p><strong>Step 1 — 采样阶段</strong></p>
       <p>用当前策略 $\pi_{\text{old}}$ 与环境交互，采集 T 条轨迹数据：</p>
@@ -2099,7 +2099,7 @@ for t in 1..T:
         <li>然后重新采样新一轮数据。</li>
       </ol>
 
-      <h3>六、📋 伪代码</h3>
+      <h3>六、伪代码</h3>
       <pre class="line-numbers"><code class="language-python">Initialize θ, ψ
 for iteration = 1, 2, ... do
     # Step 1: 采样
@@ -2184,7 +2184,7 @@ end for</code></pre>
       </table>
       <p>PPO 就是 TRPO 的一阶化近似：TRPO 控制 KL；PPO 直接控制比率。两者目标几乎等价，只是 PPO 更便于梯度下降实现。</p>
 
-      <h3>十一、✅ 一句话总结</h3>
+      <h3>十一、总结</h3>
       <p><strong>PPO 是一种 "局部 off-policy、整体近似 on-policy" 的策略优化算法。</strong></p>
       <p>它在旧策略数据上做多轮剪切更新，用比率修正轻微分布差异，用 Clip 或 KL 限制策略偏移，
       兼顾了<strong>样本利用率、训练稳定性与实现简洁性</strong>，
@@ -2207,41 +2207,370 @@ end for</code></pre>
 
     </section>
 
-    <section id="chapter22" class="chapter">
-      <h2>第二十二章：SAC（Soft Actor-Critic）</h2>
-      <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
+    <section id="chapter9" class="chapter">
+      <h2>第九章：SAC 全解析——最大熵强化学习的黄金标准</h2>
+
+      <p><strong>Soft Actor-Critic (SAC)：最大熵强化学习的黄金标准</strong></p>
+
+      <p>在强化学习的世界里，<strong>Soft Actor-Critic（SAC）</strong> 是目前连续控制领域中最受欢迎、最稳定、也是最通用的算法之一。
+      它兼具 <strong>高样本效率（off-policy）、稳定性强（双 Q 网络 + 目标网络）</strong>和 <strong>强探索能力（最大熵框架）</strong>。</p>
+
+      <p>SAC 可以被看作是：</p>
+      <p class="equation"><strong>"DDPG + 熵正则化 + 双 Q + 自适应探索"</strong>的升级版。</p>
+
+      <h3>一、从最大期望到最大熵</h3>
+
+      <p>传统强化学习目标是最大化回报：</p>
+      <p class="equation">$$J(\pi)=\mathbb{E}_{\pi}\Big[\sum_{t} \gamma^{t} r(s_t,a_t)\Big]$$</p>
+
+      <p>而 <strong>SAC</strong> 在此基础上引入了<strong>策略熵（entropy）</strong>，目标变为：</p>
+      <p class="equation">$$J(\pi)=\mathbb{E}_{\pi}\Big[\sum_{t} \gamma^{t} \big(r(s_t,a_t)+\alpha \mathcal{H}(\pi(\cdot|s_t))\big)\Big]$$</p>
+
+      <p>其中：</p>
+      <p class="equation">$$\mathcal{H}(\pi(\cdot|s))=-\mathbb{E}_{a\sim\pi}\big[\log \pi(a|s)\big]$$</p>
+
+      <ul>
+        <li><strong>α</strong>：温度系数，用于平衡"回报"和"熵"；</li>
+        <li><strong>熵项</strong>：鼓励策略更随机，从而更具探索性。</li>
+      </ul>
+
+      <p>直观地说，SAC 让智能体既<strong>追求高分</strong>，也保持<strong>"多样化选择"</strong>，避免陷入局部最优。</p>
+
+      <h3>二、SAC 与传统 Actor-Critic 的根本区别</h3>
+
+      <p>很多人第一次看到 SAC 名字时会以为它就是 AC 的一个小变体，但其实它是 <strong>off-policy + value-based</strong> 的 AC。</p>
+
+      <table>
+        <tr><th>对比项</th><th>传统 AC（如 A2C / PPO）</th><th>SAC</th></tr>
+        <tr><td>采样方式</td><td>On-policy（每次新数据）</td><td>Off-policy（可重用旧数据）</td></tr>
+        <tr><td>值函数</td><td>V(s) 或 Q(s,a)</td><td>双 Q 网络</td></tr>
+        <tr><td>策略类型</td><td>随机策略（稳定但探索弱）</td><td>最大熵随机策略（探索强）</td></tr>
+        <tr><td>目标网络</td><td>❌ 无需</td><td>✅ 必需，用于稳定 TD 目标</td></tr>
+        <tr><td>是否自适应探索</td><td>❌ 固定</td><td>✅ α 自动调节探索强度</td></tr>
+      </table>
+
+      <p>SAC 继承了 <strong>DDPG 的 Off-policy 架构</strong>（含目标网络），又融合了<strong>随机策略和熵最大化</strong>，形成一个更鲁棒的框架。</p>
+
+      <h3>三、算法结构与核心组件</h3>
+
+      <table>
+        <tr><th>模块</th><th>作用</th></tr>
+        <tr><td>Actor（策略网络）</td><td>输出高斯分布参数 μ、σ，经 Tanh 压缩采样动作</td></tr>
+        <tr><td>Critic（Q 网络 ×2）</td><td>估计动作价值，取最小值减少过估计</td></tr>
+        <tr><td>目标 Critic 网络（Target Q）</td><td>提供稳定目标值，缓慢更新</td></tr>
+        <tr><td>温度参数 α</td><td>自适应调节探索强度</td></tr>
+      </table>
+
+      <p>SAC 中存在 <strong>两套 Critic 网络</strong>：</p>
+
+      <ul>
+        <li><strong>在线 Q 网络</strong>：$Q_{\theta_1}, Q_{\theta_2}$</li>
+        <li><strong>目标 Q 网络</strong>：$Q_{\bar{\theta}_1}, Q_{\bar{\theta}_2}$</li>
+      </ul>
+
+      <p>目标网络参数来源于在线网络的滑动平均：</p>
+      <p class="equation">$$\bar{\theta}_i \leftarrow \tau \theta_i + (1-\tau) \bar{\theta}_i$$</p>
+      <p>（一般 τ=0.005）</p>
+
+      <h3>四、目标网络的由来与必要性</h3>
+
+      <p>传统 AC（如 PPO、A2C）是 <strong>on-policy</strong> 算法，用的数据都是当前策略刚采的，不复用旧样本，因此目标计算稳定，不需要目标网络。</p>
+
+      <p>但 <strong>SAC 是 off-policy</strong>：</p>
+
+      <ul>
+        <li>使用<strong>经验回放池</strong>复用旧数据；</li>
+        <li>当前 Q 网络不断更新；</li>
+        <li>若直接用最新 Q 网络计算 TD 目标，会出现<strong>"自我反馈"</strong>，造成目标漂移。</li>
+      </ul>
+
+      <p>为避免这种不稳定，SAC 借鉴了 <strong>DQN</strong> 的做法：</p>
+      <p>用一个<strong>缓慢更新的目标 Q 网络</strong>来生成稳定的 TD 目标。</p>
+
+      <p>这样一来，Critic 的更新目标更平滑，训练过程更稳定。</p>
+
+      <h3>五、SAC 的核心优化目标</h3>
+
+      <h4>Critic 更新</h4>
+
+      <p><strong>目标值：</strong></p>
+      <p class="equation">$$y = r + \gamma \mathbb{E}_{a' \sim \pi_{\phi}}\Big[\min_i Q_{\bar{\theta}_i}(s',a') - \alpha \log \pi_{\phi}(a'|s')\Big]$$</p>
+
+      <p><strong>损失函数：</strong></p>
+      <p class="equation">$$L_Q(\theta_i) = \mathbb{E}\Big[\big(Q_{\theta_i}(s,a) - y\big)^2\Big]$$</p>
+
+      <h4>Actor 更新</h4>
+      <p class="equation">$$L_{\pi}(\phi) = \mathbb{E}_{s \sim D, a \sim \pi_{\phi}}\Big[\alpha \log \pi_{\phi}(a|s) - \min_i Q_{\theta_i}(s,a)\Big]$$</p>
+      
+      <p><strong>目标：</strong>提高高 Q 动作的概率，同时保持熵。</p>
+
+      <h4>温度 α 更新</h4>
+      <p class="equation">$$L_{\alpha} = \mathbb{E}_{a \sim \pi_{\phi}}\Big[-\alpha \big(\log \pi_{\phi}(a|s) + H_{\text{target}}\big)\Big]$$</p>
+      
+      <p>让平均熵接近目标熵，自动调节探索。</p>
+
+      <h3>六、SAC 完整训练流程</h3>
+
+      <h4>初始化</h4>
+      <ul>
+        <li>初始化 Actor、Critic、目标 Critic 网络；</li>
+        <li>初始化经验回放池 D；</li>
+        <li>设置目标熵 $H_{\text{target}}$。</li>
+      </ul>
+
+      <h4>主循环</h4>
+      <ol>
+        <li>从当前策略采样动作 $a_t \sim \pi_{\phi}(a|s_t)$，与环境交互；</li>
+        <li>存储 $(s_t, a_t, r_t, s_{t+1}, \text{done})$；</li>
+        <li>从 D 中采样批量数据；</li>
+        <li><strong>更新 Critic</strong>：用目标网络计算目标 $y$，最小化 Q 损失；</li>
+        <li><strong>更新 Actor</strong>：通过重参数化技巧采样动作，最小化策略损失；</li>
+        <li><strong>更新温度 α</strong>；</li>
+        <li><strong>软更新目标网络</strong>：$\bar{\theta}_i \leftarrow \tau \theta_i + (1-\tau) \bar{\theta}_i$。</li>
+      </ol>
+
+      <h3>七、核心实现要点</h3>
+
+      <h4>重参数化技巧</h4>
+      <p>通过</p>
+      <p class="equation">$$a = \tanh\big(\mu_{\phi}(s) + \sigma_{\phi}(s) \odot \epsilon\big), \quad \epsilon \sim \mathcal{N}(0,I)$$</p>
+      <p>使采样过程可微，从而直接对 Actor 反传梯度。</p>
+
+      <h4>Tanh 修正 log-prob</h4>
+      <p>因动作经过 Tanh 压缩，需对 $\log \pi(a|s)$ 加雅可比修正项。</p>
+
+      <h4>双 Q 网络防过估计</h4>
+      <p>使用 $\min(Q_1, Q_2)$ 而非平均。</p>
+
+      <h4>目标网络稳定更新</h4>
+      <p>使用 Polyak 平滑，避免目标抖动。</p>
+
+      <h3>八、伪代码（PyTorch 风格）</h3>
+
+      <pre class="line-numbers"><code class="language-python">for each timestep:
+    a_t = policy.sample_action(s_t)
+    s2, r, done = env.step(a_t)
+    replay.add(s_t, a_t, r, s2, done)
+    s_t = s2
+
+    if timestep > warmup:
+        batch = replay.sample(batch_size)
+
+        # --- Critic update ---
+        with torch.no_grad():
+            a2, logp2 = policy.sample_with_logp(batch.s2)
+            target_q = r + gamma * (1 - done) * (
+                torch.min(q1_target(batch.s2,a2), q2_target(batch.s2,a2)) - alpha * logp2
+            )
+        q1_loss = mse(q1(batch.s,a), target_q)
+        q2_loss = mse(q2(batch.s,a), target_q)
+        opt_q.zero_grad(); (q1_loss+q2_loss).backward(); opt_q.step()
+
+        # --- Actor update ---
+        a_pi, logp = policy.sample_with_logp(batch.s)
+        q_pi = torch.min(q1(batch.s,a_pi), q2(batch.s,a_pi))
+        pi_loss = (alpha * logp - q_pi).mean()
+        opt_pi.zero_grad(); pi_loss.backward(); opt_pi.step()
+
+        # --- Alpha update ---
+        alpha_loss = -(alpha_log * (logp + target_entropy).detach()).mean()
+        opt_alpha.zero_grad(); alpha_loss.backward(); opt_alpha.step()
+        alpha = alpha_log.exp()
+
+        # --- Soft update ---
+        for p, tp in zip(q1.parameters(), q1_target.parameters()):
+            tp.data.copy_(tau * p.data + (1 - tau) * tp.data)</code></pre>
+
+      <h3>九、超参数建议</h3>
+      
+      <table>
+        <tr><th>参数</th><th>推荐值</th><th>说明</th></tr>
+        <tr><td>γ</td><td>0.99</td><td>折扣因子</td></tr>
+        <tr><td>τ</td><td>0.005</td><td>目标网络软更新系数</td></tr>
+        <tr><td>批量大小</td><td>256</td><td>较大批次更稳定</td></tr>
+        <tr><td>学习率</td><td>3e-4</td><td>所有网络一致</td></tr>
+        <tr><td>目标熵</td><td>$-\text{dim}(A)$</td><td>通常取动作维度的负值</td></tr>
+        <tr><td>回放池大小</td><td>1e6</td><td>支持长期经验复用</td></tr>
+      </table>
+
+      <h3>十、为什么 SAC 稳定又强大？</h3>
+
+      <ul>
+        <li><strong>最大熵目标</strong> - 自动平衡探索与利用</li>
+        <li><strong>双 Q 网络</strong> - 抑制过估计偏差</li>
+        <li><strong>目标网络</strong> - 平滑更新目标，稳定训练</li>
+        <li><strong>Off-policy 架构</strong> - 极高样本效率</li>
+        <li><strong>α 自适应调节</strong> - 减少手动调参</li>
+      </ul>
+
+      <h3>十一、算法对比</h3>
+
+      <p><strong>PPO</strong> 限制策略变化（防止太乱）；<strong>SAC</strong> 鼓励策略保持随机性（防止太"死"）。</p>
+
+      <p><strong>PPO</strong> 采用"小心前进"的策略；<strong>SAC</strong> 采用"广泛探索"的方法。</p>
+
+      <p>SAC 的最大熵思想让智能体在不确定性中保持探索性，既不会过于贪婪，也不会过于保守。</p>
+
+      <h3>十二、总结</h3>
+
+      <p><strong>Soft Actor-Critic = Off-policy Actor-Critic + 双 Q + 目标网络 + 最大熵探索。</strong></p>
+
+      <p>它把<strong>稳定性、效率与探索性</strong>融合在一起，
+      成为目前连续控制任务中最强的 RL 算法之一。</p>
+
     </section>
 
-    <section id="chapter23" class="chapter">
-      <h2>第二十三章：策略梯度增强组合</h2>
+    <section id="chapter10" class="chapter">
+      <h2>第十章：策略梯度增强组合</h2>
       <p>占位：本章节内容待补充（简要保留标题以保持目录结构）。</p>
     </section>
 
     <section id="chapter_summary" class="chapter">
-      <h2>进阶总结与学习建议</h2>
-      <h3>1. 能力地图</h3>
+      <h2>进阶总结：从入门到精通的完整路径</h2>
+
+      <p>本篇涵盖了深度强化学习从价值函数改进到策略优化的完整演进历程，包含十个核心算法的理论分析与实现细节。</p>
+
+      <h3>一、算法演化地图</h3>
+      
+      <h4>价值函数优化分支（第1-4章）</h4>
+      <p><strong>DQN → Dueling DQN → PER → NoisyNet → Rainbow</strong></p>
+      
       <table>
-        <tr><th>能力</th><th>相关算法</th><th>提升路径</th></tr>
-        <tr><td>样本效率</td><td>PER、Rainbow、SAC</td><td>优先采样 → 多步目标 → 最大熵</td></tr>
-        <tr><td>稳定性</td><td>Dueling、TD3、PPO</td><td>架构改进 → 双网络 → 剪切损失</td></tr>
-        <tr><td>连续控制</td><td>DDPG、TD3、SAC</td><td>确定性策略 → 双 Critic → 温度自适应</td></tr>
+        <tr><th>算法</th><th>核心创新</th><th>解决问题</th><th>适用场景</th></tr>
+        <tr><td><strong>Dueling DQN</strong></td><td>双流架构 V(s) + A(s,a)</td><td>状态价值估计精度</td><td>动作价值差异小的环境</td></tr>
+        <tr><td><strong>PER</strong></td><td>优先经验回放</td><td>样本利用效率低</td><td>稀疏奖励、复杂探索</td></tr>
+        <tr><td><strong>NoisyNet</strong></td><td>参数噪声探索</td><td>ε-贪婪策略局限</td><td>需要深度探索的任务</td></tr>
+        <tr><td><strong>Rainbow</strong></td><td>集成多种改进</td><td>单一技术瓶颈</td><td>综合基准测试</td></tr>
       </table>
 
-      <h3>2. 实战路线</h3>
+      <h4>连续控制分支（第5-6章）</h4>
+      <p><strong>DPG → DDPG → TD3</strong></p>
+      
+      <table>
+        <tr><th>算法</th><th>核心创新</th><th>解决问题</th><th>关键技术</th></tr>
+        <tr><td><strong>DDPG</strong></td><td>确定性策略梯度</td><td>连续动作空间</td><td>Actor-Critic + 目标网络</td></tr>
+        <tr><td><strong>TD3</strong></td><td>双 Critic + 延迟更新</td><td>过估计偏差</td><td>目标策略平滑 + Clipped Q</td></tr>
+      </table>
+
+      <h4>策略优化分支（第7-9章）</h4>
+      <p><strong>TRPO → PPO → SAC</strong></p>
+      
+      <table>
+        <tr><th>算法</th><th>核心创新</th><th>哲学思路</th><th>工程特点</th></tr>
+        <tr><td><strong>TRPO</strong></td><td>信赖域约束</td><td>"稳步前进，不走弯路"</td><td>理论保证，实现复杂</td></tr>
+        <tr><td><strong>PPO</strong></td><td>比率剪切</td><td>"小心翼翼，局部off-policy"</td><td>简单高效，广泛应用</td></tr>
+        <tr><td><strong>SAC</strong></td><td>最大熵框架</td><td>"保持好奇，多走几条路"</td><td>自适应探索，连续控制王者</td></tr>
+      </table>
+
+      <h3>二、算法选择指南</h3>
+
+      <h4>根据任务类型选择</h4>
+      <table>
+        <tr><th>任务特征</th><th>首选算法</th><th>替代方案</th><th>理由</th></tr>
+        <tr><td><strong>离散动作 + 稠密奖励</strong></td><td>Rainbow DQN</td><td>Dueling DQN + PER</td><td>样本效率高，探索充分</td></tr>
+        <tr><td><strong>离散动作 + 稀疏奖励</strong></td><td>PPO + ICM</td><td>NoisyNet DQN</td><td>内在动机，参数噪声探索</td></tr>
+        <tr><td><strong>连续控制 + 稳定性优先</strong></td><td>PPO</td><td>TRPO</td><td>实现简单，训练稳定</td></tr>
+        <tr><td><strong>连续控制 + 效率优先</strong></td><td>SAC</td><td>TD3</td><td>样本效率极高，自适应探索</td></tr>
+        <tr><td><strong>高维连续控制</strong></td><td>SAC</td><td>TD3</td><td>最大熵防止过早收敛</td></tr>
+        <tr><td><strong>实时控制系统</strong></td><td>DDPG / TD3</td><td>SAC</td><td>确定性输出，低延迟</td></tr>
+      </table>
+
+      <h4>根据计算资源选择</h4>
+      <table>
+        <tr><th>资源情况</th><th>推荐算法</th><th>配置建议</th></tr>
+        <tr><td><strong>GPU充足</strong></td><td>SAC, Rainbow</td><td>大批量，深网络，长训练</td></tr>
+        <tr><td><strong>GPU有限</strong></td><td>PPO, TD3</td><td>中等批量，适度网络深度</td></tr>
+        <tr><td><strong>仅CPU</strong></td><td>PPO</td><td>小批量，浅网络，多进程</td></tr>
+        <tr><td><strong>边缘设备</strong></td><td>DQN 变体</td><td>轻量网络，量化推理</td></tr>
+      </table>
+
+      <h3>三、工程实践路线图</h3>
+
+      <h4>入门阶段（1-3个月）</h4>
       <ol>
-        <li>先在 <code>MuJoCo</code> 等经典环境复现 PPO/SAC；</li>
-        <li>引入 TD3 或 Rainbow 对比指标；</li>
-        <li>在自定义环境中调参，观察噪声、熵目标、学习率影响。</li>
+        <li><strong>基础实现</strong>：从 Dueling DQN 开始，掌握 PyTorch/TensorFlow 基本框架</li>
+        <li><strong>环境熟悉</strong>：在 CartPole, LunarLander 等简单环境调试</li>
+        <li><strong>指标监控</strong>：学会观察 loss curves, episode rewards, exploration metrics</li>
+        <li><strong>超参调节</strong>：理解学习率、batch size、网络结构对性能的影响</li>
       </ol>
 
-      <h3>3. 推荐阅读</h3>
+      <h4>进阶阶段（3-6个月）</h4>
+      <ol>
+        <li><strong>连续控制</strong>：掌握 DDPG → TD3 → SAC 的实现与调优</li>
+        <li><strong>复杂环境</strong>：在 MuJoCo, PyBullet 等环境验证算法</li>
+        <li><strong>稳定性技巧</strong>：目标网络、经验回放、梯度裁剪等工程细节</li>
+        <li><strong>并行化</strong>：多进程采样、GPU 加速、分布式训练</li>
+      </ol>
+
+      <h4>精通阶段（6个月+）</h4>
+      <ol>
+        <li><strong>算法改进</strong>：结合具体任务特点，融合多种技术</li>
+        <li><strong>自定义环境</strong>：构建真实应用场景，解决实际问题</li>
+        <li><strong>理论深化</strong>：理解收敛性、样本复杂度、泛化能力</li>
+        <li><strong>前沿跟踪</strong>：关注最新研究，贡献开源社区</li>
+      </ol>
+
+      <h3>四、性能基准与期望</h3>
+
+      <h4>经典环境基准表现</h4>
+      <table>
+        <tr><th>环境</th><th>任务类型</th><th>PPO</th><th>SAC</th><th>TD3</th><th>Rainbow</th></tr>
+        <tr><td><strong>CartPole-v1</strong></td><td>离散控制</td><td>500 (稳定)</td><td>N/A</td><td>N/A</td><td>500 (快速)</td></tr>
+        <tr><td><strong>LunarLander-v2</strong></td><td>离散控制</td><td>200+</td><td>N/A</td><td>N/A</td><td>250+</td></tr>
+        <tr><td><strong>HalfCheetah-v3</strong></td><td>连续控制</td><td>1000-3000</td><td>9000-12000</td><td>8000-10000</td><td>N/A</td></tr>
+        <tr><td><strong>Walker2d-v3</strong></td><td>连续控制</td><td>1500-3000</td><td>4000-5500</td><td>3500-4500</td><td>N/A</td></tr>
+        <tr><td><strong>Humanoid-v3</strong></td><td>高维控制</td><td>1000-2000</td><td>5000-8000</td><td>4000-6000</td><td>N/A</td></tr>
+      </table>
+
+      <h4>训练效率对比</h4>
+      <table>
+        <tr><th>指标</th><th>PPO</th><th>SAC</th><th>TD3</th><th>TRPO</th></tr>
+        <tr><td><strong>样本效率</strong></td><td>中等</td><td>极高</td><td>高</td><td>低</td></tr>
+        <tr><td><strong>训练稳定性</strong></td><td>极高</td><td>高</td><td>高</td><td>极高</td></tr>
+        <tr><td><strong>实现复杂度</strong></td><td>低</td><td>中等</td><td>中等</td><td>高</td></tr>
+        <tr><td><strong>调参难度</strong></td><td>低</td><td>中等</td><td>中等</td><td>高</td></tr>
+        <tr><td><strong>收敛速度</strong></td><td>中等</td><td>快</td><td>中等</td><td>慢</td></tr>
+      </table>
+
+      <h3>五、关键调参经验</h3>
+
+      <h4>通用超参数建议</h4>
+      <table>
+        <tr><th>参数类别</th><th>PPO</th><th>SAC</th><th>TD3</th><th>经验法则</th></tr>
+        <tr><td><strong>学习率</strong></td><td>3e-4</td><td>3e-4</td><td>1e-3</td><td>连续控制可适当增大</td></tr>
+        <tr><td><strong>Batch Size</strong></td><td>64-256</td><td>256-1024</td><td>256</td><td>Off-policy 可用更大批量</td></tr>
+        <tr><td><strong>网络深度</strong></td><td>2-3层</td><td>2-4层</td><td>2-3层</td><td>避免过深，重点在宽度</td></tr>
+        <tr><td><strong>Hidden Size</strong></td><td>64-256</td><td>256-512</td><td>256-400</td><td>复杂任务适当增大</td></tr>
+        <tr><td><strong>Replay Buffer</strong></td><td>N/A</td><td>1M</td><td>1M</td><td>内存允许尽量大</td></tr>
+      </table>
+
+      <h4>常见问题诊断</h4>
+      <table>
+        <tr><th>问题现象</th><th>可能原因</th><th>解决方案</th></tr>
+        <tr><td><strong>训练不收敛</strong></td><td>学习率过大 / 网络过深</td><td>降低学习率 / 简化网络</td></tr>
+        <tr><td><strong>性能抖动大</strong></td><td>探索噪声过大 / 批量太小</td><td>衰减噪声 / 增大batch size</td></tr>
+        <tr><td><strong>收敛后退步</strong></td><td>过拟合 / 灾难性遗忘</td><td>早停 / 经验回放</td></tr>
+        <tr><td><strong>探索不充分</strong></td><td>熵系数过小 / 噪声不足</td><td>增大熵权重 / 调整噪声策略</td></tr>
+        <tr><td><strong>训练速度慢</strong></td><td>网络过大 / 采样效率低</td><td>模型压缩 / 并行采样</td></tr>
+      </table>
+  
+
+
+      <h3>总结</h3>
+
+      <p>本篇系统地介绍了深度强化学习的核心算法，从 Dueling DQN 的架构创新到 SAC 的最大熵探索，每个算法都针对特定问题提供了有效的解决方案。</p>
+
+      <p>掌握强化学习算法的关键在于理解其设计思路和适用场景：</p>
+
       <ul>
-        <li>"Rainbow: Combining Improvements in Deep Reinforcement Learning"</li>
-        <li>"Continuous Control with Deep Reinforcement Learning" (DDPG)</li>
-        <li>"Addressing Function Approximation Error in Actor-Critic Methods" (TD3)</li>
-        <li>"Proximal Policy Optimization Algorithms" (PPO)</li>
-        <li>"Soft Actor-Critic" 系列论文</li>
+        <li><strong>目标导向思维</strong> - 明确奖励函数，设计合理目标</li>
+        <li><strong>平衡权衡意识</strong> - 探索与利用，稳定与效率之间的取舍</li>
+        <li><strong>迭代改进精神</strong> - 持续优化算法性能</li>
+        <li><strong>实验验证习惯</strong> - 理论结合实践，用数据验证效果</li>
+        <li><strong>系统性思考</strong> - 综合考虑算法、环境、应用的整体因素</li>
       </ul>
+
+      <p>强化学习仍在快速发展中，掌握这些经典算法为后续学习更前沿的技术打下了坚实基础。在实际应用中，选择合适的算法、合理的超参数设置，以及充分的实验验证是成功的关键。</p>
     </section>
   </main>
 </div>
