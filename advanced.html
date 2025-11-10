@@ -1987,9 +1987,31 @@ for t in 1..T:
     </section>
 
     <section id="chapter21" class="chapter">
-      <h2>第二十一章：PPO（Proximal Policy Optimization）</h2>
+      <h2>第二十一章：PPO 全解析——让策略优化又稳又简单</h2>
 
       <p>“TRPO 给了我们理论上的安全感，PPO 把它变成了能跑在显卡上的现实。”</p>
+
+
+      <h3>🧩 核心洞察：PPO 是"小范围 Off-Policy"算法</h3>
+      <p>虽然 PPO 通常被归类为 <strong>on-policy</strong> 算法，但严格来说，它是一种 <strong>"局部 off-policy（small off-policy）"</strong> 策略优化方法。</p>
+      
+      <p><strong>为什么这么说？</strong></p>
+      <p>在一次训练循环中：</p>
+      <ol>
+        <li>我们用当前策略 $\pi_{\text{old}}$ 与环境交互，收集一批轨迹；</li>
+        <li>然后<strong>固定这些数据</strong>，在此基础上<strong>多轮更新</strong>新策略 $\pi_{\theta}$。</li>
+      </ol>
+      <p>这意味着在优化时：$\pi_{\theta} \neq \pi_{\text{old}}$，因此当前的优化步骤严格来说已经是 <strong>off-policy 更新</strong>。</p>
+      
+      <p>但 PPO 通过<strong>重要性比率</strong> $r_{\theta}=\frac{\pi_{\theta}(a|s)}{\pi_{\text{old}}(a|s)}$ 以及<strong>剪切约束</strong> $\text{clip}(r_{\theta},1-\epsilon,1+\epsilon)$，
+      强行限制新旧策略差异在一个<strong>局部信赖域（trust region）</strong>内。</p>
+
+      <p><strong>于是：</strong></p>
+      <ul>
+        <li>PPO 的更新可以被理解为一次 <strong>"小范围 off-policy、全局近似 on-policy"</strong> 的优化过程；</li>
+        <li>它既允许一定程度的<strong>数据复用</strong>，又避免了 off-policy 方法常见的<strong>分布偏移问题</strong>；</li>
+        <li>这也是 PPO 之所以能在<strong>"稳定性与效率之间"</strong>取得极佳平衡的原因。</li>
+      </ul>
 
       <h3>一、从策略梯度说起</h3>
       <p>策略梯度方法的目标是直接优化参数化策略 $\pi_{\theta}(a|s)$，最大化期望回报：</p>
@@ -2002,78 +2024,186 @@ for t in 1..T:
       <p>TRPO 通过对平均 KL 散度施加约束，保证策略不“跳得太远”。然而 TRPO 的实现依赖二阶信息（Fisher 矩阵）、共轭梯度与线搜索，工程上复杂且计算开销大。</p>
       <p>PPO 的设计原则是保留 TRPO 的“限制更新幅度”思想，但用简单可靠的一阶方法替代复杂的二阶步骤，从而易实现且高效。</p>
 
-      <h3>三、PPO 的核心：剪切替代目标（Clipped Surrogate Objective）</h3>
-      <p>定义概率比率：</p>
-      <p class="equation">$$r_{\theta}=\dfrac{\pi_{\theta}(a|s)}{\pi_{\text{old}}(a|s)}.$$</p>
-      <p>剪切目标为：</p>
-      <p class="equation">$$L_{\text{CLIP}}(\theta)=\mathbb{E}\Big[\min\big(r_{\theta} A,\; \operatorname{clip}(r_{\theta},1-\epsilon,1+\epsilon) A\big)\Big].$$</p>
-      <p>直观上，对于 $A>0$ 我们希望增大 $r_{\theta}$；对于 $A<0$ 则希望减小 $r_{\theta}$。但当比率变化过大，clip 会把增益截断到 $[1-\epsilon,1+\epsilon]$，从而防止过大的更新。</p>
+      <p><strong>核心目标函数：</strong></p>
+      <p class="equation">$$L_{\text{CLIP}}(\theta)=\mathbb{E}_t\Big[\min\big(r_{\theta}(t)\hat{A}_t,\; \text{clip}(r_{\theta}(t),1-\epsilon,1+\epsilon)\hat{A}_t\big)\Big],$$</p>
+      <p>其中 $r_{\theta}(t)=\dfrac{\pi_{\theta}(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}$ 用于修正采样分布的差异，$\hat{A}_t$ 为优势函数（通常使用 GAE 计算）。</p>
+
+      <p><strong>直觉解释：</strong></p>
+      <ul>
+        <li>如果 $A>0$：说明这个动作比平均好，希望 $r_{\theta}>1$（放大概率）；但若 $r_{\theta}$ 太大，就被 clip 限制在 $1+\epsilon$。</li>
+        <li>如果 $A<0$：说明这个动作不好，策略应减少概率；若 $r_{\theta}$ 太小，同样被 clip 限制。</li>
+      </ul>
+      <p>这样一来：PPO 在"希望更新的方向"上前进，但不会走太远。<strong>clip 就像给策略加了一个安全带</strong>。</p>
 
       <h3>四、完整训练目标（策略 + 值函数 + 熵正则）</h3>
-      <p>实际训练中，PPO 同时优化策略参数 $\theta$ 与值函数参数 $\psi$，总损失常写为：</p>
-      <p class="equation">$$L(\theta,\psi)=L_{\text{CLIP}}(\theta)-c_v\,\mathbb{E}\big[(V_{\psi}(s)-\hat{R})^2\big]+c_e\,\mathbb{E}\big[\mathcal{H}(\pi_{\theta}(\cdot|s))\big],$$</p>
-      <p>其中 $c_v$、$c_e$ 分别控制值函数回归项和熵项的权重，$\hat R$ 为回报或 target 值。</p>
+      <p>在实际训练时，PPO 的最终优化目标包含三部分：</p>
+      <p class="equation">$$L(\theta,\psi)=\underbrace{L_{\text{CLIP}}(\theta)}_{\text{策略目标}}-c_v\underbrace{\mathbb{E}\big[(V_{\psi}(s)-\hat{R})^2\big]}_{\text{值函数回归}}+c_e\underbrace{\mathbb{E}\big[\mathcal{H}(\pi_{\theta}(\cdot|s))\big]}_{\text{熵奖励}}.$$</p>
 
-      <h3>五、训练流程要点</h3>
-      <ol>
-        <li><strong>采样：</strong>用当前策略 $\pi_{\text{old}}$ 与环境交互，收集一批轨迹 $(s_t,a_t,r_t,s_{t+1},d_t,\log\pi_{\text{old}}(a_t|s_t))$；</li>
-        <li><strong>优势估计：</strong>常用 GAE（Generalized Advantage Estimation）：</li>
-      </ol>
-      <p class="equation">$$\delta_t=r_t+\gamma(1-d_t)V(s_{t+1})-V(s_t),\\
-      \hat A_t=\sum_{l=0}^{\infty}(\gamma\lambda)^l \delta_{t+l}.$$</p>
-      <ol start="3">
-        <li>对 $\hat A_t$ 做标准化（mean 0, std 1）以稳定训练；</li>
-        <li><strong>多轮小批量 SGD：</strong>将轨迹打乱为 minibatches，进行多轮 epoch（常见 3–10），使用 Adam 进行优化；</li>
-        <li>如监控到平均 KL 超过阈值（如 0.02），可提前停止当前 epoch；</li>
-        <li>更新 $\pi_{\text{old}}\leftarrow\pi_{\theta}$，重复采样。</li>
-      </ol>
-
-      <h3>六、关键超参数建议</h3>
+      <p><strong>各部分作用：</strong></p>
       <table>
-        <tr><th>参数</th><th>含义</th><th>推荐值</th></tr>
-        <tr><td>$\gamma$</td><td>折扣因子</td><td>0.99</td></tr>
-        <tr><td>$\lambda$</td><td>GAE 衰减</td><td>0.95</td></tr>
-        <tr><td>$\epsilon$</td><td>Clip 边界</td><td>0.1–0.2</td></tr>
+        <tr><th>部分</th><th>作用</th></tr>
+        <tr><td>策略项 $L_{\text{CLIP}}$</td><td>主目标：稳定地提高期望回报</td></tr>
+        <tr><td>值函数项 $L_V$</td><td>提供更稳定的 Advantage 估计，减少方差</td></tr>
+        <tr><td>熵正则项 $\mathcal{H}$</td><td>保持探索性，防止策略塌缩</td></tr>
+      </table>
+      <p>这样可以<strong>共享同一网络骨干</strong>（特征层），一次反向传播同时更新策略与价值网络。</p>
+
+      <h3>五、⚙️ 完整算法流程详解</h3>
+      
+      <p><strong>Step 1 — 采样阶段</strong></p>
+      <p>用当前策略 $\pi_{\text{old}}$ 与环境交互，采集 T 条轨迹数据：</p>
+      <p class="equation">$$\mathcal{D}=\{(s_t,a_t,r_t,s_{t+1},d_t,\log\pi_{\text{old}}(a_t|s_t))\}_{t=1}^T$$</p>
+      <p>行为策略通常为：$a_t\sim\pi_{\text{old}}(a_t|s_t)$。若为连续动作，则动作分布为高斯分布 $\mathcal{N}(\mu_{\theta}(s),\sigma_{\theta}(s))$。</p>
+
+      <p><strong>Step 2 — 优势估计（GAE）</strong></p>
+      <p>采用 <strong>GAE（Generalized Advantage Estimation）</strong> 计算优势函数：</p>
+      <ol>
+        <li><strong>计算 TD 残差：</strong></li>
+      </ol>
+      <p class="equation">$$\delta_t=r_t+\gamma(1-d_t)V_{\psi}(s_{t+1})-V_{\psi}(s_t)$$</p>
+      <ol start="2">
+        <li><strong>向后递推得到优势：</strong></li>
+      </ol>
+      <p class="equation">$$\hat{A}_t=\delta_t+\gamma\lambda(1-d_t)\hat{A}_{t+1}$$</p>
+      <ol start="3">
+        <li><strong>计算目标回报：</strong></li>
+      </ol>
+      <p class="equation">$$\hat{R}_t=\hat{A}_t+V_{\psi}(s_t)$$</p>
+      <ol start="4">
+        <li><strong>对优势做归一化处理：</strong></li>
+      </ol>
+      <p class="equation">$$\hat{A}_t \leftarrow \frac{\hat{A}_t-\text{mean}(\hat{A})}{\text{std}(\hat{A})+10^{-8}}$$</p>
+
+      <p><strong>Step 3 — 策略与价值函数更新</strong></p>
+      <p>对每个小批量数据（minibatch）计算以下损失函数：</p>
+      
+      <p><strong>① 策略损失（剪切形式）</strong></p>
+      <p class="equation">$$L_{\text{CLIP}}(\theta)=\mathbb{E}\Big[\min\big(r_{\theta}\hat{A},\;\text{clip}(r_{\theta},1-\epsilon,1+\epsilon)\hat{A}\big)\Big]$$</p>
+
+      <p><strong>② 值函数损失</strong></p>
+      <p class="equation">$$L_V(\psi)=\frac{1}{2}\mathbb{E}\big[(V_{\psi}(s_t)-\hat{R}_t)^2\big]$$</p>
+
+      <p><strong>③ 熵正则项（鼓励探索）</strong></p>
+      <p class="equation">$$L_H(\theta)=\mathbb{E}\big[\mathcal{H}(\pi_{\theta}(\cdot|s_t))\big]$$</p>
+
+      <p><strong>④ 总损失</strong></p>
+      <p class="equation">$$L_{\text{total}}=-L_{\text{CLIP}}+c_v L_V-c_e L_H$$</p>
+      <p>其中 $c_v,c_e$ 分别为值函数和熵正则的权重系数。</p>
+
+      <p><strong>Step 4 — 小批量多轮优化</strong></p>
+      <ol>
+        <li>将 T 条采样数据打乱成 minibatch（大小通常为 64–256）；</li>
+        <li>用 Adam 优化器在这批数据上训练 K 轮（3–10 epochs）；</li>
+        <li>若实际 KL 偏差超过阈值（如 0.02），提前停止当前 epoch；</li>
+        <li>完成优化后，更新旧策略：$\pi_{\text{old}}\leftarrow\pi_{\theta}$；</li>
+        <li>然后重新采样新一轮数据。</li>
+      </ol>
+
+      <h3>六、📋 伪代码</h3>
+      <pre class="line-numbers"><code class="language-python">Initialize θ, ψ
+for iteration = 1, 2, ... do
+    # Step 1: 采样
+    Collect {s_t, a_t, r_t, s_{t+1}, done_t, logp_old_t} using π_old
+    
+    # Step 2: 计算优势和回报
+    Compute advantages Â_t and targets Ŕ_t via GAE
+    Normalize Â_t: Â ← (Â - mean(Â)) / (std(Â) + 1e-8)
+    
+    # Step 3-4: 多轮小批量更新
+    for epoch in 1..K do
+        for each minibatch in D do
+            # 计算比率
+            Compute ratio r = exp(logπ_θ - logp_old)
+            
+            # 剪切目标
+            L_clip = mean(min(r·Â, clip(r,1-ε,1+ε)·Â))
+            
+            # 值函数损失
+            L_value = ½(V_ψ(s)-Ŕ)²
+            
+            # 熵正则
+            entropy = H(π_θ(·|s))
+            
+            # 总损失
+            loss = -L_clip + c_v*L_value - c_e*entropy
+            
+            # 优化
+            Update θ, ψ using Adam
+        
+        # KL 早停
+        if mean_KL > threshold:
+            break
+    
+    # 更新旧策略
+    π_old ← π_θ
+end for</code></pre>
+
+      <h3>七、关键超参数建议</h3>
+      <table>
+        <tr><th>参数</th><th>含义</th><th>典型值</th></tr>
+        <tr><td>$\gamma$</td><td>折扣系数</td><td>0.99</td></tr>
+        <tr><td>$\lambda$</td><td>GAE 参数</td><td>0.95</td></tr>
+        <tr><td>$\epsilon$</td><td>Clip 范围</td><td>0.1–0.2</td></tr>
         <tr><td>$c_v$</td><td>值函数系数</td><td>0.5</td></tr>
-        <tr><td>$c_e$</td><td>熵系数</td><td>0.01 (continuous 更大)</td></tr>
-        <tr><td>学习率（Adam）</td><td>学习率</td><td>3e-4（任务依赖）</td></tr>
-        <tr><td>T</td><td>每轮采样步数</td><td>2048 或更多</td></tr>
-        <tr><td>Epochs</td><td>每轮训练轮数</td><td>3–10</td></tr>
-        <tr><td>Minibatch</td><td>小批大小</td><td>64–256</td></tr>
+        <tr><td>$c_e$</td><td>熵正则系数</td><td>0.01 (连续动作更大)</td></tr>
+        <tr><td>学习率</td><td>Adam LR</td><td>3e-4（任务依赖）</td></tr>
+        <tr><td>batch size</td><td>每次更新样本数</td><td>64–256</td></tr>
+        <tr><td>T</td><td>每次采样步数</td><td>2048 或更多</td></tr>
+        <tr><td>K (Epochs)</td><td>每批数据重复更新次数</td><td>3–10</td></tr>
       </table>
 
-      <h3>七、常见问题与工程建议</h3>
+      <h3>八、熵正则项要不要保留？</h3>
+      <p>这是一道经典问题。</p>
       <ul>
-        <li><strong>训练发散：</strong>检查学习率与 $\epsilon$，尝试减小二者；</li>
-        <li><strong>提升后又退步：</strong>可能是 epoch 太多或过拟合当前采样，减少 epoch 或监控 KL；</li>
-        <li><strong>策略塌缩：</strong>增大熵系数或使用熵目标衰减策略；</li>
-        <li><strong>值函数不准确：</strong>尝试 value clipping 与更稳定的目标（如双网络），减小值函数学习率；</li>
-        <li><strong>GAE 调参：</strong>较高的 $\lambda$ 更偏向低方差高偏差，常取 $0.92\sim0.98$；</li>
-        <li><strong>样本复用：</strong>PPO 的多 epoch 更新提高了样本利用率，但也增加了过拟合风险，实践中需要折中选择。</li>
+        <li>在<strong>简单离散任务</strong>（如 CartPole）中，可以设为 0；</li>
+        <li>在<strong>连续控制任务</strong>（MuJoCo、PyBullet）中，强烈建议保留；</li>
+        <li><strong>稀疏奖励任务</strong>中（如探索类），甚至需要较大熵系数；</li>
+        <li>常见做法是<strong>前期较大，后期逐步衰减</strong>（例如从 0.02 → 0）。</li>
       </ul>
+      <p>熵项的本质是防止策略方差过早收缩，可以理解为<strong>"让智能体保留一点点犹豫"</strong>。</p>
 
-      <h3>八、PPO 与 TRPO 的关系</h3>
-      <p>简要对比：</p>
+      <h3>九、常见问题与工程建议</h3>
+      <table>
+        <tr><th>问题</th><th>原因</th><th>解决思路</th></tr>
+        <tr><td>训练发散</td><td>学习率或 $\epsilon$ 太大</td><td>减小学习率或 clip 边界</td></tr>
+        <tr><td>提升后又退步</td><td>epoch 太多、过拟合当前采样</td><td>减少 epoch 或监控 KL</td></tr>
+        <tr><td>策略塌缩</td><td>熵太低</td><td>提高 entropy_coef</td></tr>
+        <tr><td>收敛太慢</td><td>优势估计偏差大</td><td>检查 GAE；增加 rollout 步数</td></tr>
+        <tr><td>值函数不准</td><td>学习率过大或未 clip</td><td>开启 value clipping</td></tr>
+      </table>
+
+      <h3>十、PPO 与 TRPO 的关系与区别</h3>
       <table>
         <tr><th>方面</th><th>TRPO</th><th>PPO</th></tr>
         <tr><td>策略约束</td><td>硬 KL 约束</td><td>比率剪切 / KL 惩罚</td></tr>
-        <tr><td>优化方法</td><td>二阶（Fisher）</td><td>一阶（Adam / SGD）</td></tr>
+        <tr><td>优化方法</td><td>二阶（Fisher + 共轭梯度 + 线搜索）</td><td>一阶（SGD / Adam）</td></tr>
+        <tr><td>理论性质</td><td>单调改进保证</td><td>无保证，但经验稳</td></tr>
         <tr><td>实现复杂度</td><td>高</td><td>低</td></tr>
-        <tr><td>样本利用率</td><td>低</td><td>高（多轮复用）</td></tr>
+        <tr><td>样本利用率</td><td>低（单次）</td><td>高（多轮复用）</td></tr>
+        <tr><td>通常表现</td><td>非常稳定，收敛慢</td><td>稳定 + 高效，是主流基线</td></tr>
       </table>
+      <p>PPO 就是 TRPO 的一阶化近似：TRPO 控制 KL；PPO 直接控制比率。两者目标几乎等价，只是 PPO 更便于梯度下降实现。</p>
 
-      <h3>九、小结（Blog 风格补充）</h3>
-      <p>PPO 之所以被广泛采用，不仅因为它在多数基准上表现良好，更重要的是它提供了一条工程可行的路径：
-      用简单的剪切与多轮小批训练替代复杂的二阶求解，使得策略优化可以直接受益于深度学习现有的一阶优化器与并行化实现。
-      在工程实践中，我的经验是：</p>
+      <h3>十一、✅ 一句话总结</h3>
+      <p><strong>PPO 是一种 "局部 off-policy、整体近似 on-policy" 的策略优化算法。</strong></p>
+      <p>它在旧策略数据上做多轮剪切更新，用比率修正轻微分布差异，用 Clip 或 KL 限制策略偏移，
+      兼顾了<strong>样本利用率、训练稳定性与实现简洁性</strong>，
+      成为目前强化学习中最通用、最稳定的 baseline 之一。</p>
+
+      <h3>十二、工程实践建议</h3>
+      <p>PPO 之所以被广泛采用，不仅因为它在多数基准上表现良好，更重要的是它提供了一条<strong>工程可行的路径</strong>：
+      用简单的剪切与多轮小批训练替代复杂的二阶求解，使得策略优化可以直接受益于深度学习现有的一阶优化器与并行化实现。</p>
+      
+      <p><strong>我的经验是：</strong></p>
       <ul>
         <li>先用推荐的超参数跑通（例如 Adam lr=3e-4，$\epsilon=0.1$，T=2048，Epochs=4），观察学习曲线；</li>
         <li>若发散，先调小 lr，其次减小 $\epsilon$；</li>
         <li>在连续控制任务中保留熵正则并逐步衰减；</li>
-        <li>借助现成实现（OpenAI Spinning Up、Stable-Baselines3）作为基线再做改进。</li>
+        <li>借助现成实现（<strong>OpenAI Spinning Up</strong>、<strong>Stable-Baselines3</strong>）作为基线再做改进；</li>
+        <li>监控关键指标：policy loss、value loss、entropy、approx_kl、clip_fraction。</li>
       </ul>
 
-      <p>参考实现：OpenAI Spinning Up、OpenAI 原始实现与 Stable-Baselines3 的 PPO 模块均是很好的工程模板。</p>
+      <p><strong>参考实现：</strong>OpenAI Spinning Up、OpenAI 原始实现与 Stable-Baselines3 的 PPO 模块均是很好的工程模板。</p>
 
     </section>
 
