@@ -1888,6 +1888,19 @@ for t in 1..T:
 
     <section id="chapter7" class="chapter">
       <h2>第七章：TRPO（Trust Region Policy Optimization）</h2>
+
+      <h3>广义优势估计（GAE）简介</h3>
+      <p>在策略梯度方法中，准确且稳定地估计优势函数 $A_t$ 是关键。<strong>广义优势估计（Generalized Advantage Estimation, GAE）</strong>
+      提供了一种在偏差与方差之间进行平衡的有效方法，广泛用于 TRPO、PPO、A2C/A3C 及其它 actor-critic 变体。</p>
+
+      <p>核心思想是把不同步长的多步优势估计按权重加总：对所有 $k$ 步优势做指数衰减加权，从而在一步 TD（低方差、高偏差）与蒙特卡洛（低偏差、高方差）之间取得折中。</p>
+
+      <p class="equation">$$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</p>
+      <p class="equation">$$A_t^{(\lambda)} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \; \delta_{t+l}$$</p>
+      <p>递推实现形式（反向遍历）：</p>
+      <p class="equation">$$A_t = \delta_t + \gamma\lambda (1-d_t) A_{t+1},$$</p>
+      <p>其中 $\lambda\in[0,1]$ 控制平滑程度，$d_t$ 表示 episode 是否终止（用于在结束时重置递推）。在实践中，GAE 通常对优势做归一化后用于策略更新。</p>
+
       <h3>一、为什么需要 TRPO？</h3>
       <p>在策略梯度类算法（如 REINFORCE、A2C、A3C）中，每次更新都会导致策略分布变化。神经网络的非线性特性使得一次“合理”的梯度步可能导致策略输出完全崩溃（policy collapse）。因此，TRPO 的核心思想是：<strong>既要让策略改进，又要保证它不要离旧策略太远</strong>，即“信赖域优化”。</p>
 
