@@ -1159,11 +1159,11 @@ for episode in range(1000):
       <ol>
         <li>维护长度为 N 的队列 <code>n_step_buffer</code>，每次环境交互后入队样本 <code>(s, a, r, s_next, done)</code>。</li>
         <li>当队列满 N 时，计算累计折扣奖励：
-  $$R = \sum_{i=0}^{N-1} \gamma^{i} r_{t+i}$$</li>
-  <li>取队首状态 <code>(s_t, a_t)</code> 和队尾下一个状态 <code>s_{t+N}</code> 构造 N-step 样本：
-  $$(s_t, a_t, R, s_{t+N}, done)$$</li>
-  <li>存入经验回放池，训练时以目标：
-  $$y_t^{(N)} = R + \gamma^{N}\max_{a} Q_{\text{target}}(s_{t+N}, a)$$</li>
+          $$R = \sum_{i=0}^{N-1} \gamma^{i} r_{t+i}$$</li>
+        <li>取队首状态 <code>(s_t, a_t)</code> 和队尾下一个状态 <code>s_{t+N}</code> 构造 N-step 样本：
+          $$(s_t, a_t, R, s_{t+N}, done)$$</li>
+        <li>存入经验回放池，训练时以目标：
+          $$y_t^{(N)} = R + \gamma^{N}\max_{a} Q_{\text{target}}(s_{t+N}, a)$$</li>
       </ol>
 
       <h4>3. 参数与注意事项</h4>
@@ -1467,7 +1467,7 @@ for each episode:
         <p>$$
         J(\mu_\theta) = \mathbb{E}_{s \sim \rho^\mu}[Q^\mu(s, \mu_\theta(s))]
         $$</p>
-        <p>其中 $\rho^\mu$ 是策略 $\mu$ 下的折扣状态分布。</p>
+        <p>其中 $\rho^\mu` 是策略 $\mu$ 下的折扣状态分布。</p>
         <p>则在满足可导条件下，有：</p>
         <p>$$
         \nabla_\theta J(\mu_\theta) = \mathbb{E}_{s \sim \rho^\beta}\left[\nabla_\theta \mu_\theta(s) \, \nabla_a Q^\mu(s,a)\Big|_{a=\mu_\theta(s)}\right]
@@ -1670,7 +1670,7 @@ for each episode:
 
       <h4>Critic 更新</h4>
   <p>目标值（TD 目标）：</p>
-  $$y_i = r_i + \gamma\,(1-d_i)\, Q_{\phi'}\!\big(s'_i,\, \mu_{\theta'}(s'_i)\big)$$
+  $$y_i = r_i + \gamma\,(1 - d_i) \, Q_{\phi'}\!\big(s'_i,\, \mu_{\theta'}(s'_i)\big)$$
   <p>Critic 损失：</p>
   $$L_Q = \frac{1}{N} \sum_i \big(Q_{\phi}(s_i,a_i) - y_i\big)^2$$
   <p>优化：</p>
@@ -1787,7 +1787,7 @@ for episode = 1 to max_episodes:
       </table>
 
       <p><strong> 结语</strong></p>
-      <p>DPG 是"从随机到确定性"的重要桥梁。它让强化学习在连续控制领域拥有了实用可行的路径，并成为后续 DDPG、TD3、SAC 等算法的理论基础。</p>
+      <p>DPG 是"从随机到确定"的重要桥梁。它让强化学习在连续控制领域拥有了实用可行的路径，并成为后续 DDPG、TD3、SAC 等算法的理论基础。</p>
     </section>
 
     <section id="chapter6" class="chapter">
@@ -1861,21 +1861,37 @@ for episode = 1 to max_episodes:
 init μθ, Qφ1, Qφ2; targets μθ', Qφ1', Qφ2'; replay D
 for t in 1..T:
   a = clip( μθ(s) + N(0, σ_explore^2), bounds )
-  s', r, d = env.step(a); D.add(s,a,r,s',d); s ← (s' if not d else reset)
+  s', r, done = env.step(a)
+  replay.add(s,a,r,s',d)
+  s ← (s' if not d else reset)
 
-  if len(D) < batch or t < warmup: continue
-  S,A,R,SN,Dn = sample(D, N)
+  if timestep > warmup:
+      batch = replay.sample(batch_size)
 
-  ε = clip(N(0, σ_targ^2), -c, c)
-  a_targ = clip( μθ'(SN) + ε, bounds )
+      # --- Critic update ---
+      with torch.no_grad():
+          a2, logp2 = policy.sample_with_logp(batch.s2)
+          target_q = r + gamma * (1 - done) * (
+              torch.min(q1_target(batch.s2,a2), q2_target(batch.s2,a2)) - alpha * logp2
+          )
+      q1_loss = mse(q1(batch.s,a), target_q)
+      q2_loss = mse(q2(batch.s,a), target_q)
+      opt_q.zero_grad(); (q1_loss+q2_loss).backward(); opt_q.step()
 
-  y = R + γ(1-Dn) * min( Qφ1'(SN, a_targ), Qφ2'(SN, a_targ) )
-  update φ1, φ2 to minimize MSE(Qφj(S,A), y)
+      # --- Actor update ---
+      a_pi, logp = policy.sample_with_logp(batch.s)
+      q_pi = torch.min(q1(batch.s,a_pi), q2(batch.s,a_pi))
+      pi_loss = (alpha * logp - q_pi).mean()
+      opt_pi.zero_grad(); pi_loss.backward(); opt_pi.step()
 
-  if t % policy_delay == 0:
-     update θ to maximize mean Qφ1(S, μθ(S))
-     soft_update(θ', θ, τ); soft_update(φ1', φ1, τ); soft_update(φ2', φ2, τ)
-</code></pre>
+      # --- Alpha update ---
+      alpha_loss = -(alpha_log * (logp + target_entropy).detach()).mean()
+      opt_alpha.zero_grad(); alpha_loss.backward(); opt_alpha.step()
+      alpha = alpha_log.exp()
+
+      # --- Soft update ---
+      for p, tp in zip(q1.parameters(), q1_target.parameters()):
+          tp.data.copy_(tau * p.data + (1 - tau) * tp.data)</code></pre>
 
       <h3>5. 总结与工程建议</h3>
       <ul>
@@ -1893,110 +1909,62 @@ for t in 1..T:
       <p>在策略梯度方法中，准确且稳定地估计优势函数 $A_t$ 是关键。<strong>广义优势估计（Generalized Advantage Estimation, GAE）</strong>
       提供了一种在偏差与方差之间进行平衡的有效方法，广泛用于 TRPO、PPO、A2C/A3C 及其它 actor-critic 变体。</p>
 
-      <p>核心思想是把不同步长的多步优势估计按权重加总：对所有 $k$ 步优势做指数衰减加权，从而在一步 TD（低方差、高偏差）与蒙特卡洛（低偏差、高方差）之间取得折中。</p>
+      <p>GAE 本质上就是：
+      “把多步 TD 误差按照衰减权重混合在一起”
+      → 得到一个既不太偏，也不太吵的 Advantage。</p>
 
-      <p class="equation">$$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</p>
-      <p class="equation">$$A_t^{(\lambda)} = \sum_{l=0}^{\infty} (\gamma\lambda)^l \; \delta_{t+l}$$</p>
-      <p>递推实现形式（反向遍历）：</p>
-      <p class="equation">$$A_t = \delta_t + \gamma\lambda (1-d_t) A_{t+1},$$</p>
-      <p>其中 $\lambda\in[0,1]$ 控制平滑程度，$d_t$ 表示 episode 是否终止（用于在结束时重置递推）。在实践中，GAE 通常对优势做归一化后用于策略更新。</p>
+      <p>下面是对 GAE 的详细说明：</p>
 
-      <h3>一、为什么需要 TRPO？</h3>
-      <p>在策略梯度类算法（如 REINFORCE、A2C、A3C）中，每次更新都会导致策略分布变化。神经网络的非线性特性使得一次“合理”的梯度步可能导致策略输出完全崩溃（policy collapse）。因此，TRPO 的核心思想是：<strong>既要让策略改进，又要保证它不要离旧策略太远</strong>，即“信赖域优化”。</p>
+      <h4> 1. TD(0)：一步 TD</h4>
+      <p>最经典的 TD(0)：</p>
+      <p class="equation">$$A_t = r_t + \gamma V(s_{t+1}) - V(s_t)$$</p>
+      <p>优点：计算快，方差低。</p>
+      <p>缺点：偏差非常大（太短视），基本用不了，高难度任务会崩。</p>
 
-      <h3>二、性能差分公式</h3>
-      <p>TRPO 推导始于 Performance Difference Lemma：</p>
-      $$
-      J(\pi_{\text{new}}) - J(\pi_{\text{old}}) = \frac{1}{1-\gamma} \, \mathbb{E}_{s \sim d_{\pi_{\text{new}}}, a \sim \pi_{\text{new}}} [A_{\pi_{\text{old}}}(s, a)]
-      $$
-      <p>策略改进量取决于新策略在旧策略优势函数下的期望。</p>
+      <h4> 2. MC（蒙特卡洛）：</h4>
+      <p>Monte Carlo Advantage：</p>
+      <p class="equation">$$A_t = \sum_{l=0}^{\infty} \gamma^l r_{t+l} - V(s_t)$$</p>
+      <p>优点：无偏（最准确）。</p>
+      <p>缺点：方差大到离谱 → 大多数 RL 会发散。</p>
 
-      <h3>三、重要性采样与替代目标</h3>
-      <p>实际采样来自旧策略，需用重要性采样：</p>
-      $$
-      \mathbb{E}_{a \sim \pi_{\text{new}}}[f(a)] = \mathbb{E}_{a \sim \pi_{\text{old}}} \left[ \frac{\pi_{\text{new}}(a)}{\pi_{\text{old}}(a)} f(a) \right]
-      $$
-      <p>于是：</p>
-      $$
-      J(\pi_{\text{new}}) - J(\pi_{\text{old}}) \approx \frac{1}{1-\gamma} \, \mathbb{E}_{s,a \sim \pi_{\text{old}}} [r_\theta(s,a) A_{\pi_{\text{old}}}(s,a)]
-      $$
-      $$
-      r_\theta(s,a) = \frac{\pi_\theta(a|s)}{\pi_{\text{old}}(a|s)}
-      $$
-      <p>假设状态分布变化小，得到 TRPO 的核心替代目标：</p>
-      $$
-      L(\theta) = \mathbb{E}_{s,a \sim \pi_{\text{old}}} [r_\theta(s,a) A_{\pi_{\text{old}}}(s,a)]
-      $$
+      <h4> 3. GAE：介于 TD 和 MC 之间的“折中版本”</h4>
+      <p>GAE 定义：</p>
+      <p class="equation">$$A_t = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}$$</p>
+      <p>也就是：用多步 TD，但不是平均，而是用 $\gamma\lambda$ 逐步下降的权重混合所有未来 TD。</p>
+      <p>最终效果：像一个“偏差-方差平衡器”。</p>
 
-      <h3>四、约束策略更新幅度：KL 散度</h3>
-      <p>为防止策略偏离，TRPO引入约束：</p>
-      $$
-      \mathbb{E}_{s \sim \pi_{\text{old}}} [KL(\pi_{\text{old}}(\cdot|s) \| \pi_\theta(\cdot|s))] \leq \delta
-      $$
-      <p>目标变为：</p>
-      $$
-      \max_{\theta} L(\theta) \quad \text{s.t.} \quad \bar{D}_{KL}(\pi_{\text{old}}, \pi_\theta) \leq \delta
-      $$
+      <h4> 4. 结论：“优势函数比较适中一点”</h4>
+      <p>这是对的，而且非常准确。</p>
+      <p>GAE 的 Advantage：
+      不像 TD 那样太短视（偏差大），不像 MC 那样方差巨高（发散），不像 n-step 那样强依赖固定步长，不会突然震荡。</p>
+      <p>所以 PPO、MAPPO 训练才会稳定。</p>
 
-      <h3>五、二阶近似与 Fisher 信息矩阵</h3>
-      <p>对 KL 散度做二阶泰勒展开：</p>
-      $$
-      \bar{D}_{KL}(\pi_{\text{old}}, \pi_\theta) \approx \frac{1}{2} (\theta - \theta_{\text{old}})^\top F (\theta - \theta_{\text{old}})
-      $$
-      $$
-      F = \mathbb{E}_{s,a \sim \pi_{\text{old}}} [\nabla_\theta \log \pi_\theta(a|s) \nabla_\theta \log \pi_\theta(a|s)^\top]
-      $$
-      <p>即 Fisher 信息矩阵。</p>
+      <h4> 5. 用一句“程序员能立刻懂”的话说明：</h4>
+      <p>GAE = 把 $\delta$（TD-error）递推加权平滑一下，得到既不吵又不偏的 Advantage。</p>
+      <pre><code>gae = 0
+for t in reversed(range(T)):
+    delta = r[t] + γ * V[t+1] - V[t]
+    gae = delta + γ * λ * gae
+    A[t] = gae
+</code></pre>
 
-      <h3>六、自然梯度方向与解析解</h3>
-      <p>构造拉格朗日函数：</p>
-      $$
-      L(\Delta\theta, \lambda) = g^\top \Delta\theta - \lambda \left( \frac{1}{2} \Delta\theta^\top F \Delta\theta - \delta \right)
-      $$
-      <p>对 \(\Delta\theta\) 求导并令其为 0：</p>
-      $$
-      g - \lambda F \Delta\theta = 0 \Rightarrow \Delta\theta = \frac{1}{\lambda} F^{-1} g
-      $$
-      <p>代回约束边界：</p>
-      $$
-      \lambda = \sqrt{\frac{g^\top F^{-1} g}{2\delta}}
-      $$
-      <p>最终解：</p>
-      $$
-      \Delta\theta = \sqrt{\frac{2\delta}{g^\top F^{-1} g}} F^{-1} g
-      $$
-      <p>这就是著名的 <strong>自然梯度（Natural Gradient）</strong>。</p>
+      <p>这就是：一步 TD：$\delta_t$，二步 TD：$\gamma\lambda \delta_{t+1}$，三步 TD：$\gamma^2\lambda^2 \delta_{t+2}$，全部混合 → 得到一个“非常适中”的 Advantage。</p>
 
-      <h3>七、线搜索与实际更新</h3>
-      <p>实际目标和 KL 都是非线性的，需沿自然梯度方向做 backtracking line search：</p>
-      <ol>
-        <li>从 \(\alpha=1\) 开始，每次减半（1, 1/2, 1/4, ...）；</li>
-        <li>直到 surrogate 目标提升且实际 KL 未超过阈值：</li>
-      </ol>
-      $$
-      L(\theta_{\text{new}}) > L(\theta_{\text{old}}), \quad \hat{D}_{KL}(\pi_{\text{old}} \| \pi_{\text{new}}) \leq \delta
-      $$
+      <h4> 6. 为什么 PPO / MAPPO 必须用 GAE？</h4>
+      <p>因为：PPO 非常依赖 Advantage 的稳定性。</p>
+      <p>Advantage 如果波动太大 → KL 会爆裂。</p>
+      <p>Advantage 如果偏差太多 → 策略会越学越差。</p>
+      <p>Multi-Agent 更需要稳定（你的任务 3v1 尤其如此）。</p>
+      <p>GAE 是唯一同时满足：低方差、可控偏差、可递推计算、稳定性极强的 Advantage 方法。</p>
 
-      <h3>八、数值实现要点</h3>
-      <ol>
-        <li><strong>共轭梯度（Conjugate Gradient, CG）</strong>：迭代近似求解 \(F^{-1}g\)。</li>
-        <li><strong>Fisher 向量积（FVP）</strong>：用 Pearlmutter trick 计算 FVP，无需显式矩阵。</li>
-        <li><strong>线搜索（Backtracking）</strong>：在真实目标上验证步长安全性。</li>
-      </ol>
-      <p>最终参数更新：</p>
-      $$
-      	heta_{\text{new}} = \theta_{\text{old}} + \alpha \Delta\theta, \quad \alpha \in \{1, 1/2, 1/4, ...\}
-      $$
+      <h4> 7. 最终总结：</h4>
+      <p>GAE 就是“多步 TD-error 的指数加权混合”。
+      它本质是一步步 TD 的扩展版。
+      得到的 Advantage 比 TD 更准，比 MC 更稳，所以是 PPO/MAPPO 的标准做法。</p>
 
-      <h3>九、TRPO 算法流程</h3>
-      <ol>
-        <li>采样（on-policy）：用当前策略与环境交互，收集轨迹。</li>
-        <li>计算优势与回报目标（GAE）。</li>
-        <li>值函数回归（多轮 mini-batch）。</li>
-        <li>策略更新（单步大更新 + 线搜索）：<br> 1）构造替代目标与梯度；<br> 2）Fisher 向量积；<br> 3）共轭梯度近似；<br> 4）计算理想步长方向；<br> 5）回溯线搜索。</li>
-        <li>替换策略，进入下一轮。</li>
-      </ol>
-      <p>TRPO 通过信赖域约束，保证每次策略更新都安全且高效，是深度强化学习中稳定性极高的策略优化方法。</p>
+      <p>你已经抓住要点：GAE = 适中的 Advantage。</p>
+
+      <p>在实践中，GAE 通常对优势做归一化后用于策略更新。</p>
     </section>
 
     <section id="chapter8" class="chapter">
@@ -2096,7 +2064,7 @@ for t in 1..T:
       <p><strong>② 值函数损失</strong></p>
       <p class="equation">$$L_V(\psi)=\frac{1}{2}\mathbb{E}\big[(V_{\psi}(s_t)-\hat{R}_t)^2\big]$$</p>
 
-      <p><strong>③ 熵正则项（鼓励探索）</strong></p>
+      <p><strong>③ 熵正则</strong></p>
       <p class="equation">$$L_H(\theta)=\mathbb{E}\big[\mathcal{H}(\pi_{\theta}(\cdot|s_t))\big]$$</p>
 
       <p><strong>④ 总损失</strong></p>
@@ -2153,14 +2121,14 @@ end for</code></pre>
 
       <h3>七、关键超参数建议</h3>
       <table>
-        <tr><th>参数</th><th>含义</th><th>典型值</th></tr>
-        <tr><td>$\gamma$</td><td>折扣系数</td><td>0.99</td></tr>
-        <tr><td>$\lambda$</td><td>GAE 参数</td><td>0.95</td></tr>
-        <tr><td>$\epsilon$</td><td>Clip 范围</td><td>0.1–0.2</td></tr>
-        <tr><td>$c_v$</td><td>值函数系数</td><td>0.5</td></tr>
-        <tr><td>$c_e$</td><td>熵正则系数</td><td>0.01 (连续动作更大)</td></tr>
+        <tr><th>参数</th><th>含义</th><th>推荐值</th></tr>
+        <tr><td>γ</td><td>折扣系数</td><td>0.99</td></tr>
+        <tr><td>λ</td><td>GAE 参数</td><td>0.95</td></tr>
+        <tr><td>ε</td><td>Clip 范围</td><td>0.1–0.2</td></tr>
+        <tr><td>c_v</td><td>值函数系数</td><td>0.5</td></tr>
+        <tr><td>c_e</td><td>熵正则系数</td><td>0.01 (连续动作更大)</td></tr>
         <tr><td>学习率</td><td>Adam LR</td><td>3e-4（任务依赖）</td></tr>
-        <tr><td>batch size</td><td>每次更新样本数</td><td>64–256</td></tr>
+        <tr><td>批量大小</td><td>每次更新样本数</td><td>64–256</td></tr>
         <tr><td>T</td><td>每次采样步数</td><td>2048 或更多</td></tr>
         <tr><td>K (Epochs)</td><td>每批数据重复更新次数</td><td>3–10</td></tr>
       </table>
