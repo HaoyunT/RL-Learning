@@ -1965,6 +1965,93 @@ for t in reversed(range(T)):
       <p>你已经抓住要点：GAE = 适中的 Advantage。</p>
 
       <p>在实践中，GAE 通常对优势做归一化后用于策略更新。</p>
+
+      <h3>一、为什么需要 TRPO？</h3>
+      <p>策略梯度方法在参数空间上做更新时，网络的非线性可能导致一次较大的更新使策略性能骤降（policy collapse）。
+      TRPO 的目标是保证每次更新都能改善策略性能，同时限制策略分布的变化幅度，做到“稳步改进”。</p>
+
+      <h3>二、核心思想与目标</h3>
+      <p>TRPO 基于 Performance Difference Lemma，使用替代目标（surrogate objective）并对策略变化施加 KL 约束：</p>
+      <p class="equation">$$L(\theta)=\mathbb{E}_{s,a \sim \pi_{\text{old}}}\big[ r_{\theta}(s,a) A_{\pi_{\text{old}}}(s,a)\big],\quad r_{\theta}(s,a)=\frac{\pi_{\theta}(a|s)}{\pi_{\text{old}}(a|s)}\,.$$</p>
+      <p>约束形式为期望 KL 散度不超过阈值：</p>
+      <p class="equation">$$\mathbb{E}_{s\sim d_{\pi_{\text{old}}}}\big[ D_{KL}(\pi_{\text{old}}(\cdot|s)\|\pi_{\theta}(\cdot|s))\big] \le \delta.$$</p>
+
+      <h3>三、解析解与自然梯度</h3>
+      <p>在参数微小变化假设下，对 KL 做二阶泰勒展开可得约束近似为二次形式：</p>
+      <p class="equation">$$\bar{D}_{KL}(\pi_{\text{old}},\pi_{\theta}) \approx \tfrac{1}{2}(\theta-\theta_{\text{old}})^T F (\theta-\theta_{\text{old}}),$$</p>
+      <p>其中 $F$ 为 Fisher 信息矩阵。最大化线性近似目标并满足二次约束，得到方向为自然梯度：</p>
+      <p class="equation">$$\Delta\theta \propto F^{-1} g,\quad g=\nabla_\theta L(\theta)\big|_{\theta_{\text{old}}}.$$</p>
+
+      <h3>四、数值实现要点</h3>
+      <ol>
+        <li><strong>共轭梯度（Conjugate Gradient, CG）</strong>：用于近似求解 $F^{-1}g$，避免显式构造 $F$。</li>
+        <li><strong>Fisher 向量积（FVP）</strong>：用 Pearlmutter trick 计算 $Fv$（向量乘积），仅需两次前向/反向传播。</li>
+        <li><strong>回溯线搜索（Backtracking Line Search）</strong>：沿自然梯度方向缩放步长，直到 surrogate 目标增加且实际 KL 未超阈值。</li>
+      </ol>
+
+      <h3>五、算法伪代码</h3>
+      <pre><code class="language-python"># TRPO 高层伪代码
+for iter = 1..N:
+    # 1) 收集样本
+    collect trajectories using \pi_{old}
+    # 2) 估计优势 A (通常用 GAE)
+    compute \hat{A}_t
+    # 3) 计算梯度 g = \nabla_\theta L
+    g = policy_gradient_surrogate(\hat{A})
+    # 4) 用共轭梯度求解 F x = g 的近似解 x ≈ F^{-1} g
+    x = conjugate_gradient(Fvp, g)
+    # 5) 计算步长系数
+    stepdir = x
+    shs = 0.5 * stepdir.dot(Fvp(stepdir))
+    max_step = sqrt(2 * delta / (shs + 1e-8))
+    fullstep = max_step * stepdir
+    # 6) 回溯线搜索，直到满足 surrogate 提升且 KL 限制
+    theta_new = line_search(fullstep)
+    update policy with theta_new
+    # 7) 更新 value 函数
+    fit value function to returns
+</code></pre>
+
+      <h3>六、TRPO 算法流程（逐步）</h3>
+      <p>下面给出一份便于工程实现的逐步流程，便于把理论落地为可运行代码：</p>
+      <ol>
+        <li><strong>采样</strong>：用当前策略 \(\pi_{\text{old}}\) 与环境交互，收集一批 on-policy 轨迹（例如若干条完整或固定长度的轨迹）。</li>
+        <li><strong>优势估计</strong>：用 GAE 计算优势 \(\hat{A}_t\)，并对其进行归一化（减均值，除以标准差）。</li>
+        <li><strong>构造替代目标并计算梯度</strong>：计算 surrogate objective 的梯度 \(g=\nabla_\theta L\)。</li>
+        <li><strong>实现 FVP（Fisher 向量积）</strong>：定义一个函数能在不显式构造 Fisher 矩阵的情况下计算 \(Fv\)（使用 Pearlmutter 技巧）。</li>
+        <li><strong>共轭梯度求解</strong>：用共轭梯度方法求解线性方程组 \(F x = g\)，得到近似方向 \(x\approx F^{-1}g\)。</li>
+        <li><strong>计算步长</strong>：按二次约束计算步长上限
+          $$\alpha_{max}=\sqrt{\dfrac{2\delta}{x^T F x + 1e-8}}\,, $$
+          并得到候选步长向量 \(\Delta\theta = \alpha_{max} x\)。</li>
+        <li><strong>回溯线搜索</strong>：沿方向 \(\Delta\theta\) 做回溯（如乘以 0.5^k），直到满足 surrogate 目标提高且平均 KL 不超过阈值 \(\delta\)。若多次回退仍不满足，则放弃本次更新。</li>
+        <li><strong>更新策略</strong>：将通过线搜索得到的参数作为新策略权重 \(\theta_{new}\)。</li>
+        <li><strong>更新值函数</strong>：用回归方法（例如 MSE）拟合值函数参数，使其逼近目标回报。</li>
+        <li><strong>循环</strong>：返回第 1 步，继续下一次迭代。</li>
+      </ol>
+
+      <p><strong>工程提示：</strong> 1) 共轭梯度迭代次数通常取 10~20 次；2) FVP 中加入阻尼（damping）项提高稳定性；3) 采样批量通常较大（几千步或更多），以减小梯度/KL 的噪声。</p>
+
+      <h3>七、关键实现细节与工程建议</h3>
+      <ul>
+        <li>批量大小与样本质量：TRPO 对样本质量敏感，通常需要较大的 on-policy batch（例如几千到上万步）。</li>
+        <li>FVP 的实现：在框架（PyTorch/TF）中用 Pearlmutter 技巧实现高效的 Fisher 向量积。</li>
+        <li>线搜索容忍度：KL 的估计是有噪声的，允许少量的冗余（例如将阈值乘以 0.9）以避免频繁回退。</li>
+        <li>数值稳定性：共轭梯度与 FVP 中加入小的阻尼项（damping）可以提高鲁棒性。</li>
+        <li>值函数与优势归一化：对 \hat{A} 做标准化（减均值除以标准差）通常能显著稳定训练。</li>
+      </ul>
+
+      <h3>七、与 PPO 的对比</h3>
+      <p>TRPO 提供了严格的理论保证，但工程实现复杂且计算开销大；
+      PPO 用一阶方法和 clip 替代二阶求解，保留了限制更新的核心思想，同时在实践中更易调优。</p>
+
+      <h3>八、常见问题与调试建议</h3>
+      <ul>
+        <li>若训练不稳定，先检查 Advantage 的计算与归一化；</li>
+        <li>若 KL 总是超阈值，适当减小目标 delta 或增加共轭梯度的迭代次数以获得更精确方向；</li>
+        <li>若收敛缓慢，增大采样步数或改进基准网络结构。</li>
+      </ul>
+
+      <p>参考：Schulman et al., "Trust Region Policy Optimization", ICML 2015。</p>
     </section>
 
     <section id="chapter8" class="chapter">
