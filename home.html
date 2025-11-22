@@ -820,6 +820,54 @@ git add .
 git commit -m "初始化项目"
 git push -u origin main</code></pre>
 
+    <h3>Miniconda 与虚拟环境配置（推荐）</h3>
+    <p>如果你希望环境更轻量、易管理，建议使用 <strong>Miniconda</strong>（而非完整版 Anaconda）。下面给出在 Windows（PowerShell / Anaconda Prompt）下的安装与常用命令示例。</p>
+
+    <h4>1) 安装 Miniconda（Windows）</h4>
+    <ol>
+      <li>访问官网下载页面：
+        <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">https://docs.conda.io/en/latest/miniconda.html</a>
+        ，选择 Windows 版的安装器（x86_64）。</li>
+      <li>双击运行安装程序，按默认选项安装即可；或者使用静默安装（管理员权限）：
+        <pre><code class="language-bash">start /wait "" Miniconda3-latest-Windows-x86_64.exe /S /D=C:\Miniconda3</code></pre>
+      </li>
+      <li>安装完成后，在 PowerShell 中运行：
+        <pre><code class="language-powershell">conda init powershell
+# 关闭并重新打开 PowerShell，使改动生效</code></pre>
+      </li>
+    </ol>
+
+    <h4>2) 从 environment.yml 创建环境（示例）</h4>
+    <p>假设你的 yml 文件位于 <code>G:\maddpg_rl\environment.yml</code>，在 PowerShell 中运行：</p>
+    <pre><code class="language-bash">conda env create -f G:\maddpg_rl\environment.yml
+conda activate maddpg_env</code></pre>
+    <p>说明：如果 yml 文件内部指定了环境名称，<code>conda env create -f</code> 会按其中的名字创建环境；你也可以用 <code>-n</code> 指定名称，例如 <code>conda env create -n maddpg_env -f ...</code>。</p>
+
+    <h4>3) 安装或替换 PyTorch（示例）</h4>
+    <p>根据你的 CUDA / 驱动版本选择合适的 cudatoolkit。示例命令（自动确认）：</p>
+    <pre><code class="language-bash">conda install -y -c pytorch -c nvidia pytorch=2.4.0 torchvision=0.19.0 torchaudio=2.4.0 cudatoolkit=12.4</code></pre>
+    <p>安装完成后，用下面命令验证 GPU 与 PyTorch 是否可用：</p>
+    <pre><code class="language-bash">python -c "import torch; print('torch', torch.__version__); print('cuda_available', torch.cuda.is_available()); print('cuda_device_count', torch.cuda.device_count())"</code></pre>
+
+    <h4>4) 常见问题与建议</h4>
+    <ul>
+      <li><strong>conda env create 报错：</strong>先检查 yml 的语法或是否包含平台特定的包；可尝试使用 <code>mamba</code> 来加速并避免冲突：
+        <pre><code class="language-bash">conda install -n base -c conda-forge mamba
+mamba env create -f G:\maddpg_rl\environment.yml</code></pre>
+      </li>
+      <li><strong>conda activate 无效：</strong>确认已执行 <code>conda init powershell</code> 并重新打开 PowerShell。</li>
+      <li><strong>更新或同步环境：</strong>
+        <pre><code class="language-bash">conda env update -f G:\maddpg_rl\environment.yml --prune</code></pre>
+      </li>
+      <li><strong>在 VS Code 中使用该环境：</strong>打开命令面板选择 <em>Python: Select Interpreter</em>，选择对应 conda 环境的解释器；或在工作区设置中配置 <code>python.defaultInterpreterPath</code>。</li>
+      <li><strong>查看已安装的包：</strong>
+        <pre><code class="language-bash">conda list</code></pre>
+      </li>
+      <li><strong>删除环境：</strong>
+        <pre><code class="language-bash">conda env remove -n maddpg_env</code></pre>
+      </li>
+    </ul>
+
     <h3>本笔记学习路径导图</h3>
     <ul>
       <li><strong>第1-3章：理论基础</strong>
