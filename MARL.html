@@ -402,206 +402,176 @@ footer span {
   <aside>
     <h3>章节目录</h3>
     <ul>
-      <li><a href="#intro">MARL 概述</a></li>
-      <li><a href="#overview">算法总览</a></li>
-      <li><a href="#iql">IQL</a></li>
-      <li><a href="#vdn">VDN</a></li>
-      <li><a href="#qmix">QMIX</a></li>
-      <li><a href="#qtran">QTRAN</a></li>
-      <li><a href="#maddpg">MADDPG</a></li>
-      <li><a href="#coma">COMA</a></li>
-      <li><a href="#mappo">MAPPO</a></li>
-      <li><a href="#commnet">CommNet</a></li>
-      <li><a href="#tarmac">TarMAC</a></li>
-      <li><a href="#alphazero">AlphaZero</a></li>
+      <li><strong>Part 0：UAV-MARL 概述</strong>
+        <ul>
+          <li><a href="#part0">概览与挑战</a></li>
+        </ul>
+      </li>
+      <li><strong>Part 1：基础方法</strong>
+        <ul>
+          <li><a href="#iql">IQL（基线）</a></li>
+          <li><a href="#vdn_qmix">VDN / QMIX（价值分解）</a></li>
+          <li><a href="#maddpg_matd3_masac">MADDPG / MATD3 / MASAC（连续动作）</a></li>
+        </ul>
+      </li>
+      <li><strong>Part 2：高级协作方法</strong>
+        <ul>
+          <li><a href="#coma">COMA（信用分配）</a></li>
+          <li><a href="#mappo">MAPPO（规模与稳定性）</a></li>
+          <li><a href="#comm">显式通信（CommNet / TarMAC / DIAL）</a></li>
+        </ul>
+      </li>
+      <li><strong>Part 3：Graph-MARL</strong>
+        <ul>
+          <li><a href="#graph_marl">Graph-MARL（GNN / GAT / DGN / G2ANet）</a></li>
+        </ul>
+      </li>
+      <li><strong>Part 4：对抗博弈</strong>
+        <ul>
+          <li><a href="#part4">对抗 MARL（博弈方法）</a></li>
+        </ul>
+      </li>
+      <li><strong>Part 5：案例与模拟器</strong>
+        <ul>
+          <li><a href="#papers">经典论文</a></li>
+          <li><a href="#sims">模拟器与工程</a></li>
+        </ul>
+      </li>
       <li><a href="#summary">总结与展望</a></li>
     </ul>
   </aside>
 
   <main>
-    <!-- MARL 概述 -->
-    <section id="intro" class="chapter">
-      <h2>MARL 概述</h2>
-      <p>多智能体强化学习（Multi-Agent Reinforcement Learning, MARL）研究多个智能体在共享环境中通过交互学习策略的问题。与单智能体强化学习不同，MARL 需要处理：</p>
+    <!-- Part 0: UAV-MARL Overview -->
+    <section id="part0" class="chapter">
+      <h2>Part 0：无人机多智能体任务简介（UAV-MARL Overview）</h2>
+      <p>本页面聚焦多无人机（Multi-UAV）任务中的 MARL 方法、挑战与工程实践，保留 MARL 的通用背景但以无人机应用为主线。</p>
+
+      <h3>多无人机系统（Multi-UAV Systems）简介</h3>
+      <p>多无人机系统由若干自主或半自主 UAV 协同完成任务。常见任务包括围捕（encirclement）、追逃（pursuit–evasion）、对抗/空战、目标跟踪、搜救与编队控制。</p>
+
+      <h3>典型任务：围捕 / 追逃（Pursuit–Evasion）</h3>
+      <p>围捕任务通常要求多架友军 UAV 协同围堵并拦截目标（敌方 UAV），追逃任务则是高速动态对抗，强调连续动作控制与实时决策。</p>
+
+      <h3>为什么 MARL 适合 UAV 任务</h3>
       <ul>
-        <li><strong>非平稳性</strong>：其他智能体的策略变化导致环境动态不稳定。</li>
-        <li><strong>信用分配</strong>：多智能体协作时，如何分配全局奖励到个体。</li>
-        <li><strong>可扩展性</strong>：智能体数量增加，状态-动作空间指数级增长。</li>
-        <li><strong>通信与协调</strong>：智能体间如何有效沟通与协作。</li>
+        <li><strong>通信受限：</strong>无线带宽和时延限制使得分散式方法更贴合实战。</li>
+        <li><strong>局部观测：</strong>每架 UAV 只能看到局部传感器信息（雷达/相机），适合 CTDE（集中训练、分散执行）范式。</li>
+        <li><strong>协作需求：</strong>多无人机之间需要协同分工、队形控制与协同拦截。</li>
       </ul>
-      <p>MARL 广泛应用于自动驾驶、机器人协作、游戏 AI、交通控制、市场模拟等领域。</p>
-    </section>
 
-    <!-- 算法总览 -->
-    <section id="overview" class="chapter">
-      <h2>算法总览</h2>
-      <p>以下按照不同维度对 MARL 算法进行分类，帮助建立全局认知：</p>
-      
-      <h3>🎯 按任务类型划分</h3>
-      <table>
-        <tr>
-          <th>类型</th>
-          <th>特点</th>
-          <th>代表算法</th>
-        </tr>
-        <tr>
-          <td><strong>对抗型</strong></td>
-          <td>智能体目标冲突，博弈均衡</td>
-          <td>Minimax-Q, Nash Q-learning, AlphaZero, PSRO</td>
-        </tr>
-        <tr>
-          <td><strong>协作型</strong></td>
-          <td>共享全局奖励，协同优化</td>
-          <td>VDN, QMIX, QTRAN, MADDPG, MAPPO, COMA</td>
-        </tr>
-        <tr>
-          <td><strong>混合型</strong></td>
-          <td>部分竞争、部分合作</td>
-          <td>GR2, LOLA</td>
-        </tr>
-      </table>
-
-      <h3>👁️ 按信息可观测性划分</h3>
-      <table>
-        <tr>
-          <th>类型</th>
-          <th>特点</th>
-          <th>代表算法</th>
-        </tr>
-        <tr>
-          <td><strong>全信息</strong></td>
-          <td>集中训练+集中执行</td>
-          <td>集中式 Q-learning</td>
-        </tr>
-        <tr>
-          <td><strong>局部观测 (CTDE)</strong></td>
-          <td>集中训练+分散执行</td>
-          <td>MADDPG, QMIX, VDN, MAPPO, COMA</td>
-        </tr>
-        <tr>
-          <td><strong>完全分散</strong></td>
-          <td>独立训练+独立执行</td>
-          <td>IQL (Independent Q-Learning)</td>
-        </tr>
-      </table>
-
-      <h3>🧠 按算法基础划分</h3>
-      <table>
-        <tr>
-          <th>类型</th>
-          <th>特点</th>
-          <th>代表算法</th>
-        </tr>
-        <tr>
-          <td><strong>值函数类</strong></td>
-          <td>基于 Q 值分解</td>
-          <td>IQL, VDN, QMIX, QTRAN</td>
-        </tr>
-        <tr>
-          <td><strong>策略梯度类</strong></td>
-          <td>直接优化策略</td>
-          <td>MADDPG, MAPPO, COMA</td>
-        </tr>
-        <tr>
-          <td><strong>混合类</strong></td>
-          <td>Actor-Critic 架构</td>
-          <td>MADDPG, COMA, MAPPO</td>
-        </tr>
-      </table>
-
-      <h3>📡 按通信机制划分</h3>
-      <table>
-        <tr>
-          <th>类型</th>
-          <th>特点</th>
-          <th>代表算法</th>
-        </tr>
-        <tr>
-          <td><strong>无通信</strong></td>
-          <td>隐式协调，通过观测推断</td>
-          <td>IQL, VDN, QMIX, MADDPG</td>
-        </tr>
-        <tr>
-          <td><strong>显式通信</strong></td>
-          <td>智能体间传递消息</td>
-          <td>CommNet, TarMAC, DIAL, Graph-based MARL</td>
-        </tr>
-      </table>
-
-      <h3>🚀 前沿方向</h3>
+      <h3>无人机任务中的核心难点</h3>
       <ul>
-        <li><strong>元多智能体学习（Meta-MARL）</strong>：快速适应新队友或对手</li>
-        <li><strong>博弈论结合</strong>：研究均衡解与稳定性</li>
-        <li><strong>可解释性与公平性</strong>：解决不平衡贡献问题</li>
-        <li><strong>大规模 MARL</strong>：支持百万级智能体仿真</li>
-        <li><strong>图神经网络结合（GNN-MARL）</strong>：建模结构化依赖关系</li>
+        <li><strong>非平稳性</strong>：多智能体同时学习导致环境对单个智能体呈非平稳。</li>
+        <li><strong>可扩展性</strong>：随着 UAV 数量增加，策略与训练复杂度上升。</li>
+        <li><strong>动态拓扑</strong>：邻居关系随位置变化，通信/观测图不断变化。</li>
+        <li><strong>真实物理约束</strong>：动力学、速度/加速度限制、碰撞约束、传感器噪声。</li>
       </ul>
     </section>
 
-    <!-- 独立算法章节 -->
-    <section id="iql" class="chapter">
-      <h2>第一章：IQL（Independent Q-Learning）</h2>
-      <p>占位：本章节内容待补充。</p>
+    <!-- Part 1: 基本 MARL 方法 -->
+    <section id="part1" class="chapter">
+      <h2>Part 1：解决无人机协作/对抗需要的基本 MARL 方法</h2>
+      <p>本部分介绍在无人机场景中最常用的基础算法，作为工程基线与进阶算法的对照组。</p>
+
+      <section id="iql" class="chapter">
+        <h3>第 1 章：IQL（Independent Learning）— 基线</h3>
+        <p>独立学习（IQL）将每架 UAV 视为独立的 RL 智能体，各自学习私有策略。优点是实现简单、无显式通信；缺点是严重的非平稳性，但作为基线非常有用。</p>
+        <p>适用场景：快速原型、线下单机测试、作为对照组评估复杂协作算法的收益。</p>
+      </section>
+
+      <section id="vdn_qmix" class="chapter">
+        <h3>第 2 章：VDN / QMIX（价值分解）— 小规模围捕的强力方法</h3>
+        <p>VDN 与 QMIX 通过将全局 reward 分解为个体价值项，从而在 CTDE 框架下实现协作学习。QMIX 引入单调性约束使得联合 Q 的表示能力更强，常在小规模围捕任务中产生 emergent 的队形控制与封锁行为。</p>
+        <ul>
+          <li>如何将全局奖励合理分配到个体。</li>
+          <li>QMIX 的结构如何支持局部 greedy 策略与全局最优的近似。</li>
+        </ul>
+      </section>
+
+      <section id="maddpg_matd3_masac" class="chapter">
+        <h3>第 3 章：MADDPG / MATD3 / MASAC（连续动作 + 对抗）</h3>
+        <p>无人机动作为连续空间（推力、偏航、俯仰等），因此基于连续动作策略的算法尤为重要。</p>
+        <ul>
+          <li><strong>MADDPG</strong>：经典的集中式 critic、分散式 actor 框架，易于入门。</li>
+          <li><strong>MATD3</strong>：在连续动作上更稳定，适合需要稳定逼近动作策略的场景。</li>
+          <li><strong>MASAC</strong>：引入熵正则，探索能力好，适合非平稳对抗与复杂策略搜索。</li>
+        </ul>
+        <p>额外说明：追逃/对抗问题常需要把问题建模为博弈（game），并在 critic 中考虑对手/队友的行为。</p>
+      </section>
     </section>
 
-    <section id="vdn" class="chapter">
-      <h2>第二章：VDN（Value Decomposition Networks）</h2>
-      <p>占位：本章节内容待补充。</p>
+    <!-- Part 2: 高级方法 -->
+    <section id="part2" class="chapter">
+      <h2>Part 2：无人机协作与围捕的高级 MARL 方法</h2>
+      <p>针对围捕、包围、截断与角色分工等任务的高级方法。</p>
+
+      <section id="coma" class="chapter">
+        <h3>第 4 章：COMA（信用分配）</h3>
+        <p>COMA 引入反事实基准（counterfactual baseline）来区分个体对全局奖励的真实贡献，适合分析围捕中“谁贡献最大”的场景。</p>
+      </section>
+
+      <section id="mappo" class="chapter">
+        <h3>第 5 章：MAPPO（Multi-Agent PPO）</h3>
+        <p>MAPPO 是目前最通用的策略梯度类方法之一，适合大规模编队控制、高维观测输入（图像、雷达）和复杂协作任务。</p>
+      </section>
+
+      <section id="comm" class="chapter">
+        <h3>第 6 章：显式通信 MARL（CommNet / TarMAC / DIAL）</h3>
+        <p>显式通信机制能显著提升协作效率：CommNet 的平均消息适合队形同步，TarMAC 的选择性通信适合围捕中的目标分派，DIAL 允许端到端学习通信协议。</p>
+      </section>
     </section>
 
-    <section id="qmix" class="chapter">
-      <h2>第三章：QMIX</h2>
-      <p>占位：本章节内容待补充。</p>
+    <!-- Part 3: Graph-MARL -->
+    <section id="part3" class="chapter">
+      <h2>Part 3：图神经网络 + 多智能体（Graph-MARL）</h2>
+      <p>在无人机群体中，通信与观测通常由邻居图决定，GNN/Graph-Attention 是当前研究热点。</p>
+
+      <section id="graph_marl" class="chapter">
+        <h3>第 7 章：Graph-MARL</h3>
+        <h4>7.1 GAT / GNN 在无人机围捕中的作用</h4>
+        <p>GNN 能动态编码邻居关系、学习注意力权重，帮助实现自适应队形与邻居选择。</p>
+        <h4>7.2 DGN（Deep Graph Network for MARL）</h4>
+        <p>DGN 处理动态拓扑，对编队与合围任务非常适合。</p>
+        <h4>7.3 G2ANet（Graph Attention Actor-Critic）</h4>
+        <p>以注意力机制强化“谁重要”的信息融合，增强局部通信的表达能力。</p>
+        <h4>7.4 Graph-MAPPO / Graph-MADDPG</h4>
+        <p>将 GNN 与集中式 critic 结合，可用于编码邻居信息并提高 critic 的评估能力。</p>
+      </section>
     </section>
 
-    <section id="qtran" class="chapter">
-      <h2>第四章：QTRAN</h2>
-      <p>占位：本章节内容待补充。</p>
+    <!-- Part 4: 对抗博弈 -->
+    <section id="part4" class="chapter">
+      <h2>Part 4：无人机对抗博弈 MARL 方法</h2>
+      <h3>第 8 章：对抗 MARL（Mixed Games）</h3>
+      <p>介绍常用的对抗算法与博弈论方法：Minimax、Nash Q、PSRO 等，以及其在无人机蓝红对抗中的应用。</p>
     </section>
 
-    <section id="maddpg" class="chapter">
-      <h2>第五章：MADDPG（Multi-Agent DDPG）</h2>
-      <p>占位：本章节内容待补充。</p>
-    </section>
+    <!-- Part 5: 案例与工程 -->
+    <section id="part5" class="chapter">
+      <h2>Part 5：案例、工程实现与模拟器指南</h2>
 
-    <section id="coma" class="chapter">
-      <h2>第六章：COMA（Counterfactual Multi-Agent Policy Gradients）</h2>
-      <p>占位：本章节内容待补充。</p>
-    </section>
+      <section id="papers" class="chapter">
+        <h3>第 9 章：经典无人机 MARL 论文总结</h3>
+        <p>按领域汇总重要论文：追逃（Pursuit–Evasion）、协作围捕、空战、集群控制等。</p>
+      </section>
 
-    <section id="mappo" class="chapter">
-      <h2>第七章：MAPPO（Multi-Agent PPO）</h2>
-      <p>占位：本章节内容待补充。</p>
-    </section>
-
-    <section id="commnet" class="chapter">
-      <h2>第八章：CommNet（Communication Neural Networks）</h2>
-      <p>占位：本章节内容待补充。</p>
-    </section>
-
-    <section id="tarmac" class="chapter">
-      <h2>第九章：TarMAC（Targeted Multi-Agent Communication）</h2>
-      <p>占位：本章节内容待补充。</p>
-    </section>
-
-    <section id="alphazero" class="chapter">
-      <h2>第十章：AlphaZero（自博弈强化学习）</h2>
-      <p>占位：本章节内容待补充。</p>
+      <section id="sims" class="chapter">
+        <h3>第 10 章：模拟器与工程实现指南</h3>
+        <ul>
+          <li><strong>gym-pybullet-drones</strong>：常用 UAV RL 环境，适合快速原型与物理约束模拟。</li>
+          <li><strong>AirSim</strong>：微软的高保真飞行仿真平台，适合视觉 / 传感器任务。</li>
+          <li><strong>PettingZoo</strong>：多智能体环境集合，便于算法对比。</li>
+          <li><strong>Isaac Gym</strong>：适合大规模并行训练与物理加速。</li>
+          <li><strong>MARLlib</strong>：开箱即用的 MARL 基准库。</li>
+        </ul>
+      </section>
     </section>
 
     <!-- 总结与展望 -->
     <section id="summary" class="chapter">
       <h2>总结与展望</h2>
-      <p>多智能体强化学习是强化学习领域最具挑战性和应用潜力的方向之一。从对抗博弈到协作任务，从独立学习到集中训练分散执行，MARL 的研究不断深入。</p>
-      <p>未来的研究将聚焦于：</p>
-      <ul>
-        <li>更高效的信用分配机制</li>
-        <li>更稳定的训练算法（应对非平稳性）</li>
-        <li>更灵活的通信协议（显式与隐式结合）</li>
-        <li>更强的可扩展性（支持大规模智能体系统）</li>
-        <li>与其他领域结合（如图神经网络、元学习、博弈论）</li>
-      </ul>
-      <p>随着算法与工程实践的进步，MARL 将在自动驾驶、智能交通、机器人协作、金融市场等领域发挥更大作用。</p>
+      <p>该文档将以无人机任务为主线，逐章展开算法原理、工程实现与案例，对研究与工程应用均有参考价值。</p>
     </section>
   </main>
 </div>
