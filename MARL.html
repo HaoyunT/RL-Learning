@@ -402,6 +402,11 @@ footer span {
   <aside>
     <h3>章节目录</h3>
     <ul>
+      <li><strong>环境部署指南</strong>
+        <ul>
+          <li><a href="#env_setup">服务器环境配置</a></li>
+        </ul>
+      </li>
       <li><strong>Part 0：UAV-MARL 概述</strong>
         <ul>
           <li><a href="#part0">概览与挑战</a></li>
@@ -442,6 +447,83 @@ footer span {
   </aside>
 
   <main>
+    <!-- Environment Setup Guide -->
+    <section id="env_setup" class="chapter">
+      <h2>实验室服务器环境部署（PyMARL2 + CUDA + PyTorch）</h2>
+      <p>本文记录我在实验室服务器上从零开始部署多智能体强化学习（MARL）环境的完整过程，包含：创建数据盘目录、安装 Miniconda、创建 Conda 环境、部署 PyMARL2、安装 GPU 版 PyTorch（CUDA 12.1）以及验证 GPU 是否可用。</p>
+      <p><strong>适用环境：</strong>CUDA 12.x + RTX30 系列 GPU + Ubuntu + Conda</p>
+
+      <h3>1. 在数据盘 /disk 上创建工作目录</h3>
+      <p>服务器的数据盘是 <code>/dev/sda1</code>，挂载到 <code>/disk</code>。</p>
+      <p>需要管理员帮助创建我的专属目录：</p>
+      <pre><code class="language-bash">sudo mkdir -p /disk/haoyun
+sudo chown -R haoyun:haoyun /disk/haoyun</code></pre>
+      <p>然后在其中建立三大常用目录：</p>
+      <pre><code class="language-bash">mkdir -p /disk/haoyun/projects
+mkdir -p /disk/haoyun/checkpoints
+mkdir -p /disk/haoyun/datasets</code></pre>
+      <p>全部后续代码、模型、输出都放这里，避免占满系统盘。</p>
+
+      <h3>2. 安装 Miniconda</h3>
+      <p>如果服务器没有 conda，则手动安装：</p>
+      <pre><code class="language-bash">cd ~
+wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+source ~/.bashrc</code></pre>
+      <p>检查是否成功：</p>
+      <pre><code class="language-bash">conda --version</code></pre>
+
+      <h3>3. 创建 PyMARL2 的 Conda 环境（Python 3.9）</h3>
+      <pre><code class="language-bash">conda create -n pymarl2 python=3.9 -y
+conda activate pymarl2</code></pre>
+
+      <h3>4. 克隆 PyMARL2 到数据盘</h3>
+      <pre><code class="language-bash">cd /disk/haoyun/projects
+git clone https://github.com/hijkzzz/pymarl2
+cd pymarl2</code></pre>
+
+      <h3>5. 安装 PyMARL2 依赖</h3>
+      <p>PyMARL2 没有 <code>requirements.txt</code>，需要运行官方脚本（会比较慢）：</p>
+      <pre><code class="language-bash">bash install_dependencies.sh</code></pre>
+
+      <h3>6. 安装 GPU 版 PyTorch（适配 CUDA 12.2 → 使用 cu121）</h3>
+      <p>执行：</p>
+      <pre><code class="language-bash">pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code></pre>
+      <p>验证 GPU 是否可用：</p>
+      <pre><code class="language-python">python - << 'EOF'
+import torch
+print(torch.cuda.is_available())
+print(torch.cuda.get_device_name(0))
+EOF</code></pre>
+      <p>输出示例：</p>
+      <pre><code class="language-text">True
+NVIDIA GeForce RTX 3090</code></pre>
+      <p>说明 PyTorch GPU 安装成功。</p>
+
+      <h3>7. 安装 SMAC 环境</h3>
+      <pre><code class="language-bash">pip install git+https://github.com/oxwhirl/smac.git</code></pre>
+      <p>（这是 PyMARL2 必需依赖）</p>
+
+      <h3>8. 运行测试任务验证 PyMARL2 是否工作</h3>
+      <p>选择空闲 GPU，如 GPU 6：</p>
+      <pre><code class="language-bash">export CUDA_VISIBLE_DEVICES=6
+python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
+      <p>如果训练正常启动，即部署成功。</p>
+
+      <h3>🎉 最终部署成果</h3>
+      <ul>
+        <li>✔ 已成功创建 <code>/disk/haoyun</code> 工作目录</li>
+        <li>✔ Miniconda 安装成功</li>
+        <li>✔ Python 3.9 环境（pymarl2）配置完成</li>
+        <li>✔ PyMARL2 克隆成功</li>
+        <li>✔ 所有依赖已安装</li>
+        <li>✔ PyTorch 2.5.1 + cu121 可用（支持 CUDA 12.2）</li>
+        <li>✔ GPU（RTX 3090 × 7）可正常训练</li>
+        <li>✔ SMAC 环境可用</li>
+        <li>✔ 能够直接运行 QMIX、VDN、QPLEX 等 Q 系 MARL 算法</li>
+      </ul>
+    </section>
+
     <!-- Part 0: UAV-MARL Overview -->
     <section id="part0" class="chapter">
       <h2>Part 0：无人机多智能体任务简介（UAV-MARL Overview）</h2>
