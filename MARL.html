@@ -194,7 +194,7 @@ main {
   border-radius: 4px;
 }
 
-/* 代码块样式 */
+/* 代码块样式 - 仿 Advanced 风格 */
 pre[class*="language-"] {
   background: linear-gradient(135deg, #1a233c 0%, #2d3b60 100%) !important;
   padding: 20px !important;
@@ -209,27 +209,29 @@ pre[class*="language-"] {
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2) !important;
 }
 
-pre.line-numbers {
-  padding-left: 60px !important;
-}
-
-.line-numbers .line-numbers-rows {
-  left: 0 !important;
-  width: 3em !important;
-  background: transparent !important;
-  border-right: 1px solid #444 !important;
-}
-
-.line-numbers-rows > span:before {
-  color: rgba(59, 130, 246, 0.8) !important;
-  font-weight: bold;
-}
-
-pre code {
-  color: inherit !important;
+/* 修复等号和符号的渲染问题 - 去除可能的背景色 */
+pre[class*="language-"] .token.operator,
+pre[class*="language-"] .token.punctuation,
+pre[class*="language-"] .token.variable {
   background: none !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
+  text-shadow: none !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
+}
+
+/* 确保所有代码文本都有基础颜色且无背景 */
+pre[class*="language-"] code,
+pre[class*="language-"] {
+  color: #f8f8f2 !important;
+  background-color: transparent !important;
+  text-shadow: none !important;
+}
+
+/* 去除伪元素遮挡 */
+pre[class*="language-"]::before,
+pre[class*="language-"]::after {
+  content: none !important;
+  display: none !important;
 }
 
 .token.comment,
@@ -381,6 +383,8 @@ footer span {
     padding: 24px;
   }
 }
+
+
 </style>
 </head>
 <body>
@@ -402,131 +406,55 @@ footer span {
   <aside>
     <h3>章节目录</h3>
     <ul>
-      <li><strong>环境部署指南</strong>
-        <ul>
-          <li><a href="#env_setup">服务器环境配置</a></li>
-        </ul>
-      </li>
-      <li><strong>Part 0：UAV-MARL 概述</strong>
+      <li><strong>Part 0：UAV-MARL 综述</strong>
         <ul>
           <li><a href="#part0">概览与挑战</a></li>
         </ul>
       </li>
-      <li><strong>Part 1：基础方法</strong>
+      <li><strong>Part 1：基础 MARL 方法</strong>
         <ul>
-          <li><a href="#iql">IQL（基线）</a></li>
+          <li><a href="#iql">IQL（独立学习基线）</a></li>
           <li><a href="#vdn_qmix">VDN / QMIX（价值分解）</a></li>
-          <li><a href="#maddpg_matd3_masac">MADDPG / MATD3 / MASAC（连续动作）</a></li>
+          <li><a href="#maddpg_matd3_masac">MADDPG / MATD3 / MASAC</a></li>
         </ul>
       </li>
-      <li><strong>Part 2：高级协作方法</strong>
+      <li><strong>Part 2：进阶协作方法</strong>
         <ul>
-          <li><a href="#coma">COMA（信用分配）</a></li>
-          <li><a href="#mappo">MAPPO（规模与稳定性）</a></li>
-          <li><a href="#comm">显式通信（CommNet / TarMAC / DIAL）</a></li>
+          <li><a href="#coma">COMA（反事实基线）</a></li>
+          <li><a href="#mappo">MAPPO（多智能体 PPO）</a></li>
+          <li><a href="#comm">显式通信（Communication）</a></li>
         </ul>
       </li>
-      <li><strong>Part 3：Graph-MARL</strong>
+      <li><strong>Part 3：图神经网络与 MARL</strong>
         <ul>
-          <li><a href="#graph_marl">Graph-MARL（GNN / GAT / DGN / G2ANet）</a></li>
+          <li><a href="#graph_marl">Graph-MARL（图方法）</a></li>
         </ul>
       </li>
-      <li><strong>Part 4：对抗博弈</strong>
+      <li><strong>Part 4：对抗性 MARL</strong>
         <ul>
-          <li><a href="#part4">对抗 MARL（博弈方法）</a></li>
+          <li><a href="#part4">对抗性 MARL（博弈论）</a></li>
         </ul>
       </li>
-      <li><strong>Part 5：案例与模拟器</strong>
+      <li><strong>Part 5：仿真与实验</strong>
         <ul>
-          <li><a href="#papers">经典论文</a></li>
-          <li><a href="#sims">模拟器与工程</a></li>
+          <li><a href="#env_setup">环境配置与实验指南</a></li>
         </ul>
       </li>
-      <li><a href="#summary">总结与展望</a></li>
+      <li><strong>Part 6：工程与部署</strong>
+        <ul>
+          <li><a href="#sim_to_real">Sim-to-Real 流程</a></li>
+          <li><a href="#rknn_deploy">RK3588 部署指南</a></li>
+        </ul>
+      </li>
     </ul>
   </aside>
 
   <main>
-    <!-- Environment Setup Guide -->
-    <section id="env_setup" class="chapter">
-      <h2>实验室服务器环境部署（PyMARL2 + CUDA + PyTorch）</h2>
-      <p>本文记录我在实验室服务器上从零开始部署多智能体强化学习（MARL）环境的完整过程，包含：创建数据盘目录、安装 Miniconda、创建 Conda 环境、部署 PyMARL2、安装 GPU 版 PyTorch（CUDA 12.1）以及验证 GPU 是否可用。</p>
-      <p><strong>适用环境：</strong>CUDA 12.x + RTX30 系列 GPU + Ubuntu + Conda</p>
 
-      <h3>1. 在数据盘 /disk 上创建工作目录</h3>
-      <p>服务器的数据盘是 <code>/dev/sda1</code>，挂载到 <code>/disk</code>。</p>
-      <p>需要管理员帮助创建我的专属目录：</p>
-      <pre><code class="language-bash">sudo mkdir -p /disk/haoyun
-sudo chown -R haoyun:haoyun /disk/haoyun</code></pre>
-      <p>然后在其中建立三大常用目录：</p>
-      <pre><code class="language-bash">mkdir -p /disk/haoyun/projects
-mkdir -p /disk/haoyun/checkpoints
-mkdir -p /disk/haoyun/datasets</code></pre>
-      <p>全部后续代码、模型、输出都放这里，避免占满系统盘。</p>
-
-      <h3>2. 安装 Miniconda</h3>
-      <p>如果服务器没有 conda，则手动安装：</p>
-      <pre><code class="language-bash">cd ~
-wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-source ~/.bashrc</code></pre>
-      <p>检查是否成功：</p>
-      <pre><code class="language-bash">conda --version</code></pre>
-
-      <h3>3. 创建 PyMARL2 的 Conda 环境（Python 3.9）</h3>
-      <pre><code class="language-bash">conda create -n pymarl2 python=3.9 -y
-conda activate pymarl2</code></pre>
-
-      <h3>4. 克隆 PyMARL2 到数据盘</h3>
-      <pre><code class="language-bash">cd /disk/haoyun/projects
-git clone https://github.com/hijkzzz/pymarl2
-cd pymarl2</code></pre>
-
-      <h3>5. 安装 PyMARL2 依赖</h3>
-      <p>PyMARL2 没有 <code>requirements.txt</code>，需要运行官方脚本（会比较慢）：</p>
-      <pre><code class="language-bash">bash install_dependencies.sh</code></pre>
-
-      <h3>6. 安装 GPU 版 PyTorch（适配 CUDA 12.2 → 使用 cu121）</h3>
-      <p>执行：</p>
-      <pre><code class="language-bash">pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code></pre>
-      <p>验证 GPU 是否可用：</p>
-      <pre><code class="language-python">python - << 'EOF'
-import torch
-print(torch.cuda.is_available())
-print(torch.cuda.get_device_name(0))
-EOF</code></pre>
-      <p>输出示例：</p>
-      <pre><code class="language-text">True
-NVIDIA GeForce RTX 3090</code></pre>
-      <p>说明 PyTorch GPU 安装成功。</p>
-
-      <h3>7. 安装 SMAC 环境</h3>
-      <pre><code class="language-bash">pip install git+https://github.com/oxwhirl/smac.git</code></pre>
-      <p>（这是 PyMARL2 必需依赖）</p>
-
-      <h3>8. 运行测试任务验证 PyMARL2 是否工作</h3>
-      <p>选择空闲 GPU，如 GPU 6：</p>
-      <pre><code class="language-bash">export CUDA_VISIBLE_DEVICES=6
-python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
-      <p>如果训练正常启动，即部署成功。</p>
-
-      <h3>🎉 最终部署成果</h3>
-      <ul>
-        <li>✔ 已成功创建 <code>/disk/haoyun</code> 工作目录</li>
-        <li>✔ Miniconda 安装成功</li>
-        <li>✔ Python 3.9 环境（pymarl2）配置完成</li>
-        <li>✔ PyMARL2 克隆成功</li>
-        <li>✔ 所有依赖已安装</li>
-        <li>✔ PyTorch 2.5.1 + cu121 可用（支持 CUDA 12.2）</li>
-        <li>✔ GPU（RTX 3090 × 7）可正常训练</li>
-        <li>✔ SMAC 环境可用</li>
-        <li>✔ 能够直接运行 QMIX、VDN、QPLEX 等 Q 系 MARL 算法</li>
-      </ul>
-    </section>
 
     <!-- Part 0: UAV-MARL Overview -->
     <section id="part0" class="chapter">
-      <h2>Part 0：无人机多智能体任务简介（UAV-MARL Overview）</h2>
+      <h2>Part 0：UAV-MARL 综述</h2>
       <p>本页面聚焦多无人机（Multi-UAV）任务中的 MARL 方法、挑战与工程实践，保留 MARL 的通用背景但以无人机应用为主线。</p>
 
       <h3>多无人机系统（Multi-UAV Systems）简介</h3>
@@ -551,19 +479,19 @@ python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
       </ul>
     </section>
 
-    <!-- Part 1: 基本 MARL 方法 -->
+    <!-- Part 1: Basic MARL Methods -->
     <section id="part1" class="chapter">
-      <h2>Part 1：解决无人机协作/对抗需要的基本 MARL 方法</h2>
+      <h2>Part 1：基础 MARL 方法</h2>
       <p>本部分介绍在无人机场景中最常用的基础算法，作为工程基线与进阶算法的对照组。</p>
 
       <section id="iql" class="chapter">
-        <h3>第 1 章：IQL（Independent Learning）— 基线</h3>
+        <h3>第 1 章：IQL（独立学习基线）</h3>
         <p>独立学习（IQL）将每架 UAV 视为独立的 RL 智能体，各自学习私有策略。优点是实现简单、无显式通信；缺点是严重的非平稳性，但作为基线非常有用。</p>
         <p>适用场景：快速原型、线下单机测试、作为对照组评估复杂协作算法的收益。</p>
       </section>
 
       <section id="vdn_qmix" class="chapter">
-        <h3>第 2 章：VDN / QMIX（价值分解）— 小规模围捕的强力方法</h3>
+        <h3>第 2 章：VDN / QMIX（价值分解）</h3>
         <p>VDN 与 QMIX 通过将全局 reward 分解为个体价值项，从而在 CTDE 框架下实现协作学习。QMIX 引入单调性约束使得联合 Q 的表示能力更强，常在小规模围捕任务中产生 emergent 的队形控制与封锁行为。</p>
         <ul>
           <li>如何将全局奖励合理分配到个体。</li>
@@ -572,7 +500,7 @@ python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
       </section>
 
       <section id="maddpg_matd3_masac" class="chapter">
-        <h3>第 3 章：MADDPG / MATD3 / MASAC（连续动作 + 对抗）</h3>
+        <h3>第 3 章：MADDPG / MATD3 / MASAC（连续控制）</h3>
         <p>无人机动作为连续空间（推力、偏航、俯仰等），因此基于连续动作策略的算法尤为重要。</p>
         <ul>
           <li><strong>MADDPG</strong>：经典的集中式 critic、分散式 actor 框架，易于入门。</li>
@@ -583,34 +511,34 @@ python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
       </section>
     </section>
 
-    <!-- Part 2: 高级方法 -->
+    <!-- Part 2: Advanced Collaboration -->
     <section id="part2" class="chapter">
-      <h2>Part 2：无人机协作与围捕的高级 MARL 方法</h2>
+      <h2>Part 2：进阶协作方法</h2>
       <p>针对围捕、包围、截断与角色分工等任务的高级方法。</p>
 
       <section id="coma" class="chapter">
-        <h3>第 4 章：COMA（信用分配）</h3>
+        <h3>第 4 章：COMA（反事实基线）</h3>
         <p>COMA 引入反事实基准（counterfactual baseline）来区分个体对全局奖励的真实贡献，适合分析围捕中“谁贡献最大”的场景。</p>
       </section>
 
       <section id="mappo" class="chapter">
-        <h3>第 5 章：MAPPO（Multi-Agent PPO）</h3>
+        <h3>第 5 章：MAPPO（多智能体 PPO）</h3>
         <p>MAPPO 是目前最通用的策略梯度类方法之一，适合大规模编队控制、高维观测输入（图像、雷达）和复杂协作任务。</p>
       </section>
 
       <section id="comm" class="chapter">
-        <h3>第 6 章：显式通信 MARL（CommNet / TarMAC / DIAL）</h3>
+        <h3>第 6 章：显式通信（Communication）</h3>
         <p>显式通信机制能显著提升协作效率：CommNet 的平均消息适合队形同步，TarMAC 的选择性通信适合围捕中的目标分派，DIAL 允许端到端学习通信协议。</p>
       </section>
     </section>
 
     <!-- Part 3: Graph-MARL -->
     <section id="part3" class="chapter">
-      <h2>Part 3：图神经网络 + 多智能体（Graph-MARL）</h2>
+      <h2>Part 3：图神经网络与 MARL</h2>
       <p>在无人机群体中，通信与观测通常由邻居图决定，GNN/Graph-Attention 是当前研究热点。</p>
 
       <section id="graph_marl" class="chapter">
-        <h3>第 7 章：Graph-MARL</h3>
+        <h3>第 7 章：Graph-MARL（图方法）</h3>
         <h4>7.1 GAT / GNN 在无人机围捕中的作用</h4>
         <p>GNN 能动态编码邻居关系、学习注意力权重，帮助实现自适应队形与邻居选择。</p>
         <h4>7.2 DGN（Deep Graph Network for MARL）</h4>
@@ -622,38 +550,225 @@ python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
       </section>
     </section>
 
-    <!-- Part 4: 对抗博弈 -->
+    <!-- Part 4: Adversarial MARL -->
     <section id="part4" class="chapter">
-      <h2>Part 4：无人机对抗博弈 MARL 方法</h2>
-      <h3>第 8 章：对抗 MARL（Mixed Games）</h3>
+      <h2>Part 4：对抗性 MARL</h2>
+      <h3>第 8 章：对抗性 MARL（博弈论）</h3>
       <p>介绍常用的对抗算法与博弈论方法：Minimax、Nash Q、PSRO 等，以及其在无人机蓝红对抗中的应用。</p>
     </section>
 
-    <!-- Part 5: 案例与工程 -->
+    <!-- Part 5: Simulation & Experiments -->
     <section id="part5" class="chapter">
-      <h2>Part 5：案例、工程实现与模拟器指南</h2>
+      <h2>Part 5：仿真与实验</h2>
+      <p>本部分涵盖服务器环境配置以及 PyMARL2 和 HARL 的实验指南。</p>
 
-      <section id="papers" class="chapter">
-        <h3>第 9 章：经典无人机 MARL 论文总结</h3>
-        <p>按领域汇总重要论文：追逃（Pursuit–Evasion）、协作围捕、空战、集群控制等。</p>
-      </section>
+      <section id="env_setup" class="chapter">
+        <h3>第 9 章：环境配置与实验指南</h3>
+        <p>在实验室服务器上部署 MARL 环境（PyMARL2 + CUDA + PyTorch）的完整指南。</p>
+        <p><strong>环境要求：</strong> CUDA 12.x + RTX30 系列 GPU + Ubuntu + Conda</p>
 
-      <section id="sims" class="chapter">
-        <h3>第 10 章：模拟器与工程实现指南</h3>
+        <h4>1. 在数据盘创建工作区</h4>
+        <pre><code class="language-bash">sudo mkdir -p /disk/haoyun
+sudo chown -R haoyun:haoyun /disk/haoyun
+mkdir -p /disk/haoyun/projects /disk/haoyun/checkpoints /disk/haoyun/datasets</code></pre>
+
+        <h4>2. 安装 Miniconda</h4>
+        <pre><code class="language-bash">wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+source ~/.bashrc</code></pre>
+
+        <h4>3. 创建 PyMARL2 环境 (Python 3.9)</h4>
+        <pre><code class="language-bash">conda create -n pymarl2 python=3.9 -y
+conda activate pymarl2</code></pre>
+
+        <h4>4. 克隆 PyMARL2 仓库</h4>
+        <pre><code class="language-bash">cd /disk/haoyun/projects
+git clone https://github.com/hijkzzz/pymarl2
+cd pymarl2
+bash install_dependencies.sh</code></pre>
+
+        <h4>5. 安装 PyTorch (CUDA 12.1)</h4>
+        <pre><code class="language-bash">pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121</code></pre>
+        <p>验证 GPU:</p>
+        <pre><code class="language-python">python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"</code></pre>
+
+        <h4>6. 安装 SMAC</h4>
+        <pre><code class="language-bash">pip install git+https://github.com/oxwhirl/smac.git</code></pre>
+
+        <h4>7. 运行 PyMARL2 实验</h4>
+        <p><strong>运行 SMAC 任务 (地图: MMM2):</strong></p>
+        <pre><code class="language-bash">export CUDA_VISIBLE_DEVICES=6
+python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
+        <p><strong>可视化:</strong></p>
+        <pre><code class="language-bash">tensorboard --logdir results --port 6006</code></pre>
+
+        <h4>8. HARL: 安装与避坑指南</h4>
+        <p><strong>安装:</strong></p>
+        <pre><code class="language-bash">conda create -n harl python=3.8 -y
+conda activate harl
+git clone https://github.com/PKU-MARL/HARL.git
+cd HARL
+pip install -e .</code></pre>
+        <p><strong>常见问题 (避坑):</strong></p>
         <ul>
-          <li><strong>gym-pybullet-drones</strong>：常用 UAV RL 环境，适合快速原型与物理约束模拟。</li>
-          <li><strong>AirSim</strong>：微软的高保真飞行仿真平台，适合视觉 / 传感器任务。</li>
-          <li><strong>PettingZoo</strong>：多智能体环境集合，便于算法对比。</li>
-          <li><strong>Isaac Gym</strong>：适合大规模并行训练与物理加速。</li>
-          <li><strong>MARLlib</strong>：开箱即用的 MARL 基准库。</li>
+          <li><strong>gym==0.21.0:</strong> <code>pip install setuptools==65.5.0 pip==21</code></li>
+          <li><strong>np.bool:</strong> <code>pip install "numpy==1.23.5"</code></li>
         </ul>
+        <p><strong>运行 HARL (HAPPO 在 SMAC 3m 地图):</strong></p>
+        <pre><code class="language-bash">cd examples
+CUDA_VISIBLE_DEVICES=5 python train.py --algo happo --env smac --env_args.map_name=3m --exp_name test</code></pre>
+
+        <h4>9. PyCharm 远程调试与代码修改</h4>
+        <ol>
+          <li><strong>解释器配置:</strong>
+            <ul>
+              <li>打开 <code>Settings</code> -> <code>Project: ...</code> -> <code>Python Interpreter</code>。</li>
+              <li>点击齿轮图标 -> <code>Add</code> -> <code>SSH Interpreter</code>。</li>
+              <li>输入 Host (例如 <code>10.5.54.215</code>) 和 Username (<code>haoyun</code>)。</li>
+              <li>选择服务器上的 Conda 环境可执行文件 (例如 <code>/home/haoyun/miniconda3/envs/pymarl2/bin/python</code>)。</li>
+            </ul>
+          </li>
+          <li><strong>运行配置 (Run/Debug Configurations):</strong>
+            <ul>
+              <li>点击右上角 <code>Edit Configurations</code> -> <code>+</code> -> <code>Python</code>。</li>
+              <li><strong>Script path:</strong> 选择 <code>src/main.py</code> (PyMARL2) 或 <code>train.py</code> (HARL)。</li>
+              <li><strong>Parameters:</strong> 输入运行参数，例如 <code>--config=qmix --env=smac --map=MMM2</code>。</li>
+              <li><strong>Environment variables:</strong> 设置 GPU ID，例如 <code>CUDA_VISIBLE_DEVICES=5</code>。</li>
+              <li><strong>Working directory:</strong> 确保设置为项目根目录。</li>
+            </ul>
+          </li>
+          <li><strong>修改算法结构:</strong>
+            <ul>
+              <li><strong>PyMARL2:</strong> 核心算法逻辑在 <code>src/controllers</code> (控制器) 和 <code>src/modules/agents</code> (智能体网络) 中。Mixer 网络在 <code>src/modules/mixers</code>。</li>
+              <li><strong>HARL:</strong> 算法实现位于 <code>harl/algorithms/actors</code> (Actor) 和 <code>harl/algorithms/critics</code> (Critic)。</li>
+            </ul>
+          </li>
+          <li><strong>修改环境信息:</strong>
+            <ul>
+              <li><strong>PyMARL2:</strong> 环境封装在 <code>src/envs</code>。SMAC 的具体配置在 <code>src/config/envs/smac.yaml</code>。</li>
+              <li><strong>HARL:</strong> 环境接口在 <code>harl/envs</code>。可以在 <code>harl/common/val_logger.py</code> 中修改日志记录方式。</li>
+            </ul>
+          </li>
+        </ol>
       </section>
     </section>
 
-    <!-- 总结与展望 -->
-    <section id="summary" class="chapter">
-      <h2>总结与展望</h2>
-      <p>该文档将以无人机任务为主线，逐章展开算法原理、工程实现与案例，对研究与工程应用均有参考价值。</p>
+    <!-- Part 6: Engineering & Deployment -->
+    <section id="part6" class="chapter">
+      <h2>Part 6：工程与部署</h2>
+      <p>本部分涵盖完整的 Sim-to-Real 流程以及在 RK3588 边缘设备上的部署。</p>
+
+      <section id="sim_to_real" class="chapter">
+        <h3>第 11 章：Sim-to-Real 流程</h3>
+        <p>在无人机上部署 RL 算法的 7 步闭环流程：训练 -> 转换 -> 推理 -> 控制。</p>
+
+        <h4>步骤 1: 训练 RL 策略 (仿真)</h4>
+        <p><strong>环境:</strong> PX4 SITL + Gazebo, AirSim, Isaac Gym。</p>
+        <p><strong>输出:</strong> <code>policy.pth</code>。动作空间: 速度 (vx, vy, vz) 或姿态角速率。</p>
+
+        <h4>步骤 2: 模型转换 (PyTorch -> ONNX -> RKNN)</h4>
+        <p>将 <code>policy.pth</code> 转换为 <strong>ONNX</strong>，然后使用 RKNN Toolkit2 转换为 <strong>RKNN</strong>。</p>
+
+        <h4>步骤 3: RK3588 上的 ROS2 (推理)</h4>
+        <p>在 RK3588 上运行 ROS2 节点: 订阅状态 -> 构建观测 -> RKNN 推理 -> 发布动作。</p>
+
+        <h4>步骤 4: RL 动作到飞控 (ROS2 + MAVROS)</h4>
+        <p>发布动作到 <code>/mavros/setpoint_velocity/cmd_vel_unstamped</code>。</p>
+
+        <h4>步骤 5: PX4 Offboard 模式</h4>
+        <p>PX4 必须处于 <strong>OFFBOARD 模式</strong> 以接收外部控制指令。</p>
+
+        <h4>步骤 6: 飞控与电机驱动</h4>
+        <p>PX4 处理底层稳态控制与电机混控。</p>
+
+        <h4>步骤 7: 三层测试</h4>
+        <ol>
+          <li><strong>SITL 仿真:</strong> 验证闭环。</li>
+          <li><strong>室内测试:</strong> 带安全网。</li>
+          <li><strong>室外测试:</strong> 开阔场地。</li>
+        </ol>
+      </section>
+
+      <section id="rknn_deploy" class="chapter">
+        <h3>第 12 章：RK3588 部署指南</h3>
+        <p>在 Ubuntu 上设置 RKNN Toolkit2 环境并转换模型的指南。</p>
+        
+        <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin: 15px 0; border-radius: 4px;">
+          <strong>📺 视频教程: RKNPU 简介</strong><br>
+          了解 NPU 架构与工具链。<br>
+          <a href="https://www.bilibili.com/video/BV1J8WbzfEmg/" target="_blank" style="color: #60a5fa; text-decoration: underline;">在 Bilibili 观看</a>
+        </div>
+
+        <h4>1. Ubuntu 虚拟机设置</h4>
+        <p>推荐: Windows + VirtualBox + Ubuntu 20.04 LTS。</p>
+        <ul>
+          <li><strong>下载:</strong> <a href="https://ubuntu.com/download/desktop" target="_blank">Ubuntu 20.04 LTS</a></li>
+          <li><strong>VirtualBox 设置:</strong>
+            <ul>
+              <li>CPU: 2+ 核心, 内存: 4GB+, 硬盘: 60GB+</li>
+              <li><strong>网络:</strong> 桥接模式 (SSH 需要)。</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h4>2. Miniconda 设置</h4>
+        <pre><code class="language-bash">wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+source ~/.bashrc
+conda create -n rknn python=3.8 -y
+conda activate rknn</code></pre>
+
+        <h4>3. RKNN Toolkit2 安装</h4>
+        <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin: 15px 0; border-radius: 4px;">
+          <strong>📥 RKNN Toolkit2 离线包</strong><br>
+          链接: <a href="https://pan.baidu.com/s/1nPS6kGIB7BSR1Sh-_4HGSw?pwd=v6ah" target="_blank" style="color: #60a5fa; text-decoration: underline;">百度网盘</a> (提取码: v6ah)
+        </div>
+        <pre><code class="language-bash">pip install -r requirements_cp38-2.3.2.txt
+pip install rknn_toolkit2-2.3.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl</code></pre>
+        <p>验证: <code>python -c "from rknn.api import RKNN; print('RKNN OK')"</code></p>
+
+        <h4>4. FileZilla + SSH 连接配置</h4>
+        <p>确保 Ubuntu 上 SSH 正在运行: <code>sudo systemctl start ssh</code>。</p>
+        <p><strong>📌 FileZilla 填写示例：</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Host (主机)</th>
+              <th>Username (用户名)</th>
+              <th>Password (密码)</th>
+              <th>Port (端口)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>10.5.54.215</td>
+              <td>haoyun</td>
+              <td>你的密码</td>
+              <td>22</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>5. 部署工作流</h4>
+        <p><strong>步骤 1: 训练 (PC)</strong> -> <code>policy.pth</code></p>
+        <p><strong>步骤 2: 导出 ONNX</strong></p>
+        <pre><code class="language-python">torch.onnx.export(model, dummy_input, "policy.onnx", input_names=['obs'], output_names=['action'])</code></pre>
+        <p><strong>步骤 3: 转换为 RKNN</strong></p>
+        <pre><code class="language-python">from rknn.api import RKNN
+rknn = RKNN()
+rknn.load_onnx('policy.onnx')
+rknn.config(target_platform="rk3588")
+rknn.build(do_quantization=False)
+rknn.export_rknn('policy.rknn')</code></pre>
+        <p><strong>步骤 4: 板端运行</strong> -> 上传 <code>policy.rknn</code> 和推理脚本。</p>
+
+        <h4>6. RKNN 速查表</h4>
+        <pre><code class="language-python">conda activate rknn
+rknn.load_onnx('model.onnx')
+rknn.config(target_platform="rk3588")
+rknn.build(do_quantization=True)
+rknn.export_rknn('model.rknn')</code></pre>
+      </section>
     </section>
   </main>
 </div>
@@ -665,8 +780,15 @@ python src/main.py --config=qmix --env=smac --map=MMM2</code></pre>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
+    // 强制添加行号
     if (!pre.classList.contains('line-numbers')) {
       pre.classList.add('line-numbers');
+    }
+    // 提取语言名称用于显示
+    const langClass = [...pre.classList].find(c => c.startsWith('language-'));
+    if (langClass) {
+      const lang = langClass.replace('language-', '').toUpperCase();
+      pre.setAttribute('data-lang', lang);
     }
   });
   if (window.Prism) {
