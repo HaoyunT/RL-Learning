@@ -617,6 +617,12 @@ pip install -e .</code></pre>
         <p><strong>运行 HARL (HAPPO 在 SMAC 3m 地图):</strong></p>
         <pre><code class="language-bash">cd examples
 CUDA_VISIBLE_DEVICES=5 python train.py --algo happo --env smac --env_args.map_name=3m --exp_name test</code></pre>
+        <p><strong>HARL 可视化 (TensorBoard):</strong></p>
+        <p>在服务器上启动 TensorBoard:</p>
+        <pre><code class="language-bash">tensorboard --logdir examples/results --port 6006 --bind_all</code></pre>
+        <p>在本地终端建立 SSH 隧道:</p>
+        <pre><code class="language-bash">ssh -L 6006:localhost:6006 -p 2244 haoyun@172.18.116.149</code></pre>
+        <p>然后在本地浏览器访问: <code>http://localhost:6006</code></p>
 
         <h4>9. PyCharm 远程调试与代码修改</h4>
         <ol>
@@ -631,10 +637,30 @@ CUDA_VISIBLE_DEVICES=5 python train.py --algo happo --env smac --env_args.map_na
           <li><strong>运行配置 (Run/Debug Configurations):</strong>
             <ul>
               <li>点击右上角 <code>Edit Configurations</code> -> <code>+</code> -> <code>Python</code>。</li>
-              <li><strong>Script path:</strong> 选择 <code>src/main.py</code> (PyMARL2) 或 <code>train.py</code> (HARL)。</li>
-              <li><strong>Parameters:</strong> 输入运行参数，例如 <code>--config=qmix --env=smac --map=MMM2</code>。</li>
-              <li><strong>Environment variables:</strong> 设置 GPU ID，例如 <code>CUDA_VISIBLE_DEVICES=5</code>。</li>
-              <li><strong>Working directory:</strong> 确保设置为项目根目录。</li>
+              <li><strong>Script path:</strong>
+                <ul>
+                  <li>PyMARL2: <code>src/main.py</code></li>
+                  <li>HARL: <code>/disk/haoyun/projects/HARL/examples/train.py</code></li>
+                </ul>
+              </li>
+              <li><strong>Parameters:</strong>
+                <ul>
+                  <li>PyMARL2: <code>--config=qmix --env=smac --map=MMM2</code></li>
+                  <li>HARL: <code>--algo mappo --env pettingzoo_mpe --env_args.task=simple_spread --exp_name mappo_spread --seed 1 --device cuda</code></li>
+                </ul>
+              </li>
+              <li><strong>Environment variables:</strong>
+                <ul>
+                  <li>通用: <code>CUDA_VISIBLE_DEVICES=5</code></li>
+                  <li>HARL: <code>PYTHONUNBUFFERED=1;CUDA_VISIBLE_DEVICES=5</code></li>
+                </ul>
+              </li>
+              <li><strong>Working directory:</strong>
+                <ul>
+                  <li>PyMARL2: <code>/disk/haoyun/projects/pymarl2</code></li>
+                  <li>HARL: <code>/disk/haoyun/projects/HARL/examples</code></li>
+                </ul>
+              </li>
             </ul>
           </li>
           <li><strong>修改算法结构:</strong>
