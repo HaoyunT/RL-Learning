@@ -614,15 +614,55 @@ pip install -e .</code></pre>
           <li><strong>gym==0.21.0:</strong> <code>pip install setuptools==65.5.0 pip==21</code></li>
           <li><strong>np.bool:</strong> <code>pip install "numpy==1.23.5"</code></li>
         </ul>
-        <p><strong>运行 HARL (HAPPO 在 SMAC 3m 地图):</strong></p>
-        <pre><code class="language-bash">cd examples
-CUDA_VISIBLE_DEVICES=5 python train.py --algo happo --env smac --env_args.map_name=3m --exp_name test</code></pre>
-        <p><strong>HARL 可视化 (TensorBoard):</strong></p>
-        <p>在服务器上启动 TensorBoard:</p>
-        <pre><code class="language-bash">tensorboard --logdir examples/results --port 6006 --bind_all</code></pre>
-        <p>在本地终端建立 SSH 隧道:</p>
+        <p><strong>运行 HARL（示例）</strong></p>
+        <p>先在服务器上使用 <code>tmux</code> 创建会话并激活 Conda 环境，示例如下：</p>
+        <pre><code class="language-bash">tmux new -s harl_session
+      # 会话内执行
+      cd /disk/haoyun/projects/HARL
+      conda activate harl
+      # 激活后提示应类似：
+      # (harl) haoyun@taizun-AS-4124GS-TNR: /disk/haoyun/projects/HARL$</code></pre>
+
+        <p>可分别前台运行以下三条（或加 <code>&</code> 放后台）：</p>
+        <pre><code class="language-bash"># 1) MAPPO
+      CUDA_VISIBLE_DEVICES=4 PYTHONPATH=/disk/haoyun/projects/HARL \
+      python examples/train.py --algo mappo --env pettingzoo_mpe --exp_name debug_mappo
+
+      # 2) MADDPG
+      CUDA_VISIBLE_DEVICES=5 PYTHONPATH=/disk/haoyun/projects/HARL \
+      python examples/train.py --algo maddpg --env pettingzoo_mpe --exp_name debug_maddpg
+
+      # 3) MATD3
+      CUDA_VISIBLE_DEVICES=6 PYTHONPATH=/disk/haoyun/projects/HARL \
+      python examples/train.py --algo matd3 --env pettingzoo_mpe --exp_name debug_matd3</code></pre>
+
+        <p>如果想把三个一起放后台运行并分别记录日志，可以使用如下示例（在 tmux 会话内执行）：</p>
+        <pre><code class="language-bash"># 后台运行并把输出写到日志文件（示例）
+      CUDA_VISIBLE_DEVICES=4 PYTHONPATH=/disk/haoyun/projects/HARL \
+      nohup python examples/train.py --algo mappo --env pettingzoo_mpe --exp_name debug_mappo > mappo.log 2>&1 &
+
+      CUDA_VISIBLE_DEVICES=5 PYTHONPATH=/disk/haoyun/projects/HARL \
+      nohup python examples/train.py --algo maddpg --env pettingzoo_mpe --exp_name debug_maddpg > maddpg.log 2>&1 &
+
+      CUDA_VISIBLE_DEVICES=6 PYTHONPATH=/disk/haoyun/projects/HARL \
+      nohup python examples/train.py --algo matd3 --env pettingzoo_mpe --exp_name debug_matd3 > matd3.log 2>&1 &</code></pre>
+
+        <p><strong>TensorBoard 可视化 (HARL)</strong></p>
+        <p>在服务器上启动 TensorBoard（将所有接口绑定以支持远程访问）：</p>
+        <pre><code class="language-bash">tensorboard --logdir results --port 6006 --bind_all</code></pre>
+        <p>在本地建立 SSH 隧道以访问服务器上的 TensorBoard（示例）：</p>
         <pre><code class="language-bash">ssh -L 6006:localhost:6006 -p 2244 haoyun@172.18.116.149</code></pre>
-        <p>然后在本地浏览器访问: <code>http://localhost:6006</code></p>
+        <p>本地浏览器访问： <code>http://localhost:6006</code></p>
+
+        <p><strong>tmux 常用操作</strong></p>
+        <pre><code class="language-bash"># 列出会话
+      tmux ls
+      # 进入（attach）已存在会话
+      tmux attach -t harl_session
+      # 创建一个命名会话（如果需要新会话）
+      tmux new -s my_session
+      # 杀掉某个会话
+      tmux kill-session -t harl_session</code></pre>
 
         <h4>9. PyCharm 远程调试与代码修改</h4>
         <ol>
