@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 PyTorch 到 RK3588：一次完整的 NPU 部署实战与踩坑记录</title>
+
+<!-- Keep styles and scripts consistent with site -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-dracula.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+  MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body{margin:0;font-family:Inter,Segoe UI,Roboto,-apple-system,sans-serif;background:linear-gradient(135deg,#0b1020 0%,#161923 60%,#0f1b2a 100%);color:#d7e6df;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3,h4{font-family:Merriweather,Georgia,serif}
+p,li{font-size:1rem;line-height:1.75;color:#cbd6d1}
+code, pre, kbd{font-family:'JetBrains Mono', 'Fira Code', monospace}
+header{background:rgba(6,10,18,0.85);padding:20px;text-align:center;backdrop-filter:blur(6px);border-bottom:1px solid rgba(86,171,145,0.06)}
+header h1{color:#7ff0c7;margin:0;font-weight:700;letter-spacing:0.6px}
+nav ul{list-style:none;display:flex;justify-content:center;gap:8px;padding:0;margin-top:10px}
+nav a{color:#b0b5bb;text-decoration:none;padding:6px 12px;border-radius:8px;background:linear-gradient(180deg,rgba(86,171,145,0.06),rgba(86,171,145,0.02));border:1px solid rgba(86,171,145,0.08)}
+nav a.active{box-shadow:0 6px 24px rgba(19,211,176,0.06);color:#7ff0c7}
+main{max-width:980px;margin:34px auto;padding:22px}
+.post{background:linear-gradient(180deg,rgba(12,16,22,0.68),rgba(18,22,28,0.74));border:1px solid rgba(86,171,145,0.06);padding:34px;border-radius:14px;box-shadow:0 18px 48px rgba(2,8,12,0.6)}
+.post h2{color:#aaf6d9;margin-bottom:8px;font-size:1.6rem}
+.muted{color:#9fb0aa;font-size:0.98rem}
+/* 下载区风格 */
+.download-grid{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.download-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,#12d3b0,#4fbf88);color:#021711;font-weight:700;text-decoration:none;box-shadow:0 14px 36px rgba(19,211,176,0.10);transition:transform .16s ease,box-shadow .16s ease}
+.download-btn svg{width:18px;height:18px;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.25))}
+.download-btn:hover{transform:translateY(-6px);box-shadow:0 26px 68px rgba(19,211,176,0.16)}
+/* 代码块强化 */
+.line-numbers-rows > span:before{color:rgba(170,246,217,0.5)}
+pre{background:linear-gradient(180deg,#051016,#06121a);color:#e6f3ee;padding:20px;border-radius:12px;overflow:auto;border:1px solid rgba(86,171,145,0.06);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02),0 16px 40px rgba(0,0,0,0.6)}
+pre code{font-family:'JetBrains Mono', 'Fira Code', monospace;font-size:0.96rem}
+pre .token.comment{color:#7c8b83}
+pre .token.string{color:#b7f3d6}
+pre .token.keyword{color:#9be8c9}
+pre .token.function{color:#a7e9d1}
+.post h2{position:relative}
+.post h2::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:140px;height:6px;background:linear-gradient(90deg,#7ff0c7,#13d3b0);border-radius:6px;opacity:0.12}
+a.button{display:inline-block;padding:8px 12px;background:#56ab91;color:#071b17;border-radius:6px;text-decoration:none;margin-top:8px}
+</style>
+
+</head>
+<body>
+<header>
+  <h1>工程实践与部署</h1>
+  <nav>
+    <ul>
+      <li><a href="index.html">首页</a></li>
+      <li><a href="home.html">基础理论</a></li>
+      <li><a href="advanced.html">进阶算法</a></li>
+      <li><a href="MARL.html">多智能体学习</a></li>
+      <li><a href="deploy.html" class="active">工程实践与部署</a></li>
+      <li><a href="papers.html">论文研读</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <article class="post">
+    <h2>从 PyTorch 到 RK3588：一次完整的 NPU 部署实战与踩坑记录</h2>
+    <p class="muted">最近在做无人机强化学习项目，把 PyTorch 训练好的 MADDPG Actor 部署到 RK3588，用 NPU 做推理验证。我把全过程和踩过的坑写成这篇实战手记，方便后续复盘与复现。</p>
+
+    <section id="downloads" style="margin-top:18px">
+      <h3 style="color:#9be8c9;margin-bottom:8px">下载：RKNN Toolkit 安装包</h3>
+      <p style="color:#9aa3a9;margin-bottom:10px">将下列两个文件放到仓库的 <strong>assets/</strong> 目录下后，页面会提供可下载链接（页面无法直接访问你桌面的文件，请把文件复制到本项目目录）：</p>
+      <div class="download-grid">
+        <a class="download-btn" href="assets/rknn_toolkit_lite2-1.5.2-cp310-cp310-linux_aarch64.whl" download>
+          RKNN Toolkit Lite (板子端) · rknn_toolkit_lite2-1.5.2
+        </a>
+        <a class="download-btn" href="assets/rknn_toolkit2-1.5.2+b642f30c-cp310-cp310-linux_x86_64.whl" download>
+          RKNN Toolkit (PC 端编译) · rknn_toolkit2-1.5.2
+        </a>
+      </div>
+    </section>
+
+    <h3>导读</h3>
+    <p>一开始以为是“模型转个格式就完事”，结果发现这是条容易走歪的工程路径。本文记录从拿到板子到模型在 RK3588 上稳定跑推理为止的完整过程和所有踩坑。</p>
+
+    <h3>一、先把一件事想明白：RK3588 在这里到底是干嘛的？</h3>
+    <p>RK3588 的角色非常单一：它是“推理执行平台”。它只负责跑 <strong>.rknn</strong>，不负责训练、不负责模型编译或算子转换。整个流程必须被严格拆成两段：</p>
+    <pre><code>【PC 端：模型编译阶段】
+PyTorch (.pth)
+   ↓
+ONNX (.onnx)
+   ↓
+RKNN Toolkit
+   ↓
+RKNN 模型 (.rknn)
+
+【RK3588 板子：模型推理阶段】
+.rknn
+   ↓
+rknn_toolkit_lite2
+   ↓
+NPU 推理</code></pre>
+
+    <h3>二、两个 RKNN Toolkit，一定要分清楚（这是最核心的坑）</h3>
+    <ol>
+      <li><strong>PC 端用的（模型编译工具）</strong><br>示例包名：<code>rknn_toolkit2-1.5.2+b642f30c-cp310-cp310-linux_x86_64.whl</code><br>只能装在 PC（x86_64）用来做 <code>load_onnx</code>、<code>build</code>、<code>export_rknn</code>，把 ONNX 编译成 RKNN。 绝对不要装到板子上。</li>
+      <li><strong>RK3588 板子端用的（推理 Runtime）</strong><br>示例包名：<code>rknn_toolkit_lite2-1.5.2-cp310-cp310-linux_aarch64.whl</code><br>只能装在 RK3588（aarch64），只能做 <code>load_rknn</code>、<code>init_runtime</code>、<code>inference</code>，不具备模型编译能力。</li>
+      <li><strong>版本必须严格一致</strong><br>例如板子 runtime 是 1.5.2，则 PC 端必须用对应的 1.5.2 的编译包；若版本不一致（PC 用 1.6 转，板子是 1.5.2），会失败。</li>
+    </ol>
+
+    <h3>三、PC 端环境准备：一定要干净</h3>
+    <p>建议使用干净的 Conda 环境：</p>
+    <pre><code>conda create -n rknn152 python=3.10
+conda activate rknn152</code></pre>
+    <p>避免使用系统 Python、sudo pip、或混用 pip/conda，这些会导致环境不可控。</p>
+
+    <h3>四、pth → onnx：部署阶段，不要再碰“训练环境”</h3>
+    <p>部署阶段与训练阶段不同：只需要 Actor，不需要 Critic、环境、gym、matplotlib 等。导出 ONNX 的规范：</p>
+    <ul>
+      <li>固定 batch = 1</li>
+      <li>静态 shape</li>
+      <li>opset_version = 11</li>
+      <li>只加载 Actor 的 checkpoint，obs_dim 以 checkpoint 为准</li>
+    </ul>
+    <p>输出示例：<code>actor_agent0.onnx</code>、<code>actor_agent1.onnx</code>、<code>actor_agent2.onnx</code></p>
+
+    <h3>五、onnx → rknn：反而是最省心的一步</h3>
+    <p>在版本对齐前提下，用官方 API 就能成功，示例流程：</p>
+    <pre><code>from rknn.api import RKNN
+rknn = RKNN()
+rknn.config(target_platform='rk3588')
+rknn.load_onnx('actor_agent0.onnx')
+rknn.build(do_quantization=False)
+rknn.export_rknn('actor_agent0.rknn')
+rknn.release()</code></pre>
+    <p>建议第一版不要量化，RL Actor 对数值精度很敏感，先保证能跑且稳定。</p>
+
+    <h3>六、把 rknn 传到板子：工具链问题，不是模型问题</h3>
+    <p>推荐使用 SFTP（例如 FileZilla），通过桥接网络让虚拟机开 SSH，再传输文件，避免 VirtualBox 拖拽和共享文件夹权限问题。</p>
+
+    <h3>七、部署到 RK3588 后，到底在验证算法什么？</h3>
+    <ol>
+      <li>验证模型能否在硬件上完整执行（算子支持、数据类型）</li>
+      <li>验证输入/输出语义一致（shape、dtype、数值范围）</li>
+      <li>验证稳定性（连续推理 100 / 1000 次，查看 NaN/崩溃/内存问题）</li>
+      <li>验证推理速度（在板子上测单次耗时，判断是否满足控制频率）</li>
+    </ol>
+
+    <h3>八、我踩过的核心坑总结</h3>
+    <ul>
+      <li>试图在板子上直接转 <code>.pth</code></li>
+      <li>RKNN Toolkit 与板子 runtime 版本不一致</li>
+      <li>导出 ONNX 时引入训练依赖（sim_env / matplotlib）</li>
+      <li>部署阶段错误加载 Critic</li>
+      <li>手写 obs_dim 与训练不一致</li>
+      <li>ONNX opset 用太新</li>
+      <li>一开始就量化导致数值不稳定</li>
+      <li>纠结浮点误差（需接受适度误差）</li>
+    </ul>
+
+    <h3>九、最后一句话</h3>
+    <p>PC 负责把模型编译成 <code>.rknn</code>，RK3588 只负责稳定地跑 <code>.rknn</code>。Actor 是部署阶段的唯一主角，版本对齐比一切都重要。</p>
+
+    <a class="button" href="home.html">返回基础理论</a>
+  </article>
+</main>
+
+<footer style="text-align:center;padding:20px;color:#9aa3a9">© 强化学习笔记</footer>
+
+</body>
+</html>
