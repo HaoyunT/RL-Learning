@@ -29,22 +29,147 @@ main{max-width:980px;margin:34px auto;padding:22px}
 .post{background:linear-gradient(180deg,rgba(12,16,22,0.68),rgba(18,22,28,0.74));border:1px solid rgba(86,171,145,0.06);padding:34px;border-radius:14px;box-shadow:0 18px 48px rgba(2,8,12,0.6)}
 .post h2{color:#aaf6d9;margin-bottom:8px;font-size:1.6rem}
 .muted{color:#9fb0aa;font-size:0.98rem}
-/* 下载区风格 */
-.download-grid{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
-.download-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:linear-gradient(90deg,#12d3b0,#4fbf88);color:#021711;font-weight:700;text-decoration:none;box-shadow:0 14px 36px rgba(19,211,176,0.10);transition:transform .16s ease,box-shadow .16s ease}
-.download-btn svg{width:18px;height:18px;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.25))}
-.download-btn:hover{transform:translateY(-6px);box-shadow:0 26px 68px rgba(19,211,176,0.16)}
-/* 代码块强化 */
-.line-numbers-rows > span:before{color:rgba(170,246,217,0.5)}
-pre{background:linear-gradient(180deg,#051016,#06121a);color:#e6f3ee;padding:20px;border-radius:12px;overflow:auto;border:1px solid rgba(86,171,145,0.06);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02),0 16px 40px rgba(0,0,0,0.6)}
-pre code{font-family:'JetBrains Mono', 'Fira Code', monospace;font-size:0.96rem}
+
+/* 章节标题优化 */
+.post h3{
+  color:#7ff0c7;
+  font-size:1.4rem;
+  margin-top:40px;
+  margin-bottom:20px;
+  padding-left:32px;
+  position:relative;
+  border-left:4px solid #13d3b0;
+  padding-left:20px;
+}
+.post h3::before{
+  content:'';
+  position:absolute;
+  left:-4px;
+  top:50%;
+  transform:translateY(-50%);
+  width:8px;
+  height:8px;
+  background:#13d3b0;
+  border-radius:50%;
+  box-shadow:0 0 12px rgba(19,211,176,0.5);
+}
+.post h4{
+  color:#a7e9d1;
+  font-size:1.1rem;
+  margin-top:24px;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.post h4::before{
+  content:'▸';
+  color:#13d3b0;
+  font-size:1.2rem;
+}
+
+/* 下载区优化 */
+.download-grid{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+.download-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 22px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#12d3b0,#4fbf88);
+  color:#021711;
+  font-weight:700;
+  text-decoration:none;
+  box-shadow:0 8px 24px rgba(19,211,176,0.25);
+  transition:all .2s ease;
+  border:2px solid rgba(255,255,255,0.1);
+}
+.download-btn svg{width:20px;height:20px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))}
+.download-btn:hover{
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 16px 48px rgba(19,211,176,0.4);
+  border-color:rgba(255,255,255,0.3);
+}
+
+/* 列表优化 */
+.post ul{
+  list-style:none;
+  padding-left:0;
+}
+.post ul li{
+  padding-left:28px;
+  position:relative;
+  margin-bottom:8px;
+}
+.post ul li::before{
+  content:'◆';
+  position:absolute;
+  left:8px;
+  color:#13d3b0;
+  font-size:0.7rem;
+}
+.post ul ul li::before{
+  content:'◇';
+  font-size:0.6rem;
+}
+
+/* 代码块优化 */
+pre{
+  background:linear-gradient(135deg,#051016,#06121a);
+  color:#e6f3ee;
+  padding:20px;
+  border-radius:12px;
+  overflow:auto;
+  border:1px solid rgba(86,171,145,0.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.03),0 8px 32px rgba(0,0,0,0.6);
+  margin:16px 0;
+}
+pre code{font-family:'JetBrains Mono', 'Fira Code', monospace;font-size:0.92rem;line-height:1.6}
 pre .token.comment{color:#7c8b83}
 pre .token.string{color:#b7f3d6}
 pre .token.keyword{color:#9be8c9}
 pre .token.function{color:#a7e9d1}
+
+/* 行内代码优化 */
+code{
+  background:rgba(19,211,176,0.1);
+  color:#7ff0c7;
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:0.9em;
+  border:1px solid rgba(19,211,176,0.2);
+}
+pre code{
+  background:none;
+  border:none;
+  padding:0;
+}
+
+/* 强调文本 */
+strong{
+  color:#aaf6d9;
+  font-weight:600;
+}
+
+/* 分隔线优化 */
+hr{
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(86,171,145,0.3),transparent);
+  margin:40px 0;
+}
+
+/* 特殊提示框 */
+.post p[style*="color: #9fb0aa"]{
+  background:rgba(86,171,145,0.08);
+  padding:12px 16px;
+  border-radius:8px;
+  border-left:3px solid #13d3b0;
+  margin:16px 0;
+}
+
 .post h2{position:relative}
-.post h2::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:140px;height:6px;background:linear-gradient(90deg,#7ff0c7,#13d3b0);border-radius:6px;opacity:0.12}
-a.button{display:inline-block;padding:8px 12px;background:#56ab91;color:#071b17;border-radius:6px;text-decoration:none;margin-top:8px}
+.post h2::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:120px;height:4px;background:linear-gradient(90deg,#7ff0c7,#13d3b0);border-radius:6px;opacity:0.15}
 </style>
 
 </head>
@@ -65,17 +190,22 @@ a.button{display:inline-block;padding:8px 12px;background:#56ab91;color:#071b17;
 
 <main>
   <article class="post">
-    <h2>RK3588 新板子部署手册（小白版）</h2>
-    <p class="muted">本文档旨在帮助工程师快速完成 RK3588 新板子的部署与验证，确保推理程序能够稳定运行并实现开机自启动。</p>
+    <h2>🚀 RK3588 NPU 部署完全指南</h2>
+    <p class="muted">从 PyTorch 模型到板端 100Hz 实时推理的完整流程，涵盖模型转换、板端部署、性能验证和生产环境配置。</p>
+
+    <div style="background: linear-gradient(135deg, rgba(127,240,199,0.08), rgba(19,211,176,0.08)); padding: 20px; border-radius: 12px; border-left: 4px solid #13d3b0; margin: 24px 0;">
+      <h3 style="margin-top: 0; color: #7ff0c7; font-size: 1.3rem;">💻 Part 1: PC 端 - Ubuntu 22.04 环境搭建与模型转换</h3>
+      <p style="margin-bottom: 0; color: #cbd6d1;">在 PC 上安装 RKNN Toolkit2，完成 PyTorch → ONNX → RKNN 模型转换</p>
+    </div>
 
     <h3>Ubuntu 22.04 装 RKNN Toolkit2 踩坑记录</h3>
-    <p class="muted">搞这玩意儿踩了不少坑，记一下重点。Ubuntu 22.04 上装这个有三个坑：</p>
+    <p class="muted">记一下重点。Ubuntu 22.04 上装这个有三个坑：</p>
     <ul>
       <li>必须 Python 3.8（系统自带 3.10 不行）</li>
       <li>必须虚拟环境（直接装系统 Python 会炸）</li>
       <li>包名是 <code>rknn_toolkit2</code> 带下划线，PyPI 上那个是假的</li>
     </ul>
-    <p>这三条哪个不对后面都会报错，别问我怎么知道的。</p>
+    <p>这三条哪个不对后面都会报错。</p>
 
     <h4>1. 装系统依赖</h4>
     <p>先把该装的基础包装上：</p>
@@ -97,14 +227,14 @@ cd ~/envs
 python3.8 -m venv rknn_env
 
 # 激活（命令行前面会出现 (rknn_env) ）
-source ~/envs/rknn_env/bin/activate</code></pre>
+source ~/envs/rknn_env/bin/activate
 
-    <p>检查一下有没有激活成功（这步很重要）：</p>
-    <pre><code class="language-bash">which python       # 应该是 ~/envs/rknn_env/bin/python
+# 检查一下
+which python       # 应该是 ~/envs/rknn_env/bin/python
 python --version   # 应该是 Python 3.8.x</code></pre>
-    <p style="color: #ff8787;">要是路径不对或者版本不是 3.8，别往下走了，重新激活。</p>
+    <p style="color: #ff8787;">路径不对或版本不是 3.8 就别往下走了。</p>
 
-    <p>顺便升级 pip：</p>
+    <p>升级 pip：</p>
     <pre><code class="language-bash">pip install --upgrade pip setuptools wheel</code></pre>
 
     <h4>3. 下载源码</h4>
@@ -114,7 +244,7 @@ cd rknn-toolkit2
 git checkout master</code></pre>
 
     <h4>4. 装包</h4>
-    <p>确认虚拟环境还在（echo $VIRTUAL_ENV 能看到路径就行），然后：</p>
+    <p>确认虚拟环境还在（echo $VIRTUAL_ENV 能看到路径就行）：</p>
     <pre><code class="language-bash"># 装依赖（注意是 cp38 那个）
 pip install -r packages/requirements_cp38.txt
 
@@ -123,19 +253,59 @@ pip install packages/rknn_toolkit2-*.whl</code></pre>
     <p style="color: #ffb84d;">别直接 pip install rknn-toolkit2，PyPI 那个不全。</p>
 
     <h4>5. 测试一下</h4>
-    <p>跑个简单的导入测试：</p>
     <pre><code class="language-bash">python - &lt;&lt; EOF
 from rknn.api import RKNN
 print("装好了")
 EOF</code></pre>
+    <p>能 print 出来就说明成功了。每次新开终端记得激活：<code>source ~/envs/rknn_env/bin/activate</code></p>
 
-    <p>能 print 出来就说明没问题了。</p>
+    <h4>6. 下载模型转换示例代码</h4>
+    <p>装好 RKNN Toolkit2 后，下载我的模型转换示例：</p>
+    
+    <div class="download-grid">
+      <a href="rknn_test.zip" download class="download-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        下载 rknn_test.zip
+      </a>
+    </div>
 
-    <p style="margin-top: 16px; color: #9fb0aa;">
-      <strong>提醒：</strong>每次新开终端要重新激活虚拟环境 <code>source ~/envs/rknn_env/bin/activate</code>
+    <p><strong>包里都有啥：</strong></p>
+    <ul>
+      <li><code>export_maddpg_actors_to_onnx.py</code> - PyTorch → ONNX 转换脚本</li>
+      <li><code>onnx_to_rknn_maddpg.py</code> - ONNX → RKNN 转换脚本（核心）</li>
+      <li><code>pc_make_torch_out.py</code> - 生成 PyTorch 参考输出（用于验证）</li>
+      <li><code>board_validate.py</code> - 板端验证脚本</li>
+      <li><code>agent_*_actor</code> - 训练好的 PyTorch 模型权重</li>
+      <li><code>actor_agent*.onnx</code> - 转换好的 ONNX 模型</li>
+      <li><code>actor_agent*.rknn</code> - 转换好的 RKNN 模型</li>
+      <li><code>networks.py / maddpg.py / agent.py</code> - 网络结构定义</li>
+    </ul>
+
+    <p><strong>怎么用：</strong></p>
+    <pre><code class="language-bash"># 1. 激活虚拟环境
+source ~/envs/rknn_env/bin/activate
+
+# 2. PyTorch 模型 → ONNX
+python export_maddpg_actors_to_onnx.py
+
+# 3. ONNX → RKNN（不量化，保证精度）
+python onnx_to_rknn_maddpg.py
+
+# 4. 生成参考输出（用于板端对比验证）
+python pc_make_torch_out.py</code></pre>
+
+    <p style="margin-top: 12px; color: #9fb0aa;">
+      <strong>重点：</strong>转换时设置 <code>do_quantization=False</code>，保证和 PyTorch 输出一致。
     </p>
 
     <hr style="border: none; border-top: 1px solid rgba(86,171,145,0.15); margin: 40px 0;">
+
+    <div style="background: linear-gradient(135deg, rgba(255,184,77,0.08), rgba(255,144,77,0.08)); padding: 20px; border-radius: 12px; border-left: 4px solid #ffb84d; margin: 24px 0;">
+      <h3 style="margin-top: 0; color: #ffb84d; font-size: 1.3rem;">🎯 Part 2: 板端 - RK3588 部署与验证</h3>
+      <p style="margin-bottom: 0; color: #cbd6d1;">在 RK3588 开发板上部署 C 程序，实现 100Hz 实时推理和系统服务</p>
+    </div>
 
     <h3>0. 你要达到的最终状态</h3>
     <ul>
@@ -150,11 +320,11 @@ EOF</code></pre>
 
     <h3>1. 新板子基础配置</h3>
     <h4>1.1 登录板子并确认架构</h4>
-    <pre><code>uname -m</code></pre>
+    <pre><code class="language-bash">uname -m</code></pre>
     <p>应输出 <code>aarch64</code>（RK3588 是 ARM64）。</p>
 
     <h4>1.2 更新系统 + 安装编译工具</h4>
-    <pre><code>sudo apt update
+    <pre><code class="language-bash">sudo apt update
 sudo apt upgrade -y
 sudo apt install -y build-essential cmake git pkg-config</code></pre>
 
@@ -162,413 +332,99 @@ sudo apt install -y build-essential cmake git pkg-config</code></pre>
     <p>重点：apt 装不到，必须来自 rknpu2 SDK（或厂商 SDK）。</p>
 
     <h4>2.1 找到你的 rknpu2 SDK 目录</h4>
-    <p>你之前板子上常见路径是：</p>
-    <pre><code>ls /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/</code></pre>
-    <p>你应该能看到类似：</p>
+    <p>板子上常见路径：</p>
+    <pre><code class="language-bash">ls /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/</code></pre>
+    <p>应该能看到：</p>
     <pre><code>librknnrt.so / librknnrt.so.1
 librknn_api/include/rknn_api.h</code></pre>
 
     <h4>2.2 安装到系统目录（推荐，最稳）</h4>
     <p>假设你的路径就是 Khadas 那套：</p>
-    <pre><code>sudo cp /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknnrt.so* /usr/lib/
+    <pre><code class="language-bash">sudo cp /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknnrt.so* /usr/lib/
 sudo ldconfig</code></pre>
     <p>验证：</p>
-    <pre><code>ldconfig -p | grep rknn</code></pre>
+    <pre><code class="language-bash">ldconfig -p | grep rknn</code></pre>
     <p>应该能看到 <code>librknnrt.so</code>。</p>
 
-    <h3>3. 建一个项目目录（规范化）</h3>
-    <pre><code>mkdir -p ~/rknn_deploy_demo
+    <h3>3. 建项目目录</h3>
+    <pre><code class="language-bash">mkdir -p ~/rknn_deploy_demo
 cd ~/rknn_deploy_demo</code></pre>
-    <p>你之后把你的 <code>.rknn</code> / <code>obs.bin</code> / <code>torch_out.bin</code> 放这里即可。</p>
+    <p>把你的 <code>.rknn</code> / <code>obs.bin</code> / <code>torch_out.bin</code> 放这里。</p>
 
-    <h3>4. 推理验证程序（verify_rknn.c）</h3>
-    <p>功能覆盖：</p>
+    <h3>4. 下载完整示例代码</h3>
+    <p>环境配好了，现在下载我打包好的完整代码：</p>
+    
+    <div class="download-grid">
+      <a href="rknn_c.zip" download class="download-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        下载 rknn_c.zip
+      </a>
+    </div>
+
+    <h4>4.1 包里都有啥</h4>
+    <p><strong>核心 C 程序：</strong></p>
     <ul>
-      <li>输入/输出维度属性 query（防止写死维度导致“假卡死”）。</li>
-      <li>一次推理 sanity check。</li>
-      <li>数值一致性（对比 torch_out.bin）。</li>
-      <li>极值输入测试（全 0、全 1、很大、NaN 保护）。</li>
-      <li>性能统计（平均耗时、FPS）。</li>
-      <li>长时间稳定性（循环跑 N 次检查返回值）。</li>
+      <li><code>npu_daemon.c</code> - 100Hz 推理守护进程，后台常驻运行</li>
+      <li><code>rknn_validate.c</code> - 验证工具，测试数值一致性和性能</li>
+      <li><code>main.c</code> - 简单的推理示例（可忽略）</li>
     </ul>
 
-    <h4>4.1 代码：verify_rknn.c</h4>
-    <p>把下面内容保存为 <code>verify_rknn.c</code>：</p>
-    <pre><code class="language-c">#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-#include &lt;math.h&gt;
-#include &lt;time.h&gt;
-#include "rknn_api.h"
-
-#define MAX_DIM 4
-#define MAX_SHAPE 32
-#define MAX_BUFFER_SIZE (1 &lt;&lt; 20) // 1MB
-
-void print_usage(char **argv)
-{
-    printf("Usage: %s &lt;rknn_model&gt; &lt;input_data&gt; &lt;expected_output&gt; &lt;repeat_times&gt;\n", argv[0]);
-    printf("  &lt;rknn_model&gt;      RKNN model file\n");
-    printf("  &lt;input_data&gt;      Input data file (binary)\n");
-    printf("  &lt;expected_output&gt; Expected output file (binary)\n");
-    printf("  &lt;repeat_times&gt;    Number of times to repeat inference (for stability test)\n");
-}
-
-int main(int argc, char **argv)
-{
-    if (argc != 4 &amp;&amp; argc != 5)
-    {
-        print_usage(argv);
-        return -1;
-    }
-
-    const char *model_path = argv[1];
-    const char *input_path = argv[2];
-    const char *output_path = argv[3];
-    int repeat_times = (argc == 5) ? atoi(argv[4]) : 1;
-
-    rknn_context ctx;
-    rknn_model rknn_model;
-    rknn_input inputs[MAX_DIM];
-    rknn_output outputs[MAX_DIM];
-    void *input_data = NULL;
-    void *output_data = NULL;
-    int i, j, ret;
-
-    // 1. Load RKNN model
-    ret = rknn_load_model(&amp;ctx, model_path);
-    if (ret != 0)
-    {
-        printf("Failed to load RKNN model: %d\n", ret);
-        return -1;
-    }
-
-    // 2. Query model info
-    rknn_model_info info;
-    ret = rknn_query(ctx, RKNN_QUERY_MODEL_INFO, &amp;info, sizeof(info));
-    if (ret != 0)
-    {
-        printf("Failed to query model info: %d\n", ret);
-        rknn_destroy_ctx(ctx);
-        return -1;
-    }
-
-    printf("Model info:\n");
-    printf("  - Input num: %d\n", info.n_input);
-    printf("  - Output num: %d\n", info.n_output);
-    printf("  - Model size: %d bytes\n", info.model_size);
-
-    // 3. Allocate memory for input/output
-    for (i = 0; i &lt; info.n_input; i++)
-    {
-        inputs[i].index = i;
-        inputs[i].buf = NULL;
-        inputs[i].size = 0;
-        inputs[i].pass_through = 0;
-    }
-
-    for (i = 0; i &lt; info.n_output; i++)
-    {
-        outputs[i].index = i;
-        outputs[i].buf = NULL;
-        outputs[i].size = 0;
-        outputs[i].want_float = 1;
-    }
-
-    // 4. Load input data
-    FILE *fp = fopen(input_path, "rb");
-    if (!fp)
-    {
-        printf("Failed to open input data file: %s\n", input_path);
-        goto cleanup;
-    }
-
-    fseek(fp, 0, SEEK_END);
-    long input_size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    inputs[0].size = input_size;
-    inputs[0].buf = malloc(input_size);
-    if (!inputs[0].buf)
-    {
-        printf("Failed to allocate memory for input data\n");
-        fclose(fp);
-        goto cleanup;
-    }
-
-    fread(inputs[0].buf, 1, input_size, fp);
-    fclose(fp);
-
-    // 5. Allocate output memory
-    for (i = 0; i &lt; info.n_output; i++)
-    {
-        outputs[i].size = MAX_BUFFER_SIZE;
-        outputs[i].buf = malloc(MAX_BUFFER_SIZE);
-        if (!outputs[i].buf)
-        {
-            printf("Failed to allocate memory for output data\n");
-            goto cleanup;
-        }
-    }
-
-    // 6. Run inference
-    for (i = 0; i &lt; repeat_times; i++)
-    {
-        ret = rknn_run(ctx, NULL);
-        if (ret != 0)
-        {
-            printf("Failed to run inference: %d\n", ret);
-            goto cleanup;
-        }
-
-        // 7. Get output data
-        for (j = 0; j &lt; info.n_output; j++)
-        {
-            ret = rknn_outputs_get(ctx, info.n_output, outputs, NULL);
-            if (ret != 0)
-            {
-                printf("Failed to get output data: %d\n", ret);
-                goto cleanup;
-            }
-
-            // 8. Compare with expected output
-            if (i == 0)
-            {
-                // First iteration, just save the output
-                char output_file[256];
-                snprintf(output_file, sizeof(output_file), "output_%d.bin", j);
-                FILE *fpo = fopen(output_file, "wb");
-                if (fpo)
-                {
-                    fwrite(outputs[j].buf, 1, outputs[j].size, fpo);
-                    fclose(fpo);
-                    printf("Output %d saved to %s\n", j, output_file);
-                }
-            }
-            else
-            {
-                // Subsequent iterations, compare with torch output
-                // TODO: Add your comparison code here
-            }
-        }
-    }
-
-    // 9. Success
-    printf("Inference completed successfully\n");
-
-cleanup:
-    for (i = 0; i &lt; info.n_input; i++)
-    {
-        if (inputs[i].buf)
-            free(inputs[i].buf);
-    }
-
-    for (i = 0; i &lt; info.n_output; i++)
-    {
-        if (outputs[i].buf)
-            free(outputs[i].buf);
-    }
-
-    rknn_unload_model(ctx);
-    rknn_destroy_ctx(ctx);
-
-    return 0;
-}</code></pre>
-
-    <h4>4.2 编译 verify_rknn</h4>
-    <pre><code>gcc verify_rknn.c -o verify_rknn -lrknnrt -lm</code></pre>
-    <p>运行方式（示例）：</p>
-    <pre><code>./verify_rknn actor_agent0.rknn obs_actor_0.bin torch_out_actor_0.bin 200</code></pre>
-
-    <h3>5. 常驻部署程序（actor_daemon.c）</h3>
-    <p>你需要一个“真实可用”的输入输出方式来对接系统。最简单、最通用的是 FIFO 命名管道。</p>
-
-    <h4>5.1 代码：actor_daemon.c</h4>
-    <p>保存为 <code>actor_daemon.c</code>：</p>
-    <pre><code class="language-c">#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-#include &lt;unistd.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;sys/stat.h&gt;
-#include "rknn_api.h"
-
-#define FIFO_OBS "/tmp/obs.fifo"
-#define FIFO_ACTION "/tmp/action.fifo"
-
-void fatal(const char *msg)
-{
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
-
-int main(int argc, char **argv)
-{
-    if (argc != 2)
-    {
-        fprintf(stderr, "Usage: %s &lt;rknn_model&gt;\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    const char *model_path = argv[1];
-    rknn_context ctx;
-    rknn_model rknn_model;
-    rknn_input inputs[1];
-    rknn_output outputs[1];
-    void *input_data = NULL;
-    void *output_data = NULL;
-    int ret;
-
-    // 1. Load RKNN model
-    ret = rknn_load_model(&amp;ctx, model_path);
-    if (ret != 0)
-    {
-        printf("Failed to load RKNN model: %d\n", ret);
-        return EXIT_FAILURE;
-    }
-
-    // 2. Query model info
-    rknn_model_info info;
-    ret = rknn_query(ctx, RKNN_QUERY_MODEL_INFO, &amp;info, sizeof(info));
-    if (ret != 0)
-    {
-        printf("Failed to query model info: %d\n", ret);
-        rknn_destroy_ctx(ctx);
-        return EXIT_FAILURE;
-    }
-
-    printf("Model info:\n");
-    printf("  - Input num: %d\n", info.n_input);
-    printf("  - Output num: %d\n", info.n_output);
-    printf("  - Model size: %d bytes\n", info.model_size);
-
-    // 3. Allocate memory for input/output
-    inputs[0].index = 0;
-    inputs[0].buf = NULL;
-    inputs[0].size = 0;
-    inputs[0].pass_through = 0;
-
-    outputs[0].index = 0;
-    outputs[0].buf = NULL;
-    outputs[0].size = 0;
-    outputs[0].want_float = 1;
-
-    // 4. Create FIFO for obs
-    if (mkfifo(FIFO_OBS, 0666) &lt; 0)
-    {
-        fatal("mkfifo obs.fifo");
-    }
-
-    // 5. Create FIFO for action
-    if (mkfifo(FIFO_ACTION, 0666) &lt; 0)
-    {
-        fatal("mkfifo action.fifo");
-    }
-
-    // 6. Open FIFO for obs (blocking)
-    int fd_obs = open(FIFO_OBS, O_RDONLY);
-    if (fd_obs &lt; 0)
-    {
-        fatal("open obs.fifo");
-    }
-
-    // 7. Open FIFO for action (non-blocking)
-    int fd_action = open(FIFO_ACTION, O_WRONLY | O_NONBLOCK);
-    if (fd_action &lt; 0)
-    {
-        fatal("open action.fifo");
-    }
-
-    // 8. Run inference
-    while (1)
-    {
-        // 9. Read obs from FIFO
-        ssize_t ret = read(fd_obs, input_data, inputs[0].size);
-        if (ret &lt; 0)
-        {
-            perror("read obs.fifo");
-            continue;
-        }
-
-        // 10. Set input data
-        inputs[0].buf = input_data;
-
-        // 11. Run inference
-        ret = rknn_run(ctx, NULL);
-        if (ret != 0)
-        {
-            printf("Failed to run inference: %d\n", ret);
-            continue;
-        }
-
-        // 12. Get output data
-        ret = rknn_outputs_get(ctx, 1, outputs, NULL);
-        if (ret != 0)
-        {
-            printf("Failed to get output data: %d\n", ret);
-            continue;
-        }
-
-        // 13. Write action to FIFO
-        ret = write(fd_action, outputs[0].buf, outputs[0].size);
-        if (ret &lt; 0)
-        {
-            perror("write action.fifo");
-        }
-    }
-
-    // 14. Cleanup
-    close(fd_obs);
-    close(fd_action);
-    rknn_unload_model(ctx);
-    rknn_destroy_ctx(ctx);
-
-    return 0;
-}</code></pre>
-
-    <h4>5.2 编译 actor_daemon</h4>
-    <pre><code>gcc actor_daemon.c -o actor_daemon -lrknnrt -lm</code></pre>
-
-    <h3>6. systemd 自启动 + 崩溃自动重启</h3>
-    <h4>6.1 写 service 文件</h4>
-    <pre><code>[Unit]
-Description=RL Actor Daemon (RK3588)
-After=network.target
-
-[Service]
-Type=simple
-User=khadas
-WorkingDirectory=/home/khadas/rknn_deploy_demo
-ExecStart=/home/khadas/rknn_deploy_demo/actor_daemon /home/khadas/rknn_deploy_demo/actor_agent0.rknn
-Restart=always
-RestartSec=1
-
-[Install]
-WantedBy=multi-user.target</code></pre>
-
-    <h4>6.2 启动并设置开机自启</h4>
-    <pre><code>sudo systemctl daemon-reload
-sudo systemctl enable actor.service
-sudo systemctl start actor.service</code></pre>
-
-    <h3>7. 你交付给对接工程师的“接口约定”</h3>
-    <p>你需要他们做的就是：</p>
+    <p><strong>编译和部署脚本：</strong></p>
     <ul>
-      <li>往 <code>/tmp/obs.fifo</code> 写 <code>OBS_DIM</code> 个 float32（一次一帧）。</li>
-      <li>从 <code>/tmp/action.fifo</code> 读 <code>ACT_DIM</code> 个 float32（一次一帧）。</li>
+      <li><code>compile_daemon.sh</code> - 编译守护进程</li>
+      <li><code>compile_validate.sh</code> - 编译验证工具</li>
+      <li><code>deploy_npu_system.sh</code> - 一键部署脚本（推荐）</li>
+      <li><code>install_daemon.sh</code> - 安装 systemd 服务</li>
+      <li><code>test_daemon.sh</code> - 测试守护进程</li>
     </ul>
 
-    <h3>8. 常见问题</h3>
-    <h4>8.1 “程序卡住/不输出”</h4>
-    <p>99% 是：<code>rknn_outputs_get</code> 阻塞或 stdout 缓冲。</p>
+    <p><strong>systemd 配置：</strong></p>
+    <ul>
+      <li><code>rk3588-npu-daemon.service</code> - systemd 服务配置文件，设置自启动和崩溃重启</li>
+    </ul>
 
-    <h4>8.2 “找不到 librknnrt.so”</h4>
-    <p>说明你没做 2.2 的安装，或 systemd 没拿到 <code>LD_LIBRARY_PATH</code>。</p>
+    <p><strong>测试数据：</strong></p>
+    <ul>
+      <li><code>actor_agent*.rknn</code> - 四个智能体的 RKNN 模型</li>
+      <li><code>obs_actor_*.bin</code> - PyTorch 测试输入（26 维 float32）</li>
+      <li><code>torch_out_actor_*.bin</code> - PyTorch 参考输出（2 维 float32）</li>
+    </ul>
+
+    <p><strong>文档：</strong></p>
+    <ul>
+      <li><code>SYSTEM_OVERVIEW.md</code> - 完整的系统架构说明</li>
+      <li><code>使用文档.txt</code> - 快速上手指令</li>
+    </ul>
+
+    <h4>4.2 怎么用</h4>
+    <p><strong>快速部署（推荐）：</strong></p>
+    <pre><code class="language-bash"># 解压后进入目录
+cd rknn_c
+
+# 一键部署（编译+安装+启动）
+chmod +x *.sh
+sudo ./deploy_npu_system.sh
+
+# 查看运行状态
+sudo systemctl status rk3588-npu-daemon</code></pre>
+
+    <p><strong>分步测试：</strong></p>
+    <pre><code class="language-bash"># 1. 编译验证工具
+./compile_validate.sh
+
+# 2. 验证模型（确保数值和 PyTorch 一致）
+./validate_rknn actor_agent0.rknn obs_actor_0.bin torch_out_actor_0.bin
+
+# 3. 测试守护进程（不安装服务）
+./test_daemon.sh</code></pre>
+
+  
   </article>
 </main>
 
-<footer style="text-align:center;padding:20px;color:#9aa3a9">© 强化学习笔记</footer>
+<footer style="text-align:center;padding:20px;color:#9aa3a9">© 2025 强化学习笔记</footer>
 
 </body>
 </html>
-\

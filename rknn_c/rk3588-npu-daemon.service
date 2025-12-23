@@ -1,0 +1,44 @@
+[Unit]
+Description=RK3588 NPU Inference Daemon
+Documentation=https://github.com/rockchip-linux
+After=network.target
+Wants=network.target
+
+[Service]
+Type=forking
+User=root
+Group=root
+WorkingDirectory=/home/khadas/rknn_c
+ExecStart=/usr/local/bin/rk3588-npu-daemon
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+PIDFile=/var/run/rk3588-npu-daemon.pid
+
+# 资源限制
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# 重启策略
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# 环境变量
+Environment=LD_LIBRARY_PATH=/home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknn_api/lib
+
+# 安全设置
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/khadas/rknn_c
+PrivateTmp=yes
+
+# 日志记录
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rk3588-npu-daemon
+
+[Install]
+WantedBy=multi-user.target
+Alias=rk3588-npu-daemon.service]]

@@ -1,0 +1,104 @@
+import os
+import numpy as np
+import torch
+import torch.nn as nn
+from collections import defaultdict
+
+# =========================
+# actor 权重路径
+# =========================
+ACTOR_PATHS = {
+    0: "./agent_0_actor",
+    1: "./agent_1_actor",
+    2: "./agent_2_actor",
+    3: "./agent_3_actor",
+}
+
+ACT_DIM = 2
+OUT_DIR = "./pc_out"
+os.makedirs(OUT_DIR, exist_ok=True)
+
+# ===== Actor 网络结构 =====
+class Actor(nn.Module):
+    def __init__(self, obs_dim, act_dim, hidden=128):
+        super().__init__()
+        self.fc1 = nn.Linear(obs_dim, hidden)
+        self.fc2 = nn.Linear(hidden, hidden)
+        self.pi  = nn.Linear(hidden, act_dim)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.relu(self.fc1(x))
+        x = self.relu(self.fc2(x))
+        x = self.pi(x)
+        return x
+
+def infer_obs_dim_from_state_dict(sd: dict) -> int:
+    if "fc1.weight" not in sd:
+        raise KeyError("state_dict 里找不到 fc1.weight，网络结构不匹配")
+    return sd["fc1.weight"].shape[1]
+
+def load_actor(actor_path: str):
+    sd = torch.load(actor_path, map_location="cpu")
+    obs_dim = infer_obs_dim_from_state_dict(sd)
+    actor = Actor(obs_dim, ACT_DIM)
+    actor.load_state_dict(sd)
+    actor.eval()
+    return actor, obs_dim
+
+def main():
+    print("========== PC heterogeneous multi-actor export ==========")
+
+    # 1️⃣ 加载 actor
+    actors = {}
+    obs_dim_to_actors = defaultdict(list)
+
+    for i, path in ACTOR_PATHS.items():
+        actor, obs_dim = load_actor(path)
+        actors[i] = {
+            "model": actor,
+            "obs_dim": obs_dim,
+        }
+        obs_dim_to_actors[obs_dim].append(i)
+        print(f"[PC] Loaded actor_{i} | obs_dim = {obs_dim}")
+
+    print("[PC] Actor groups by obs_dim:", dict(obs_dim_to_actors))
+
+    # 2️⃣ 为每一种 obs_dim 生成一份固定 obs
+    np.random.seed(0)
+    obs_cache = {}
+
+    for obs_dim in obs_dim_to_actors:
+        obs = np.random.rand(1, obs_dim).astype(np.float32)
+        obs_cache[obs_dim] = obs
+
+        obs_path = os.path.join(OUT_DIR, f"obs_dim_{obs_dim}.npy")
+        np.save(obs_path, obs)
+        print(f"[PC] Saved shared obs for obs_dim={obs_dim}: {obs_path}")
+
+    # 3️⃣ 每个 actor 推理并保存结果
+    with torch.no_grad():
+        for i, info in actors.items():
+            actor = info["model"]
+            obs_dim = info["obs_dim"]
+            obs = obs_cache[obs_dim]
+
+            obs_t = torch.from_numpy(obs)
+            out = actor(obs_t).cpu().numpy().astype(np.float32)
+
+            obs_out_path = os.path.join(OUT_DIR, f"obs_actor_{i}.npy")
+            out_path = os.path.join(OUT_DIR, f"torch_out_actor_{i}.npy")
+
+            np.save(obs_out_path, obs)
+            np.save(out_path, out)
+
+            print(f"[PC] actor_{i}:")
+            print(f"     obs_dim = {obs_dim}")
+            print(f"     torch_out = {out}")
+            print(f"     saved obs  -> {obs_out_path}")
+            print(f"     saved out  -> {out_path}")
+
+    print("========== DONE ==========")
+
+if __name__ == "__main__":
+    main()

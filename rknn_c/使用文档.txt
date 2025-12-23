@@ -1,0 +1,35 @@
+给验证脚本执行权限
+chmod +x compile_validate.sh
+
+
+编译推理验证程序
+./compile_validate.sh
+
+
+对每个 RKNN 模型做数值一致性验证
+./validate_rknn actor_agent0.rknn obs_actor_0.bin torch_out_actor_0.bin
+./validate_rknn actor_agent1.rknn obs_actor_1.bin torch_out_actor_1.bin
+./validate_rknn actor_agent2.rknn obs_actor_2.bin torch_out_actor_2.bin
+./validate_rknn actor_agent3.rknn obs_actor_3.bin torch_out_actor_3.bin
+
+
+# 设置环境变量并后台启动
+export LD_LIBRARY_PATH=/home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknn_api/lib:$LD_LIBRARY_PATH
+nohup ./rk3588-npu-daemon > npu.log 2>&1 &
+
+
+# 2. 查看实时输出
+tail -f /var/log/syslog | grep rk3588_npu_daemon
+
+
+检查是否为开机自启动
+systemctl is-enabled rk3588-npu-daemon
+
+
+# 检查进程状态
+ps aux | grep rk3588-npu-daemon | grep -v grep
+
+
+强制杀死
+pkill -f rk3588-npu-daemon
+
