@@ -1,2 +1,4 @@
-.idea/
-.venv/
+rknpu2-master/
+*.zip
+assets/*.whl
+rknpu2-master.zip

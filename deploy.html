@@ -340,16 +340,54 @@ sudo apt install -y build-essential cmake git pkg-config</code></pre>
     <p>重点：apt 装不到，必须来自 rknpu2 SDK（或厂商 SDK）。</p>
 
     <h4>2.1 找到你的 rknpu2 SDK 目录</h4>
-    <p>板子上常见路径：</p>
-    <pre><code class="language-bash">ls /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/</code></pre>
+    <p><strong>选项 1：懒得在官网下？用我打包好的：</strong></p>
+    
+    <div class="download-grid">
+      <a href="rknpu2-master.zip" download class="download-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        下载 rknpu2-master.zip
+      </a>
+    </div>
+
+    <p>解压后用这个路径（<strong>aarch64 版本</strong>）：</p>
+    <pre><code class="language-bash"># 解压到板子上
+unzip rknpu2-master.zip
+cd rknpu2-master
+
+# 查看文件
+ls runtime/RK3588/Linux/librknn_api/aarch64/</code></pre>
+
+    <p><strong>选项 2：板子上已有的 SDK（路径因人而异）：</strong></p>
+    <p>先找到你板子上的 librknnrt.so 在哪：</p>
+    <pre><code class="language-bash"># 查找 librknnrt.so 的位置
+sudo find / -name "librknnrt.so" 2>/dev/null
+
+# 或者用 locate（更快，但可能需要先 updatedb）
+sudo updatedb
+locate librknnrt.so</code></pre>
+
+    <p>找到后记下路径，常见路径示例：</p>
+    <pre><code class="language-bash"># Khadas 板子常见路径
+ls /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/
+
+# 或者其他厂商路径
+ls /opt/rknpu2/runtime/RK3588/Linux/</code></pre>
     <p>应该能看到：</p>
     <pre><code>librknnrt.so / librknnrt.so.1
 librknn_api/include/rknn_api.h</code></pre>
 
     <h4>2.2 安装到系统目录（推荐，最稳）</h4>
-    <p>假设你的路径就是 Khadas 那套：</p>
-    <pre><code class="language-bash">sudo cp /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknnrt.so* /usr/lib/
+    <p><strong>如果用我的压缩包（aarch64）：</strong></p>
+    <pre><code class="language-bash">sudo cp rknpu2-master/runtime/RK3588/Linux/librknn_api/aarch64/librknnrt.so* /usr/lib/
 sudo ldconfig</code></pre>
+
+    <p><strong>如果用板子自带的（路径根据你实际情况改）：</strong></p>
+    <pre><code class="language-bash"># 示例：Khadas 路径
+sudo cp /home/khadas/khadas/rknpu2/runtime/RK3588/Linux/librknnrt.so* /usr/lib/
+sudo ldconfig</code></pre>
+
     <p>验证：</p>
     <pre><code class="language-bash">ldconfig -p | grep rknn</code></pre>
     <p>应该能看到 <code>librknnrt.so</code>。</p>
