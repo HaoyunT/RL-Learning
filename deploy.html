@@ -190,11 +190,11 @@ hr{
 
 <main>
   <article class="post">
-    <h2>🚀 RK3588 NPU 部署完全指南</h2>
+    <h2> RK3588 NPU 部署完全指南</h2>
     <p class="muted">从 PyTorch 模型到板端 100Hz 实时推理的完整流程，涵盖模型转换、板端部署、性能验证和生产环境配置。</p>
 
     <div style="background: linear-gradient(135deg, rgba(127,240,199,0.08), rgba(19,211,176,0.08)); padding: 20px; border-radius: 12px; border-left: 4px solid #13d3b0; margin: 24px 0;">
-      <h3 style="margin-top: 0; color: #7ff0c7; font-size: 1.3rem;">💻 Part 1: PC 端 - Ubuntu 22.04 环境搭建与模型转换</h3>
+      <h3 style="margin-top: 0; color: #7ff0c7; font-size: 1.3rem;"> Part 1: PC 端 - Ubuntu 22.04 环境搭建与模型转换</h3>
       <p style="margin-bottom: 0; color: #cbd6d1;">在 PC 上安装 RKNN Toolkit2，完成 PyTorch → ONNX → RKNN 模型转换</p>
     </div>
 
@@ -252,14 +252,22 @@ pip install -r packages/requirements_cp38.txt
 pip install packages/rknn_toolkit2-*.whl</code></pre>
     <p style="color: #ffb84d;">别直接 pip install rknn-toolkit2，PyPI 那个不全。</p>
 
-    <h4>5. 测试一下</h4>
+    <h4>5. 装模型转换所需的库</h4>
+    <p>只装转换需要的：</p>
+    <pre><code class="language-bash"># PyTorch（加载模型和导出 ONNX 用，CPU 版本就够了）
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# ONNX（转换中间格式）
+pip install onnx</code></pre>
+
+    <h4>6. 测试一下</h4>
     <pre><code class="language-bash">python - &lt;&lt; EOF
 from rknn.api import RKNN
 print("装好了")
 EOF</code></pre>
     <p>能 print 出来就说明成功了。每次新开终端记得激活：<code>source ~/envs/rknn_env/bin/activate</code></p>
 
-    <h4>6. 下载模型转换示例代码</h4>
+    <h4>7. 下载模型转换示例代码</h4>
     <p>装好 RKNN Toolkit2 后，下载我的模型转换示例：</p>
     
     <div class="download-grid">
@@ -303,7 +311,7 @@ python pc_make_torch_out.py</code></pre>
     <hr style="border: none; border-top: 1px solid rgba(86,171,145,0.15); margin: 40px 0;">
 
     <div style="background: linear-gradient(135deg, rgba(255,184,77,0.08), rgba(255,144,77,0.08)); padding: 20px; border-radius: 12px; border-left: 4px solid #ffb84d; margin: 24px 0;">
-      <h3 style="margin-top: 0; color: #ffb84d; font-size: 1.3rem;">🎯 Part 2: 板端 - RK3588 部署与验证</h3>
+      <h3 style="margin-top: 0; color: #ffb84d; font-size: 1.3rem;"> Part 2: 板端 - RK3588 部署与验证</h3>
       <p style="margin-bottom: 0; color: #cbd6d1;">在 RK3588 开发板上部署 C 程序，实现 100Hz 实时推理和系统服务</p>
     </div>
 
