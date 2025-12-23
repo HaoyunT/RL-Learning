@@ -68,6 +68,75 @@ a.button{display:inline-block;padding:8px 12px;background:#56ab91;color:#071b17;
     <h2>RK3588 新板子部署手册（小白版）</h2>
     <p class="muted">本文档旨在帮助工程师快速完成 RK3588 新板子的部署与验证，确保推理程序能够稳定运行并实现开机自启动。</p>
 
+    <h3>Ubuntu 22.04 装 RKNN Toolkit2 踩坑记录</h3>
+    <p class="muted">搞这玩意儿踩了不少坑，记一下重点。Ubuntu 22.04 上装这个有三个坑：</p>
+    <ul>
+      <li>必须 Python 3.8（系统自带 3.10 不行）</li>
+      <li>必须虚拟环境（直接装系统 Python 会炸）</li>
+      <li>包名是 <code>rknn_toolkit2</code> 带下划线，PyPI 上那个是假的</li>
+    </ul>
+    <p>这三条哪个不对后面都会报错，别问我怎么知道的。</p>
+
+    <h4>1. 装系统依赖</h4>
+    <p>先把该装的基础包装上：</p>
+    <pre><code class="language-bash">sudo apt update
+sudo apt install -y \
+    build-essential cmake git wget unzip \
+    libglib2.0-0 libsm6 libxrender1 libxext6</code></pre>
+
+    <p>装 Python 3.8（22.04 不自带）：</p>
+    <pre><code class="language-bash">sudo apt install -y python3.8 python3.8-dev python3.8-venv
+
+# 确认一下版本
+python3.8 --version</code></pre>
+
+    <h4>2. 搞虚拟环境</h4>
+    <p>建个虚拟环境，别污染系统 Python：</p>
+    <pre><code class="language-bash">mkdir -p ~/envs
+cd ~/envs
+python3.8 -m venv rknn_env
+
+# 激活（命令行前面会出现 (rknn_env) ）
+source ~/envs/rknn_env/bin/activate</code></pre>
+
+    <p>检查一下有没有激活成功（这步很重要）：</p>
+    <pre><code class="language-bash">which python       # 应该是 ~/envs/rknn_env/bin/python
+python --version   # 应该是 Python 3.8.x</code></pre>
+    <p style="color: #ff8787;">要是路径不对或者版本不是 3.8，别往下走了，重新激活。</p>
+
+    <p>顺便升级 pip：</p>
+    <pre><code class="language-bash">pip install --upgrade pip setuptools wheel</code></pre>
+
+    <h4>3. 下载源码</h4>
+    <pre><code class="language-bash">cd ~
+git clone https://github.com/rockchip-linux/rknn-toolkit2.git
+cd rknn-toolkit2
+git checkout master</code></pre>
+
+    <h4>4. 装包</h4>
+    <p>确认虚拟环境还在（echo $VIRTUAL_ENV 能看到路径就行），然后：</p>
+    <pre><code class="language-bash"># 装依赖（注意是 cp38 那个）
+pip install -r packages/requirements_cp38.txt
+
+# 装主程序
+pip install packages/rknn_toolkit2-*.whl</code></pre>
+    <p style="color: #ffb84d;">别直接 pip install rknn-toolkit2，PyPI 那个不全。</p>
+
+    <h4>5. 测试一下</h4>
+    <p>跑个简单的导入测试：</p>
+    <pre><code class="language-bash">python - &lt;&lt; EOF
+from rknn.api import RKNN
+print("装好了")
+EOF</code></pre>
+
+    <p>能 print 出来就说明没问题了。</p>
+
+    <p style="margin-top: 16px; color: #9fb0aa;">
+      <strong>提醒：</strong>每次新开终端要重新激活虚拟环境 <code>source ~/envs/rknn_env/bin/activate</code>
+    </p>
+
+    <hr style="border: none; border-top: 1px solid rgba(86,171,145,0.15); margin: 40px 0;">
+
     <h3>0. 你要达到的最终状态</h3>
     <ul>
       <li>在 RK3588 上能运行：<code>./verify_rknn</code>（推理验证工具）和 <code>./actor_daemon</code>（常驻部署程序）。</li>
@@ -502,3 +571,4 @@ sudo systemctl start actor.service</code></pre>
 
 </body>
 </html>
+\

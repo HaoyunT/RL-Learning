@@ -397,6 +397,7 @@ footer span {
       <li><a href="home.html">基础理论</a></li>
       <li><a href="advanced.html">进阶算法</a></li>
       <li><a href="MARL.html" class="active">多智能体学习</a></li>
+      <li><a href="deploy.html">工程实践与部署</a></li>
       <li><a href="papers.html">论文研读</a></li>
     </ul>
   </nav>
@@ -827,13 +828,6 @@ rknn.config(target_platform="rk3588")
 rknn.build(do_quantization=False)
 rknn.export_rknn('policy.rknn')</code></pre>
         <p><strong>步骤 4: 板端运行</strong> -> 上传 <code>policy.rknn</code> 和推理脚本。</p>
-
-        <h4>6. RKNN 速查表</h4>
-        <pre><code class="language-python">conda activate rknn
-rknn.load_onnx('model.onnx')
-rknn.config(target_platform="rk3588")
-rknn.build(do_quantization=True)
-rknn.export_rknn('model.rknn')</code></pre>
       </section>
     </section>
   </main>
